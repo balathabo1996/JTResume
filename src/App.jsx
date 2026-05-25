@@ -27,7 +27,8 @@ const emptyResumeState = {
   education: [],
   skills: [],
   certifications: [],
-  references: []
+  references: [],
+  customSections: []
 };
 
 export default function App() {
@@ -188,6 +189,10 @@ export default function App() {
     setFormData(prev => ({ ...prev, references: updatedList }));
   };
 
+  const updateCustomSections = (updatedList) => {
+    setFormData(prev => ({ ...prev, customSections: updatedList }));
+  };
+
   const handleResetToMock = () => {
     setFormData(mockResumeData);
     setActiveSection('personal');
@@ -303,9 +308,18 @@ export default function App() {
             Welcome to JTResume!
           </div>
           <ul className="list-unstyled mb-3 d-flex flex-column gap-1 welcome-list">
-            <li className="d-flex align-items-start gap-2"><span style={{ color: '#6366f1', marginTop: '1px' }}>▸</span> Type in fields or click <strong>Upload Resume</strong> to import your profile.</li>
-            <li className="d-flex align-items-start gap-2"><span style={{ color: '#6366f1', marginTop: '1px' }}>▸</span> Pick a template, color & font for a pro look.</li>
-            <li className="d-flex align-items-start gap-2"><span style={{ color: '#6366f1', marginTop: '1px' }}>▸</span> Export ATS-optimized PDFs in one click.</li>
+            <li className="d-flex align-items-start gap-2">
+              <span style={{ color: '#6366f1', marginTop: '1px', flexShrink: 0 }}>▸</span> 
+              <span>Type in fields or click <strong>Upload Resume</strong> to import your profile.</span>
+            </li>
+            <li className="d-flex align-items-start gap-2">
+              <span style={{ color: '#6366f1', marginTop: '1px', flexShrink: 0 }}>▸</span> 
+              <span>Pick a template, color & font for a pro look.</span>
+            </li>
+            <li className="d-flex align-items-start gap-2">
+              <span style={{ color: '#6366f1', marginTop: '1px', flexShrink: 0 }}>▸</span> 
+              <span>Export ATS-optimized PDFs in one click.</span>
+            </li>
           </ul>
           <div className="d-flex flex-column gap-2">
             <div className="d-flex gap-2">
@@ -344,6 +358,7 @@ export default function App() {
           updateSkills={updateSkills}
           updateCertifications={updateCertifications}
           updateReferences={updateReferences}
+          updateCustomSections={updateCustomSections}
           onResetToMock={handleResetToMock}
           onClearData={handleClearData}
           activeSection={activeSection}
@@ -383,13 +398,7 @@ export default function App() {
                 <div className="col-md-4 col-sm-6" key={tpl.id}>
                   <button
                     type="button"
-                    className="border-0 text-start w-100 h-100 d-flex flex-column justify-content-between"
-                    style={{
-                      padding: '12px 14px', borderRadius: '10px', cursor: 'pointer', transition: 'all 0.2s ease',
-                      background: templateStyle === tpl.id ? 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)' : 'rgba(255,255,255,0.03)',
-                      border: templateStyle === tpl.id ? '1px solid rgba(139,92,246,0.5)' : '1px solid rgba(255,255,255,0.07)',
-                      boxShadow: templateStyle === tpl.id ? '0 4px 20px rgba(99,102,241,0.3)' : 'none'
-                    }}
+                    className={`template-card-btn text-start w-100 h-100 d-flex flex-column justify-content-between ${templateStyle === tpl.id ? 'active' : ''}`}
                     onClick={() => setTemplateStyle(tpl.id)}
                   >
                     <div style={{ fontWeight: 700, fontSize: '0.82rem', color: templateStyle === tpl.id ? '#fff' : '#e2e8f0', marginBottom: '4px' }}>{tpl.label}</div>
@@ -444,11 +453,7 @@ export default function App() {
                   <button
                     key={pair.id}
                     type="button"
-                    style={{
-                      padding: '5px 12px', borderRadius: '8px', border: fontPairing === pair.id ? '1px solid rgba(99,102,241,0.5)' : '1px solid rgba(255,255,255,0.08)',
-                      background: fontPairing === pair.id ? 'rgba(99,102,241,0.25)' : 'rgba(255,255,255,0.04)',
-                      color: fontPairing === pair.id ? '#a5b4fc' : '#64748b', fontSize: '0.73rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s'
-                    }}
+                    className={`settings-pill-btn ${fontPairing === pair.id ? 'active' : ''}`}
                     onClick={() => setFontPairing(pair.id)}
                   >
                     {pair.label}
@@ -469,11 +474,7 @@ export default function App() {
                   <button
                     key={s.id}
                     type="button"
-                    style={{
-                      flex: 1, padding: '5px 4px', borderRadius: '8px', border: spacingTuning === s.id ? '1px solid rgba(99,102,241,0.5)' : '1px solid rgba(255,255,255,0.08)',
-                      background: spacingTuning === s.id ? 'rgba(99,102,241,0.25)' : 'rgba(255,255,255,0.04)',
-                      color: spacingTuning === s.id ? '#a5b4fc' : '#64748b', fontSize: '0.7rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s'
-                    }}
+                    className={`settings-pill-btn ${spacingTuning === s.id ? 'active' : ''}`}
                     onClick={() => setSpacingTuning(s.id)}
                   >
                     {s.label}

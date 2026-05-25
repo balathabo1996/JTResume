@@ -124,58 +124,156 @@ h1, h2, h3, h4, h5, h6 {
   border-color: rgba(255, 255, 255, 0.08) !important;
 }
 
-/* Deluxe Glassmorphism Overrides for Bootstrap Cards */
+/* ============================================
+   PREMIUM FORM CARD SYSTEM
+   ============================================ */
+
+/* Override Bootstrap card base */
 .card {
-  background-color: rgba(13, 18, 30, 0.55) !important;
-  border: 1px solid rgba(255, 255, 255, 0.05) !important;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-radius: var(--ui-border-radius) !important;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+  background-color: rgba(10, 14, 26, 0.7) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
   transition: border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1), 
               box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1), 
-              transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), 
+              transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
               background-color 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
-.form-group-card.card:hover {
-  border-color: rgba(99, 102, 241, 0.25) !important;
-  box-shadow: 0 10px 32px rgba(99, 102, 241, 0.12) !important;
+/* Premium Form Group Card */
+.form-group-card {
+  background: linear-gradient(145deg, rgba(14, 20, 38, 0.85), rgba(10, 13, 24, 0.9)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  border-radius: 16px !important;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.form-group-card:hover {
+  border-color: rgba(99, 102, 241, 0.22) !important;
+  box-shadow: 0 8px 32px rgba(99, 102, 241, 0.1), 0 2px 8px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05) !important;
   transform: translateY(-2px);
-  background-color: rgba(13, 18, 30, 0.7) !important;
 }
 
-/* Dynamic glow response on card element when inner inputs are focused */
-.form-group-card.card.active, .form-group-card:focus-within {
-  border-color: rgba(99, 102, 241, 0.45) !important;
-  box-shadow: 0 12px 40px rgba(99, 102, 241, 0.18) !important;
-  background-color: rgba(13, 18, 30, 0.8) !important;
-  transform: translateY(-1.5px);
+.form-group-card:focus-within,
+.form-group-card.active {
+  border-color: rgba(99, 102, 241, 0.4) !important;
+  box-shadow: 0 12px 40px rgba(99, 102, 241, 0.15), 0 2px 8px rgba(0,0,0,0.3), inset 0 1px 0 rgba(99, 102, 241, 0.08) !important;
+  transform: translateY(-1px);
 }
 
-/* Slick Hover animations for forms cards headers */
-.form-group-card.card .card-header:hover h3 {
-  color: #fff !important;
+/* Card header - no more Bootstrap bg-dark fighting us */
+.form-group-card .card-header {
+  background: rgba(255, 255, 255, 0.025) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+  padding: 14px 18px !important;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.25s ease, padding-left 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
-.form-group-card.card .card-header:hover .card-chevron {
-  color: #fff !important;
+.form-group-card .card-header:hover {
+  background: linear-gradient(90deg, rgba(99, 102, 241, 0.08), transparent) !important;
+  padding-left: 22px !important;
 }
 
-/* Premium Form Inputs Custom Transitions */
-.form-control, .input-control {
-  background-color: rgba(9, 11, 20, 0.5) !important;
+.form-group-card .card-header h3 {
+  color: #cbd5e1 !important;
+  font-size: 0.85rem !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.01em !important;
+  transition: color 0.2s ease;
+}
+
+.form-group-card .card-header:hover h3,
+.form-group-card.active .card-header h3 {
+  color: #f1f5f9 !important;
+}
+
+.card-chevron {
+  color: #475569;
+  font-size: 0.7rem;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s ease;
+}
+
+.form-group-card .card-header:hover .card-chevron,
+.form-group-card.active .card-chevron {
+  color: #a5b4fc !important;
+}
+
+.card-header-icon {
+  color: #6366f1 !important;
+  opacity: 0.85;
+}
+
+/* Card body spacing */
+.form-group-card .card-body {
+  padding: 20px !important;
+}
+
+/* ============================================
+   PREMIUM FORM INPUT SYSTEM
+   ============================================ */
+
+/* Base input — override all Bootstrap dark nonsense */
+.form-control,
+.input-control,
+.form-select {
+  background: rgba(255, 255, 255, 0.03) !important;
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  color: #f3f4f6 !important;
-  border-radius: 8px !important;
+  border-bottom: 2px solid rgba(99, 102, 241, 0.2) !important;
+  color: #e2e8f0 !important;
+  border-radius: 10px !important;
+  padding: 10px 14px !important;
+  font-size: 0.875rem !important;
+  font-weight: 400 !important;
+  line-height: 1.5;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  width: 100%;
 }
 
-.form-control:focus, .input-control:focus {
+.form-control:hover,
+.input-control:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  border-bottom-color: rgba(99, 102, 241, 0.35) !important;
+}
+
+.form-control:focus,
+.input-control:focus,
+.form-select:focus {
   outline: none !important;
-  border-color: var(--ui-accent) !important;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25), inset 0 1px 2px rgba(0, 0, 0, 0.2) !important;
-  background-color: rgba(9, 11, 20, 0.85) !important;
+  background: rgba(99, 102, 241, 0.06) !important;
+  border-color: rgba(99, 102, 241, 0.3) !important;
+  border-bottom: 2px solid #6366f1 !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1), 0 4px 16px rgba(0, 0, 0, 0.2) !important;
+  color: #f1f5f9 !important;
+  transform: translateY(-1px);
+}
+
+.form-control::placeholder,
+.input-control::placeholder {
+  color: rgba(148, 163, 184, 0.4) !important;
+  font-style: italic;
+}
+
+textarea.form-control,
+textarea.input-control {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* Premium Form Label */
+.form-label,
+label.form-label {
+  display: block;
+  font-size: 0.7rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.8px !important;
+  color: #64748b !important;
+  text-transform: uppercase !important;
+  margin-bottom: 6px !important;
 }
 
 /* Deluxe Button Gradients & Scale Animations */
@@ -222,13 +320,71 @@ h1, h2, h3, h4, h5, h6 {
   transform: scale(1.03) translateY(-1px);
 }
 
+/* Settings Bar Premium Buttons */
+.template-card-btn {
+  padding: 14px 16px !important;
+  border-radius: 12px !important;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+.template-card-btn:hover {
+  transform: translateY(-3px) scale(1.02);
+  background: rgba(255, 255, 255, 0.06) !important;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+}
+.template-card-btn.active {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+  border: 1px solid rgba(139, 92, 246, 0.5) !important;
+  box-shadow: 0 8px 25px rgba(99, 102, 241, 0.35) !important;
+}
+
+.settings-pill-btn {
+  flex: 1;
+  padding: 6px 12px !important;
+  border-radius: 8px !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #64748b;
+}
+.settings-pill-btn:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  transform: translateY(-1px);
+  color: #e2e8f0;
+}
+.settings-pill-btn.active {
+  background: rgba(99, 102, 241, 0.25) !important;
+  border: 1px solid rgba(99, 102, 241, 0.5) !important;
+  color: #a5b4fc !important;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15) !important;
+}
+
 /* Sidebar Custom Styling Header Positioning */
 .app-sidebar {
-  background-color: #070a12 !important;
+  background: linear-gradient(180deg, #06080f 0%, #070a14 100%) !important;
   border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
-  box-shadow: 12px 0 35px rgba(0, 0, 0, 0.45);
+  box-shadow: 4px 0 40px rgba(0, 0, 0, 0.6);
   scrollbar-width: thin;
   scrollbar-color: #1e293b #060913;
+}
+
+/* Form Section Wrapper */
+.form-section {
+  padding: 12px 14px 24px !important;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .sidebar-sticky-header {
@@ -433,23 +589,65 @@ h1, h2, h3, h4, h5, h6 {
   border-color: rgba(16, 185, 129, 0.28);
 }
 
-/* Repeater Card Custom Styling */
+/* ============================================
+   PREMIUM REPEATER ITEM SYSTEM
+   ============================================ */
+
 .repeater-item {
-  background-color: rgba(0, 0, 0, 0.15) !important;
-  border: 1px solid rgba(255, 255, 255, 0.05) !important;
-  transition: all 0.25s ease;
+  background: rgba(255, 255, 255, 0.02) !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  border-radius: 12px !important;
+  overflow: hidden;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .repeater-item:hover {
-  border-color: rgba(255, 255, 255, 0.12) !important;
-  background-color: rgba(0, 0, 0, 0.25) !important;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  border-color: rgba(99, 102, 241, 0.2) !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.08);
 }
 
 .repeater-item-header {
-  background: rgba(255, 255, 255, 0.01) !important;
+  background: rgba(255, 255, 255, 0.03) !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+  padding: 10px 14px !important;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #94a3b8;
 }
+
+.repeater-item-header .fw-medium {
+  color: #94a3b8 !important;
+  font-size: 0.82rem !important;
+}
+
+.repeater-item-body {
+  padding: 16px !important;
+}
+
+/* Delete button on repeater items */
+.btn-repeater-delete {
+  width: 28px !important;
+  height: 28px !important;
+  padding: 0 !important;
+  border-radius: 6px !important;
+  border: 1px solid transparent !important;
+  color: rgba(239, 68, 68, 0.6) !important;
+  background: transparent !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-repeater-delete:hover {
+  background: rgba(239, 68, 68, 0.1) !important;
+  border-color: rgba(239, 68, 68, 0.2) !important;
+  color: #ef4444 !important;
+  transform: scale(1.05);
+}
+
 
 /* Accent Color Selection Dots */
 .color-dot-group .color-dot {
@@ -1909,4 +2107,78 @@ textarea::placeholder {
 .input-control::placeholder {
   color: #64748b !important;
   opacity: 1 !important;
+}
+
+/* ============================================
+   AI OPTIMIZER PREMIUM COMPONENT
+   ============================================ */
+.ai-optimizer-box {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.03) 0%, rgba(99, 102, 241, 0.08) 100%);
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  border-left: 3px solid #6366f1;
+  border-radius: 10px;
+  padding: 14px 16px;
+  box-shadow: inset 0 0 20px rgba(99, 102, 241, 0.02);
+}
+
+.ai-optimizer-title {
+  color: #818cf8;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ai-badge-heuristic {
+  background: rgba(99, 102, 241, 0.15);
+  color: #a5b4fc;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.btn-ai-optimize {
+  background: rgba(99, 102, 241, 0.1);
+  color: #818cf8;
+  border: 1px solid rgba(99, 102, 241, 0.4);
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1);
+}
+
+.btn-ai-optimize:hover {
+  background: rgba(99, 102, 241, 0.25);
+  border-color: #818cf8;
+  color: #c7d2fe;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.2);
+}
+
+.btn-ai-optimize:active {
+  transform: translateY(1px);
+}
+
+.ai-verb-badge {
+  background: rgba(255, 255, 255, 0.03);
+  color: #94a3b8;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.ai-verb-badge:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #e2e8f0;
 }

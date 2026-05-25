@@ -1,14 +1,15 @@
-import React, { useState } from 'react';
-import RichTextEditor from './RichTextEditor';
+import React, { useState } from "react";
+import RichTextEditor from "./RichTextEditor";
 
-export default function BuilderForm({ 
-  formData, 
-  updatePersonalInfo, 
-  updateWorkExperience, 
-  updateEducation, 
-  updateSkills, 
-  updateCertifications, 
+export default function BuilderForm({
+  formData,
+  updatePersonalInfo,
+  updateWorkExperience,
+  updateEducation,
+  updateSkills,
+  updateCertifications,
   updateReferences,
+  updateCustomSections,
   onResetToMock,
   onClearData,
   activeSection,
@@ -16,7 +17,7 @@ export default function BuilderForm({
   onFieldFocus,
   onFieldBlur,
   jobDescription,
-  onJobDescriptionChange
+  onJobDescriptionChange,
 }) {
   const toggleSection = (section) => {
     onSectionChange(activeSection === section ? null : section);
@@ -24,19 +25,39 @@ export default function BuilderForm({
 
   // Helper arrays for action verbs
   const actionVerbs = [
-    "Architected", "Pioneered", "Orchestrated", "Formulated", "Spearheaded", 
-    "Mentored", "Designed", "Executed", "Optimized", "Formulated", 
-    "Collaborated", "Reduced", "Streamlined", "Engineered", "Fostered"
+    "Architected",
+    "Pioneered",
+    "Orchestrated",
+    "Formulated",
+    "Spearheaded",
+    "Mentored",
+    "Designed",
+    "Executed",
+    "Optimized",
+    "Formulated",
+    "Collaborated",
+    "Reduced",
+    "Streamlined",
+    "Engineered",
+    "Fostered",
   ];
 
   /* --- Heuristic AI Bullet Point Optimizer --- */
   const handleAiOptimizeBullet = (index, currentText) => {
-    const cleanText = currentText ? currentText.replace(/<[^>]*>/g, '').trim() : "";
+    const cleanText = currentText
+      ? currentText.replace(/<[^>]*>/g, "").trim()
+      : "";
     let optimized = "";
-    
-    if (/helped build|helped write|wrote code|worked on|helped with/i.test(cleanText)) {
+
+    if (
+      /helped build|helped write|wrote code|worked on|helped with/i.test(
+        cleanText,
+      )
+    ) {
       optimized = `<li><b>Spearheaded modular frontend architecture</b> using high-fidelity React components, improving rendering speeds by <b>35%</b> and boosting UX responsiveness.</li>`;
-    } else if (/managed|led team|responsible for team|lead developer/i.test(cleanText)) {
+    } else if (
+      /managed|led team|responsible for team|lead developer/i.test(cleanText)
+    ) {
       optimized = `<li><b>Orchestrated cross-functional engineering workflows</b>, accelerating roadmap delivery targets by <b>25%</b> and fostering Agile mentorship.</li>`;
     } else if (/database|sql|postgres|mongo|queries/i.test(cleanText)) {
       optimized = `<li><b>Architected high-throughput relational schemas</b>, reducing heavy query indexing latencies by <b>40%</b>.</li>`;
@@ -45,7 +66,7 @@ export default function BuilderForm({
     } else {
       optimized = `<li><b>Pioneered and engineered high-impact SaaS deliverables</b>, achieving a <b>20%</b> enhancement in key operational and user-retention metrics.</li>`;
     }
-    
+
     handleUpdateDescriptionHtml(index, `<ul>${optimized}</ul>`);
   };
 
@@ -53,12 +74,12 @@ export default function BuilderForm({
   const handleAddExperience = () => {
     const newExp = {
       id: `exp-${Date.now()}`,
-      role: '',
-      company: '',
-      location: '',
-      startDate: '',
-      endDate: '',
-      description: ''
+      role: "",
+      company: "",
+      location: "",
+      startDate: "",
+      endDate: "",
+      description: "",
     };
     updateWorkExperience([...formData.workExperience, newExp]);
   };
@@ -84,12 +105,12 @@ export default function BuilderForm({
   const handleAddEducation = () => {
     const newEdu = {
       id: `edu-${Date.now()}`,
-      degree: '',
-      school: '',
-      location: '',
-      startDate: '',
-      endDate: '',
-      details: ''
+      degree: "",
+      school: "",
+      location: "",
+      startDate: "",
+      endDate: "",
+      details: "",
     };
     updateEducation([...formData.education, newEdu]);
   };
@@ -109,8 +130,8 @@ export default function BuilderForm({
   const handleAddSkillCategory = () => {
     const newSkill = {
       id: `sk-${Date.now()}`,
-      category: '',
-      items: ['']
+      category: "",
+      items: [""],
     };
     updateSkills([...formData.skills, newSkill]);
   };
@@ -124,7 +145,7 @@ export default function BuilderForm({
   const handleUpdateSkillItems = (index, tagsString) => {
     const updated = [...formData.skills];
     // Split by comma and trim whitespace
-    const items = tagsString.split(',').map(tag => tag.trim());
+    const items = tagsString.split(",").map((tag) => tag.trim());
     updated[index] = { ...updated[index], items };
     updateSkills(updated);
   };
@@ -138,9 +159,9 @@ export default function BuilderForm({
   const handleAddCertification = () => {
     const newCert = {
       id: `cert-${Date.now()}`,
-      name: '',
-      issuer: '',
-      date: ''
+      name: "",
+      issuer: "",
+      date: "",
     };
     updateCertifications([...formData.certifications, newCert]);
   };
@@ -160,9 +181,9 @@ export default function BuilderForm({
   const handleAddReference = () => {
     const newRef = {
       id: `ref-${Date.now()}`,
-      name: '',
-      title: '',
-      contact: ''
+      name: "",
+      title: "",
+      contact: "",
     };
     updateReferences([...formData.references, newRef]);
   };
@@ -178,75 +199,194 @@ export default function BuilderForm({
     updateReferences(updated);
   };
 
+  /* --- Custom Sections Operations --- */
+  const handleAddCustomSection = () => {
+    const newSection = {
+      id: `custom-${Date.now()}`,
+      title: 'Custom Section',
+      items: []
+    };
+    updateCustomSections([...(formData.customSections || []), newSection]);
+    onSectionChange(`custom-${newSection.id}`);
+  };
+
+  const handleUpdateCustomSectionTitle = (sectionIdx, value) => {
+    const updated = [...(formData.customSections || [])];
+    updated[sectionIdx] = { ...updated[sectionIdx], title: value };
+    updateCustomSections(updated);
+  };
+
+  const handleRemoveCustomSection = (sectionIdx) => {
+    const updated = (formData.customSections || []).filter((_, i) => i !== sectionIdx);
+    updateCustomSections(updated);
+    onSectionChange('personal');
+  };
+
+  const handleAddCustomItem = (sectionIdx) => {
+    const updated = [...(formData.customSections || [])];
+    const newItem = {
+      id: `ci-${Date.now()}`,
+      title: '',
+      subtitle: '',
+      startDate: '',
+      endDate: '',
+      location: '',
+      description: ''
+    };
+    updated[sectionIdx] = {
+      ...updated[sectionIdx],
+      items: [...(updated[sectionIdx].items || []), newItem]
+    };
+    updateCustomSections(updated);
+  };
+
+  const handleUpdateCustomItem = (sectionIdx, itemIdx, field, value) => {
+    const updated = [...(formData.customSections || [])];
+    const items = [...(updated[sectionIdx].items || [])];
+    items[itemIdx] = { ...items[itemIdx], [field]: value };
+    updated[sectionIdx] = { ...updated[sectionIdx], items };
+    updateCustomSections(updated);
+  };
+
+  const handleRemoveCustomItem = (sectionIdx, itemIdx) => {
+    const updated = [...(formData.customSections || [])];
+    updated[sectionIdx] = {
+      ...updated[sectionIdx],
+      items: updated[sectionIdx].items.filter((_, i) => i !== itemIdx)
+    };
+    updateCustomSections(updated);
+  };
+
+
   return (
-    <div className="form-section p-3">
-      
+    <div className="form-section">
       {/* 0. TARGET JOB ATS SCANNER CARD */}
-      <div className={`form-group-card card bg-dark text-light border-secondary mb-3 ${activeSection === 'jobScanner' ? 'active border-primary shadow-sm' : 'border-opacity-25'}`}>
-        <div className="card-header bg-transparent border-bottom border-secondary border-opacity-10 py-3 px-4 d-flex align-items-center justify-content-between" onClick={() => toggleSection('jobScanner')} style={{ cursor: 'pointer', userSelect: 'none' }}>
-          <h3 className="fs-6 fw-bold text-light m-0 d-flex align-items-center gap-2">
-            <svg className="card-header-icon text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ width: '20px', height: '20px' }}>
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+      <div
+        className={`form-group-card mb-3 ${activeSection === "jobScanner" ? "active" : ""}`}
+      >
+        <div
+          className="card-header d-flex align-items-center justify-content-between"
+          onClick={() => toggleSection("jobScanner")}
+          style={{ cursor: "pointer", userSelect: "none" }}
+        >
+          <h3 className="m-0 d-flex align-items-center gap-2">
+            <svg
+              className="card-header-icon text-primary"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              style={{ width: "20px", height: "20px" }}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+              />
             </svg>
             Target Job ATS Scanner
           </h3>
-          <span className="card-chevron" style={{ transition: 'transform 0.2s', transform: activeSection === 'jobScanner' ? 'rotate(180deg)' : 'none' }}>▼</span>
+          <span
+            className="card-chevron"
+            style={{
+              transition: "transform 0.2s",
+              transform:
+                activeSection === "jobScanner" ? "rotate(180deg)" : "none",
+            }}
+          >
+            ▼
+          </span>
         </div>
-        
-        {activeSection === 'jobScanner' && (
-          <div className="card-body p-4 d-flex flex-column gap-3">
-            <p className="text-secondary lh-base m-0" style={{ fontSize: '0.8rem' }}>
-              Paste the job description of your target position below. We will dynamically extract critical keywords and provide a live ATS checklist to help you align your resume!
+
+        {activeSection === "jobScanner" && (
+          <div className="card-body d-flex flex-column gap-3">
+            <p
+              className="text-secondary lh-base m-0"
+              style={{ fontSize: "0.8rem" }}
+            >
+              Paste the job description of your target position below. We will
+              dynamically extract critical keywords and provide a live ATS
+              checklist to help you align your resume!
             </p>
             <div className="field d-flex flex-column gap-1">
-              <label className="form-label text-secondary fw-semibold mb-1" style={{ fontSize: '0.82rem' }}>Target Job Description</label>
-              <textarea 
-                className="input-control form-control bg-dark border-secondary text-light py-2 px-3 font-monospace" 
-                value={jobDescription || ''} 
+              <label className="form-label">Target Job Description</label>
+              <textarea
+                className="input-control font-monospace"
+                value={jobDescription || ""}
                 onChange={(e) => onJobDescriptionChange(e.target.value)}
                 placeholder="Paste job posting text here (e.g. 'Looking for a Senior React Developer with experience in AWS, TypeScript, CI/CD and DevOps...')"
-                style={{ minHeight: '120px', fontSize: '0.82rem', resize: 'vertical' }}
+                style={{
+                  minHeight: "120px",
+                  fontSize: "0.82rem",
+                  resize: "vertical",
+                }}
               />
             </div>
           </div>
         )}
       </div>
-      
+
       {/* 1. PERSONAL INFORMATION */}
-      <div className={`form-group-card card bg-dark text-light border-secondary mb-3 ${activeSection === 'personal' ? 'active border-primary shadow-sm' : 'border-opacity-25'}`}>
-        <div className="card-header bg-transparent border-bottom border-secondary border-opacity-10 py-3 px-4 d-flex align-items-center justify-content-between" onClick={() => toggleSection('personal')} style={{ cursor: 'pointer', userSelect: 'none' }}>
-          <h3 className="fs-6 fw-bold text-light m-0 d-flex align-items-center gap-2">
-            <svg className="card-header-icon text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ width: '20px', height: '20px' }}>
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+      <div
+        className={`form-group-card mb-3 ${activeSection === "personal" ? "active" : ""}`}
+      >
+        <div
+          className="card-header d-flex align-items-center justify-content-between"
+          onClick={() => toggleSection("personal")}
+          style={{ cursor: "pointer", userSelect: "none" }}
+        >
+          <h3 className="m-0 d-flex align-items-center gap-2">
+            <svg
+              className="card-header-icon text-primary"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              style={{ width: "20px", height: "20px" }}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+              />
             </svg>
             Personal Information
           </h3>
-          <span className="card-chevron" style={{ transition: 'transform 0.2s', transform: activeSection === 'personal' ? 'rotate(180deg)' : 'none' }}>▼</span>
+          <span
+            className="card-chevron"
+            style={{
+              transition: "transform 0.2s",
+              transform:
+                activeSection === "personal" ? "rotate(180deg)" : "none",
+            }}
+          >
+            ▼
+          </span>
         </div>
-        
-        {activeSection === 'personal' && (
-          <div className="card-body p-4 d-flex flex-column gap-3">
+
+        {activeSection === "personal" && (
+          <div className="card-body d-flex flex-column gap-3">
             <div className="field d-flex flex-column gap-1">
-              <label className="form-label text-secondary fw-semibold mb-1" style={{ fontSize: '0.82rem' }}>Full Name</label>
-              <input 
-                type="text" 
-                className="input-control form-control bg-dark border-secondary text-light py-2 px-3" 
-                value={formData.personalInfo.fullName || ''} 
-                onChange={(e) => updatePersonalInfo('fullName', e.target.value)}
-                onFocus={() => onFieldFocus('fullName')}
+              <label className="form-label">Full Name</label>
+              <input
+                type="text"
+                className="input-control"
+                value={formData.personalInfo.fullName || ""}
+                onChange={(e) => updatePersonalInfo("fullName", e.target.value)}
+                onFocus={() => onFieldFocus("fullName")}
                 onBlur={onFieldBlur}
                 placeholder="e.g. Jonathan T. Miller"
               />
             </div>
 
             <div className="field d-flex flex-column gap-1">
-              <label className="form-label text-secondary fw-semibold mb-1" style={{ fontSize: '0.82rem' }}>Professional Title</label>
-              <input 
-                type="text" 
-                className="input-control form-control bg-dark border-secondary text-light py-2 px-3" 
-                value={formData.personalInfo.jobTitle || ''} 
-                onChange={(e) => updatePersonalInfo('jobTitle', e.target.value)}
-                onFocus={() => onFieldFocus('jobTitle')}
+              <label className="form-label">Professional Title</label>
+              <input
+                type="text"
+                className="input-control"
+                value={formData.personalInfo.jobTitle || ""}
+                onChange={(e) => updatePersonalInfo("jobTitle", e.target.value)}
+                onFocus={() => onFieldFocus("jobTitle")}
                 onBlur={onFieldBlur}
                 placeholder="e.g. Senior Software Architect"
               />
@@ -254,25 +394,25 @@ export default function BuilderForm({
 
             <div className="row g-3">
               <div className="field col-md-6 d-flex flex-column gap-1">
-                <label className="form-label text-secondary fw-semibold mb-1" style={{ fontSize: '0.82rem' }}>Email Address</label>
-                <input 
-                  type="email" 
-                  className="input-control form-control bg-dark border-secondary text-light py-2 px-3" 
-                  value={formData.personalInfo.email || ''} 
-                  onChange={(e) => updatePersonalInfo('email', e.target.value)}
-                  onFocus={() => onFieldFocus('contact')}
+                <label className="form-label">Email Address</label>
+                <input
+                  type="email"
+                  className="input-control"
+                  value={formData.personalInfo.email || ""}
+                  onChange={(e) => updatePersonalInfo("email", e.target.value)}
+                  onFocus={() => onFieldFocus("contact")}
                   onBlur={onFieldBlur}
                   placeholder="e.g. contact@domain.com"
                 />
               </div>
               <div className="field col-md-6 d-flex flex-column gap-1">
-                <label className="form-label text-secondary fw-semibold mb-1" style={{ fontSize: '0.82rem' }}>Phone Number</label>
-                <input 
-                  type="text" 
-                  className="input-control form-control bg-dark border-secondary text-light py-2 px-3" 
-                  value={formData.personalInfo.phone || ''} 
-                  onChange={(e) => updatePersonalInfo('phone', e.target.value)}
-                  onFocus={() => onFieldFocus('contact')}
+                <label className="form-label">Phone Number</label>
+                <input
+                  type="text"
+                  className="input-control"
+                  value={formData.personalInfo.phone || ""}
+                  onChange={(e) => updatePersonalInfo("phone", e.target.value)}
+                  onFocus={() => onFieldFocus("contact")}
                   onBlur={onFieldBlur}
                   placeholder="e.g. +1 (555) 123-4567"
                 />
@@ -281,25 +421,31 @@ export default function BuilderForm({
 
             <div className="row g-3">
               <div className="field col-md-6 d-flex flex-column gap-1">
-                <label className="form-label text-secondary fw-semibold mb-1" style={{ fontSize: '0.82rem' }}>Location (City, State/Prov)</label>
-                <input 
-                  type="text" 
-                  className="input-control form-control bg-dark border-secondary text-light py-2 px-3" 
-                  value={formData.personalInfo.location || ''} 
-                  onChange={(e) => updatePersonalInfo('location', e.target.value)}
-                  onFocus={() => onFieldFocus('contact')}
+                <label className="form-label">
+                  Location (City, State/Prov)
+                </label>
+                <input
+                  type="text"
+                  className="input-control"
+                  value={formData.personalInfo.location || ""}
+                  onChange={(e) =>
+                    updatePersonalInfo("location", e.target.value)
+                  }
+                  onFocus={() => onFieldFocus("contact")}
                   onBlur={onFieldBlur}
                   placeholder="e.g. Seattle, WA"
                 />
               </div>
               <div className="field col-md-6 d-flex flex-column gap-1">
-                <label className="form-label text-secondary fw-semibold mb-1" style={{ fontSize: '0.82rem' }}>Languages Spoken</label>
-                <input 
-                  type="text" 
-                  className="input-control form-control bg-dark border-secondary text-light py-2 px-3" 
-                  value={formData.personalInfo.languages || ''} 
-                  onChange={(e) => updatePersonalInfo('languages', e.target.value)}
-                  onFocus={() => onFieldFocus('contact')}
+                <label className="form-label">Languages Spoken</label>
+                <input
+                  type="text"
+                  className="input-control"
+                  value={formData.personalInfo.languages || ""}
+                  onChange={(e) =>
+                    updatePersonalInfo("languages", e.target.value)
+                  }
+                  onFocus={() => onFieldFocus("contact")}
                   onBlur={onFieldBlur}
                   placeholder="e.g. English (Native), French"
                 />
@@ -308,25 +454,29 @@ export default function BuilderForm({
 
             <div className="row g-3">
               <div className="field col-md-6 d-flex flex-column gap-1">
-                <label className="form-label text-secondary fw-semibold mb-1" style={{ fontSize: '0.82rem' }}>Personal Website</label>
-                <input 
-                  type="text" 
-                  className="input-control form-control bg-dark border-secondary text-light py-2 px-3" 
-                  value={formData.personalInfo.website || ''} 
-                  onChange={(e) => updatePersonalInfo('website', e.target.value)}
-                  onFocus={() => onFieldFocus('contact')}
+                <label className="form-label">Personal Website</label>
+                <input
+                  type="text"
+                  className="input-control"
+                  value={formData.personalInfo.website || ""}
+                  onChange={(e) =>
+                    updatePersonalInfo("website", e.target.value)
+                  }
+                  onFocus={() => onFieldFocus("contact")}
                   onBlur={onFieldBlur}
                   placeholder="e.g. portfolio.dev"
                 />
               </div>
               <div className="field col-md-6 d-flex flex-column gap-1">
-                <label className="form-label text-secondary fw-semibold mb-1" style={{ fontSize: '0.82rem' }}>LinkedIn Link</label>
-                <input 
-                  type="text" 
-                  className="input-control form-control bg-dark border-secondary text-light py-2 px-3" 
-                  value={formData.personalInfo.linkedin || ''} 
-                  onChange={(e) => updatePersonalInfo('linkedin', e.target.value)}
-                  onFocus={() => onFieldFocus('contact')}
+                <label className="form-label">LinkedIn Link</label>
+                <input
+                  type="text"
+                  className="input-control"
+                  value={formData.personalInfo.linkedin || ""}
+                  onChange={(e) =>
+                    updatePersonalInfo("linkedin", e.target.value)
+                  }
+                  onFocus={() => onFieldFocus("contact")}
                   onBlur={onFieldBlur}
                   placeholder="e.g. linkedin.com/in/username"
                 />
@@ -334,107 +484,172 @@ export default function BuilderForm({
             </div>
 
             <div className="field d-flex flex-column gap-1">
-              <label className="form-label text-secondary fw-semibold mb-1" style={{ fontSize: '0.82rem' }}>Professional Profile Summary</label>
-              <textarea 
-                className="input-control form-control bg-dark border-secondary text-light py-2 px-3" 
-                value={formData.personalInfo.summary || ''} 
-                onChange={(e) => updatePersonalInfo('summary', e.target.value)}
-                onFocus={() => onFieldFocus('summary')}
+              <label className="form-label">Professional Profile Summary</label>
+              <textarea
+                className="input-control"
+                value={formData.personalInfo.summary || ""}
+                onChange={(e) => updatePersonalInfo("summary", e.target.value)}
+                onFocus={() => onFieldFocus("summary")}
                 onBlur={onFieldBlur}
                 placeholder="Write a brief, high-impact summary of your technical credentials and key accomplishments..."
-                style={{ minHeight: '90px' }}
+                style={{ minHeight: "90px" }}
               />
             </div>
 
             {/* --- COMPLIANCE TOY-BOX TRIGGERS (TO ALLOW DEMOING COMPLIANCE SCANNER WARNS) --- */}
             <div className="pt-3 mt-2 border-top border-secondary border-opacity-10">
-              <p className="help-prompt text-warning fw-bold mb-2" style={{ fontSize: '0.76rem' }}>
+              <p
+                className="help-prompt text-warning fw-bold mb-2"
+                style={{ fontSize: "0.76rem" }}
+              >
                 Compliance Test Fields (Anti-Pattern Triggers):
               </p>
-              
+
               <div className="row g-3">
                 <div className="field col-md-6 d-flex flex-column gap-1">
-                  <label className="form-label text-secondary fw-semibold mb-1" style={{ fontSize: '0.82rem' }}>Date of Birth (Optional Trigger)</label>
-                  <input 
-                    type="text" 
-                    className="input-control form-control bg-dark border-secondary text-light py-2 px-3" 
-                    value={formData.personalInfo.birthDate || ''} 
-                    onChange={(e) => updatePersonalInfo('birthDate', e.target.value)}
-                    onFocus={() => onFieldFocus('sensitive')}
+                  <label className="form-label">
+                    Date of Birth (Optional Trigger)
+                  </label>
+                  <input
+                    type="text"
+                    className="input-control"
+                    value={formData.personalInfo.birthDate || ""}
+                    onChange={(e) =>
+                      updatePersonalInfo("birthDate", e.target.value)
+                    }
+                    onFocus={() => onFieldFocus("sensitive")}
                     onBlur={onFieldBlur}
                     placeholder="e.g. Oct 12, 1989"
                   />
                 </div>
                 <div className="field col-md-6 d-flex flex-column gap-1">
-                  <label className="form-label text-secondary fw-semibold mb-1" style={{ fontSize: '0.82rem' }}>Marital Status (Optional Trigger)</label>
-                  <input 
-                    type="text" 
-                    className="input-control form-control bg-dark border-secondary text-light py-2 px-3" 
-                    value={formData.personalInfo.maritalStatus || ''} 
-                    onChange={(e) => updatePersonalInfo('maritalStatus', e.target.value)}
-                    onFocus={() => onFieldFocus('sensitive')}
+                  <label className="form-label">
+                    Marital Status (Optional Trigger)
+                  </label>
+                  <input
+                    type="text"
+                    className="input-control"
+                    value={formData.personalInfo.maritalStatus || ""}
+                    onChange={(e) =>
+                      updatePersonalInfo("maritalStatus", e.target.value)
+                    }
+                    onFocus={() => onFieldFocus("sensitive")}
                     onBlur={onFieldBlur}
                     placeholder="e.g. Married / Single"
                   />
                 </div>
               </div>
               <div className="field col-12 d-flex flex-column gap-1 mt-2">
-                <label className="form-label text-secondary fw-semibold mb-1" style={{ fontSize: '0.82rem' }}>Photo URL (Optional Trigger)</label>
-                <input 
-                  type="text" 
-                  className="input-control form-control bg-dark border-secondary text-light py-2 px-3" 
-                  value={formData.personalInfo.photoUrl || ''} 
-                  onChange={(e) => updatePersonalInfo('photoUrl', e.target.value)}
-                  onFocus={() => onFieldFocus('sensitive')}
+                <label className="form-label">
+                  Photo URL (Optional Trigger)
+                </label>
+                <input
+                  type="text"
+                  className="input-control"
+                  value={formData.personalInfo.photoUrl || ""}
+                  onChange={(e) =>
+                    updatePersonalInfo("photoUrl", e.target.value)
+                  }
+                  onFocus={() => onFieldFocus("sensitive")}
                   onBlur={onFieldBlur}
                   placeholder="e.g. https://domain.com/photo.jpg"
                 />
               </div>
             </div>
-
           </div>
         )}
       </div>
 
       {/* 2. WORK EXPERIENCE */}
-      <div className={`form-group-card card bg-dark text-light border-secondary mb-3 ${activeSection === 'experience' ? 'active border-primary shadow-sm' : 'border-opacity-25'}`}>
-        <div className="card-header bg-transparent border-bottom border-secondary border-opacity-10 py-3 px-4 d-flex align-items-center justify-content-between" onClick={() => toggleSection('experience')} style={{ cursor: 'pointer', userSelect: 'none' }}>
-          <h3 className="fs-6 fw-bold text-light m-0 d-flex align-items-center gap-2">
-            <svg className="card-header-icon text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ width: '20px', height: '20px' }}>
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+      <div
+        className={`form-group-card mb-3 ${activeSection === "experience" ? "active" : ""}`}
+      >
+        <div
+          className="card-header d-flex align-items-center justify-content-between"
+          onClick={() => toggleSection("experience")}
+          style={{ cursor: "pointer", userSelect: "none" }}
+        >
+          <h3 className="m-0 d-flex align-items-center gap-2">
+            <svg
+              className="card-header-icon text-primary"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              style={{ width: "20px", height: "20px" }}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+              />
             </svg>
             Work Experience
           </h3>
-          <span className="card-chevron" style={{ transition: 'transform 0.2s', transform: activeSection === 'experience' ? 'rotate(180deg)' : 'none' }}>▼</span>
+          <span
+            className="card-chevron"
+            style={{
+              transition: "transform 0.2s",
+              transform:
+                activeSection === "experience" ? "rotate(180deg)" : "none",
+            }}
+          >
+            ▼
+          </span>
         </div>
 
-        {activeSection === 'experience' && (
-          <div className="card-body p-4 d-flex flex-column gap-3">
+        {activeSection === "experience" && (
+          <div className="card-body d-flex flex-column gap-3">
             {formData.workExperience.map((exp, expIdx) => (
-              <div key={exp.id || expIdx} className="repeater-item card bg-black bg-opacity-25 border border-secondary border-opacity-25 rounded mb-3">
-                <div className="repeater-item-header card-header bg-transparent border-bottom border-secondary border-opacity-10 py-2 px-3 d-flex align-items-center justify-content-between">
-                  <span className="fw-medium text-secondary" style={{ fontSize: '0.88rem' }}>💼 Role #{expIdx + 1}: {exp.role || 'New Position'}</span>
-                  <button className="btn btn-outline-danger btn-sm rounded-circle d-flex align-items-center justify-content-center" style={{ width: '28px', height: '28px', padding: 0 }} onClick={() => handleRemoveExperience(expIdx)}>✕</button>
+              <div key={exp.id || expIdx} className="repeater-item mb-3">
+                <div className="repeater-item-header d-flex align-items-center justify-content-between">
+                  <span
+                    className="fw-medium text-secondary"
+                    style={{ fontSize: "0.88rem" }}
+                  >
+                    💼 Role #{expIdx + 1}: {exp.role || "New Position"}
+                  </span>
+                  <button
+                    className="btn-repeater-delete"
+                    onClick={() => handleRemoveExperience(expIdx)}
+                    title="Remove Item"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                  </button>
                 </div>
                 <div className="repeater-item-body card-body p-3 d-flex flex-column gap-3">
                   <div className="row g-3">
                     <div className="field col-md-6 d-flex flex-column gap-1">
-                      <label className="form-label text-secondary fw-semibold mb-1" style={{ fontSize: '0.82rem' }}>Job Title / Role</label>
-                      <input 
-                        type="text" 
-                        className="input-control form-control bg-dark border-secondary text-light py-2 px-3" 
-                        value={exp.role || ''} 
-                        onChange={(e) => handleUpdateExperienceItem(expIdx, 'role', e.target.value)}
+                      <label className="form-label">Job Title / Role</label>
+                      <input
+                        type="text"
+                        className="input-control"
+                        value={exp.role || ""}
+                        onChange={(e) =>
+                          handleUpdateExperienceItem(
+                            expIdx,
+                            "role",
+                            e.target.value,
+                          )
+                        }
                         placeholder="e.g. Lead Developer"
                       />
                     </div>
                     <div className="field col-md-6 d-flex flex-column gap-1">
-                      <label className="form-label text-secondary fw-semibold mb-1" style={{ fontSize: '0.82rem' }}>Company / Organization</label>
-                      <input 
-                        type="text" 
-                        className="input-control form-control bg-dark border-secondary text-light py-2 px-3" 
-                        value={exp.company || ''} 
-                        onChange={(e) => handleUpdateExperienceItem(expIdx, 'company', e.target.value)}
+                      <label className="form-label">
+                        Company / Organization
+                      </label>
+                      <input
+                        type="text"
+                        className="input-control"
+                        value={exp.company || ""}
+                        onChange={(e) =>
+                          handleUpdateExperienceItem(
+                            expIdx,
+                            "company",
+                            e.target.value,
+                          )
+                        }
                         placeholder="e.g. ByteWave Inc."
                       />
                     </div>
@@ -442,34 +657,54 @@ export default function BuilderForm({
 
                   <div className="row g-3">
                     <div className="field col-md-6 d-flex flex-column gap-1">
-                      <label className="form-label text-secondary fw-semibold mb-1" style={{ fontSize: '0.82rem' }}>Location (City, State/Prov)</label>
-                      <input 
-                        type="text" 
-                        className="input-control form-control bg-dark border-secondary text-light py-2 px-3" 
-                        value={exp.location || ''} 
-                        onChange={(e) => handleUpdateExperienceItem(expIdx, 'location', e.target.value)}
+                      <label className="form-label">
+                        Location (City, State/Prov)
+                      </label>
+                      <input
+                        type="text"
+                        className="input-control"
+                        value={exp.location || ""}
+                        onChange={(e) =>
+                          handleUpdateExperienceItem(
+                            expIdx,
+                            "location",
+                            e.target.value,
+                          )
+                        }
                         placeholder="e.g. Austin, TX"
                       />
                     </div>
                     <div className="field col-md-6">
                       <div className="row g-2">
                         <div className="field col-6 d-flex flex-column gap-1">
-                          <label className="form-label text-secondary fw-semibold mb-1" style={{ fontSize: '0.82rem' }}>Start Date</label>
-                          <input 
-                            type="text" 
-                            className="input-control form-control bg-dark border-secondary text-light py-2 px-3" 
-                            value={exp.startDate || ''} 
-                            onChange={(e) => handleUpdateExperienceItem(expIdx, 'startDate', e.target.value)}
+                          <label className="form-label">Start Date</label>
+                          <input
+                            type="text"
+                            className="input-control"
+                            value={exp.startDate || ""}
+                            onChange={(e) =>
+                              handleUpdateExperienceItem(
+                                expIdx,
+                                "startDate",
+                                e.target.value,
+                              )
+                            }
                             placeholder="e.g. 2021-06"
                           />
                         </div>
                         <div className="field col-6 d-flex flex-column gap-1">
-                          <label className="form-label text-secondary fw-semibold mb-1" style={{ fontSize: '0.82rem' }}>End Date</label>
-                          <input 
-                            type="text" 
-                            className="input-control form-control bg-dark border-secondary text-light py-2 px-3" 
-                            value={exp.endDate || ''} 
-                            onChange={(e) => handleUpdateExperienceItem(expIdx, 'endDate', e.target.value)}
+                          <label className="form-label">End Date</label>
+                          <input
+                            type="text"
+                            className="input-control"
+                            value={exp.endDate || ""}
+                            onChange={(e) =>
+                              handleUpdateExperienceItem(
+                                expIdx,
+                                "endDate",
+                                e.target.value,
+                              )
+                            }
                             placeholder="e.g. Present or 2023-05"
                           />
                         </div>
@@ -479,52 +714,38 @@ export default function BuilderForm({
 
                   {/* Full WYSIWYG Editor for Achievements */}
                   <div className="field d-flex flex-column gap-1">
-                    <label className="form-label text-secondary fw-semibold mb-1" style={{ fontSize: '0.82rem' }}>Achievements & Key Duties</label>
-                    <RichTextEditor 
-                      value={Array.isArray(exp.description) ? `<ul><li>${exp.description.join('</li><li>')}</li></ul>` : (exp.description || '')}
-                      onChange={(content) => handleUpdateDescriptionHtml(expIdx, content)}
-                      onFocus={() => onFieldFocus('experience_bullets')}
+                    <label className="form-label">
+                      Achievements & Key Duties
+                    </label>
+                    <RichTextEditor
+                      value={
+                        Array.isArray(exp.description)
+                          ? `<ul><li>${exp.description.join("</li><li>")}</li></ul>`
+                          : exp.description || ""
+                      }
+                      onChange={(content) =>
+                        handleUpdateDescriptionHtml(expIdx, content)
+                      }
+                      onFocus={() => onFieldFocus("experience_bullets")}
                       onBlur={onFieldBlur}
                       placeholder="Write your accomplishments here..."
                     />
-                    <div className="mt-2 p-2.5 bg-dark bg-opacity-50 border border-secondary border-opacity-25 rounded d-flex flex-column gap-2">
-                      <div className="d-flex align-items-center justify-content-between">
-                        <span className="text-info fw-bold d-flex align-items-center gap-1" style={{ fontSize: '0.78rem' }}>
-                          ✨ Local AI Bullet Optimizer
-                        </span>
-                        <span className="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25" style={{ fontSize: '0.65rem', padding: '0.15rem 0.35rem' }}>Local Heuristics</span>
-                      </div>
-                      <p className="text-secondary m-0" style={{ fontSize: '0.74rem', lineHeight: '1.25' }}>
-                        Scan your text for weak language (e.g. "helped build", "wrote SQL") and instantly rewrite it using strong action verbs and quantitative impact metrics.
-                      </p>
-                      <div className="d-flex flex-wrap gap-2 align-items-center mt-1">
-                        <button 
-                          type="button"
-                          className="btn btn-outline-info btn-xs py-1 px-2.5 fw-semibold d-flex align-items-center gap-1 rounded-pill" 
-                          style={{ fontSize: '0.74rem', transition: 'all 0.2s' }}
-                          onClick={() => handleAiOptimizeBullet(expIdx, exp.description)}
-                        >
-                          ⚡ Optimize Achievements
-                        </button>
-                        <div className="d-flex gap-1 flex-wrap">
-                          {actionVerbs.slice(0, 5).map((verb) => (
-                            <span key={verb} className="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-10" style={{ fontSize: '0.68rem', cursor: 'help' }} title={`Use '${verb}' to start your bullet point.`}>
-                              {verb}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                    <span className="help-prompt text-secondary mt-1 d-block" style={{ fontSize: '0.76rem', fontStyle: 'italic' }}>
-                      Pro Tip: Use the rich text editor above to format your achievements with bullets, bold text, and alignments!
+                    <span
+                      className="help-prompt text-secondary mt-1 d-block"
+                      style={{ fontSize: "0.76rem", fontStyle: "italic" }}
+                    >
+                      Pro Tip: Use the rich text editor above to format your
+                      achievements with bullets, bold text, and alignments!
                     </span>
                   </div>
-
                 </div>
               </div>
             ))}
 
-            <button className="btn btn-primary py-2 fw-semibold w-100" onClick={handleAddExperience}>
+            <button
+              className="btn btn-primary py-2 fw-semibold w-100"
+              onClick={handleAddExperience}
+            >
               + Add Experience Position
             </button>
           </div>
@@ -532,55 +753,112 @@ export default function BuilderForm({
       </div>
 
       {/* 3. EDUCATION */}
-      <div className={`form-group-card card bg-dark text-light border-secondary mb-3 ${activeSection === 'education' ? 'active border-primary shadow-sm' : 'border-opacity-25'}`}>
-        <div className="card-header bg-transparent border-bottom border-secondary border-opacity-10 py-3 px-4 d-flex align-items-center justify-content-between" onClick={() => toggleSection('education')} style={{ cursor: 'pointer', userSelect: 'none' }}>
-          <h3 className="fs-6 fw-bold text-light m-0 d-flex align-items-center gap-2">
-            <svg className="card-header-icon text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ width: '20px', height: '20px' }}>
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222" />
+      <div
+        className={`form-group-card mb-3 ${activeSection === "education" ? "active" : ""}`}
+      >
+        <div
+          className="card-header d-flex align-items-center justify-content-between"
+          onClick={() => toggleSection("education")}
+          style={{ cursor: "pointer", userSelect: "none" }}
+        >
+          <h3 className="m-0 d-flex align-items-center gap-2">
+            <svg
+              className="card-header-icon text-primary"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              style={{ width: "20px", height: "20px" }}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222"
+              />
             </svg>
             Education & Academic Background
           </h3>
-          <span className="card-chevron" style={{ transition: 'transform 0.2s', transform: activeSection === 'education' ? 'rotate(180deg)' : 'none' }}>▼</span>
+          <span
+            className="card-chevron"
+            style={{
+              transition: "transform 0.2s",
+              transform:
+                activeSection === "education" ? "rotate(180deg)" : "none",
+            }}
+          >
+            ▼
+          </span>
         </div>
 
-        {activeSection === 'education' && (
-          <div className="card-body p-4 d-flex flex-column gap-3">
+        {activeSection === "education" && (
+          <div className="card-body d-flex flex-column gap-3">
             {formData.education.map((edu, eduIdx) => (
-              <div key={edu.id || eduIdx} className="repeater-item card bg-black bg-opacity-25 border border-secondary border-opacity-25 rounded mb-3">
-                <div className="repeater-item-header card-header bg-transparent border-bottom border-secondary border-opacity-10 py-2 px-3 d-flex align-items-center justify-content-between">
-                  <span className="fw-medium text-secondary" style={{ fontSize: '0.88rem' }}>🎓 Education #{eduIdx + 1}: {edu.degree || 'New Degree'}</span>
-                  <button className="btn btn-outline-danger btn-sm rounded-circle d-flex align-items-center justify-content-center" style={{ width: '28px', height: '28px', padding: 0 }} onClick={() => handleRemoveEducation(eduIdx)}>✕</button>
+              <div key={edu.id || eduIdx} className="repeater-item mb-3">
+                <div className="repeater-item-header d-flex align-items-center justify-content-between">
+                  <span
+                    className="fw-medium text-secondary"
+                    style={{ fontSize: "0.88rem" }}
+                  >
+                    🎓 Education #{eduIdx + 1}: {edu.degree || "New Degree"}
+                  </span>
+                  <button
+                    className="btn-repeater-delete"
+                    onClick={() => handleRemoveEducation(eduIdx)}
+                    title="Remove Item"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                  </button>
                 </div>
                 <div className="repeater-item-body card-body p-3 d-flex flex-column gap-3">
                   <div className="field d-flex flex-column gap-1">
-                    <label className="form-label text-secondary fw-semibold mb-1" style={{ fontSize: '0.82rem' }}>Degree / Certificate</label>
-                    <input 
-                      type="text" 
-                      className="input-control form-control bg-dark border-secondary text-light py-2 px-3" 
-                      value={edu.degree || ''} 
-                      onChange={(e) => handleUpdateEducationItem(eduIdx, 'degree', e.target.value)}
+                    <label className="form-label">Degree / Certificate</label>
+                    <input
+                      type="text"
+                      className="input-control"
+                      value={edu.degree || ""}
+                      onChange={(e) =>
+                        handleUpdateEducationItem(
+                          eduIdx,
+                          "degree",
+                          e.target.value,
+                        )
+                      }
                       placeholder="e.g. Bachelor of Science in Computer Science"
                     />
                   </div>
 
                   <div className="row g-3">
                     <div className="field col-md-6 d-flex flex-column gap-1">
-                      <label className="form-label text-secondary fw-semibold mb-1" style={{ fontSize: '0.82rem' }}>School / University</label>
-                      <input 
-                        type="text" 
-                        className="input-control form-control bg-dark border-secondary text-light py-2 px-3" 
-                        value={edu.school || ''} 
-                        onChange={(e) => handleUpdateEducationItem(eduIdx, 'school', e.target.value)}
+                      <label className="form-label">School / University</label>
+                      <input
+                        type="text"
+                        className="input-control"
+                        value={edu.school || ""}
+                        onChange={(e) =>
+                          handleUpdateEducationItem(
+                            eduIdx,
+                            "school",
+                            e.target.value,
+                          )
+                        }
                         placeholder="e.g. University of Texas"
                       />
                     </div>
                     <div className="field col-md-6 d-flex flex-column gap-1">
-                      <label className="form-label text-secondary fw-semibold mb-1" style={{ fontSize: '0.82rem' }}>Location (City, State/Prov)</label>
-                      <input 
-                        type="text" 
-                        className="input-control form-control bg-dark border-secondary text-light py-2 px-3" 
-                        value={edu.location || ''} 
-                        onChange={(e) => handleUpdateEducationItem(eduIdx, 'location', e.target.value)}
+                      <label className="form-label">
+                        Location (City, State/Prov)
+                      </label>
+                      <input
+                        type="text"
+                        className="input-control"
+                        value={edu.location || ""}
+                        onChange={(e) =>
+                          handleUpdateEducationItem(
+                            eduIdx,
+                            "location",
+                            e.target.value,
+                          )
+                        }
                         placeholder="e.g. Austin, TX"
                       />
                     </div>
@@ -588,34 +866,54 @@ export default function BuilderForm({
 
                   <div className="row g-3">
                     <div className="field col-md-6 d-flex flex-column gap-1">
-                      <label className="form-label text-secondary fw-semibold mb-1" style={{ fontSize: '0.82rem' }}>Start Date</label>
-                      <input 
-                        type="text" 
-                        className="input-control form-control bg-dark border-secondary text-light py-2 px-3" 
-                        value={edu.startDate || ''} 
-                        onChange={(e) => handleUpdateEducationItem(eduIdx, 'startDate', e.target.value)}
+                      <label className="form-label">Start Date</label>
+                      <input
+                        type="text"
+                        className="input-control"
+                        value={edu.startDate || ""}
+                        onChange={(e) =>
+                          handleUpdateEducationItem(
+                            eduIdx,
+                            "startDate",
+                            e.target.value,
+                          )
+                        }
                         placeholder="e.g. 2012-09"
                       />
                     </div>
                     <div className="field col-md-6 d-flex flex-column gap-1">
-                      <label className="form-label text-secondary fw-semibold mb-1" style={{ fontSize: '0.82rem' }}>End Date</label>
-                      <input 
-                        type="text" 
-                        className="input-control form-control bg-dark border-secondary text-light py-2 px-3" 
-                        value={edu.endDate || ''} 
-                        onChange={(e) => handleUpdateEducationItem(eduIdx, 'endDate', e.target.value)}
+                      <label className="form-label">End Date</label>
+                      <input
+                        type="text"
+                        className="input-control"
+                        value={edu.endDate || ""}
+                        onChange={(e) =>
+                          handleUpdateEducationItem(
+                            eduIdx,
+                            "endDate",
+                            e.target.value,
+                          )
+                        }
                         placeholder="e.g. 2016-05"
                       />
                     </div>
                   </div>
 
                   <div className="field d-flex flex-column gap-1">
-                    <label className="form-label text-secondary fw-semibold mb-1" style={{ fontSize: '0.82rem' }}>Additional Details (Honors, Clubs, GPA)</label>
-                    <input 
-                      type="text" 
-                      className="input-control form-control bg-dark border-secondary text-light py-2 px-3" 
-                      value={edu.details || ''} 
-                      onChange={(e) => handleUpdateEducationItem(eduIdx, 'details', e.target.value)}
+                    <label className="form-label">
+                      Additional Details (Honors, Clubs, GPA)
+                    </label>
+                    <input
+                      type="text"
+                      className="input-control"
+                      value={edu.details || ""}
+                      onChange={(e) =>
+                        handleUpdateEducationItem(
+                          eduIdx,
+                          "details",
+                          e.target.value,
+                        )
+                      }
                       placeholder="e.g. Graduated Summa Cum Laude. Dean's List."
                     />
                   </div>
@@ -623,7 +921,10 @@ export default function BuilderForm({
               </div>
             ))}
 
-            <button className="btn btn-primary py-2 fw-semibold w-100" onClick={handleAddEducation}>
+            <button
+              className="btn btn-primary py-2 fw-semibold w-100"
+              onClick={handleAddEducation}
+            >
               + Add Education Block
             </button>
           </div>
@@ -631,57 +932,108 @@ export default function BuilderForm({
       </div>
 
       {/* 4. SKILLS & CORE COMPETENCIES */}
-      <div className={`form-group-card card bg-dark text-light border-secondary mb-3 ${activeSection === 'skills' ? 'active border-primary shadow-sm' : 'border-opacity-25'}`}>
-        <div className="card-header bg-transparent border-bottom border-secondary border-opacity-10 py-3 px-4 d-flex align-items-center justify-content-between" onClick={() => toggleSection('skills')} style={{ cursor: 'pointer', userSelect: 'none' }}>
-          <h3 className="fs-6 fw-bold text-light m-0 d-flex align-items-center gap-2">
-            <svg className="card-header-icon text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ width: '20px', height: '20px' }}>
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+      <div
+        className={`form-group-card mb-3 ${activeSection === "skills" ? "active" : ""}`}
+      >
+        <div
+          className="card-header d-flex align-items-center justify-content-between"
+          onClick={() => toggleSection("skills")}
+          style={{ cursor: "pointer", userSelect: "none" }}
+        >
+          <h3 className="m-0 d-flex align-items-center gap-2">
+            <svg
+              className="card-header-icon text-primary"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              style={{ width: "20px", height: "20px" }}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+              />
             </svg>
             Skills & Core Competencies
           </h3>
-          <span className="card-chevron" style={{ transition: 'transform 0.2s', transform: activeSection === 'skills' ? 'rotate(180deg)' : 'none' }}>▼</span>
+          <span
+            className="card-chevron"
+            style={{
+              transition: "transform 0.2s",
+              transform: activeSection === "skills" ? "rotate(180deg)" : "none",
+            }}
+          >
+            ▼
+          </span>
         </div>
 
-        {activeSection === 'skills' && (
-          <div className="card-body p-4 d-flex flex-column gap-3">
+        {activeSection === "skills" && (
+          <div className="card-body d-flex flex-column gap-3">
             {formData.skills.map((skill, skIdx) => (
-              <div key={skill.id || skIdx} className="repeater-item card bg-black bg-opacity-25 border border-secondary border-opacity-25 rounded mb-3">
-                <div className="repeater-item-header card-header bg-transparent border-bottom border-secondary border-opacity-10 py-2 px-3 d-flex align-items-center justify-content-between">
-                  <span className="fw-medium text-secondary" style={{ fontSize: '0.88rem' }}>⚡ Skill Category: {skill.category || 'New Category'}</span>
-                  <button className="btn btn-outline-danger btn-sm rounded-circle d-flex align-items-center justify-content-center" style={{ width: '28px', height: '28px', padding: 0 }} onClick={() => handleRemoveSkillCategory(skIdx)}>✕</button>
+              <div key={skill.id || skIdx} className="repeater-item mb-3">
+                <div className="repeater-item-header d-flex align-items-center justify-content-between">
+                  <span
+                    className="fw-medium text-secondary"
+                    style={{ fontSize: "0.88rem" }}
+                  >
+                    ⚡ Skill Category: {skill.category || "New Category"}
+                  </span>
+                  <button
+                    className="btn-repeater-delete"
+                    onClick={() => handleRemoveSkillCategory(skIdx)}
+                    title="Remove Item"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                  </button>
                 </div>
                 <div className="repeater-item-body card-body p-3 d-flex flex-column gap-3">
                   <div className="field d-flex flex-column gap-1">
-                    <label className="form-label text-secondary fw-semibold mb-1" style={{ fontSize: '0.82rem' }}>Category Title</label>
-                    <input 
-                      type="text" 
-                      className="input-control form-control bg-dark border-secondary text-light py-2 px-3" 
-                      value={skill.category || ''} 
-                      onChange={(e) => handleUpdateSkillCategory(skIdx, e.target.value)}
-                      onFocus={() => onFieldFocus('skills')}
+                    <label className="form-label">Category Title</label>
+                    <input
+                      type="text"
+                      className="input-control"
+                      value={skill.category || ""}
+                      onChange={(e) =>
+                        handleUpdateSkillCategory(skIdx, e.target.value)
+                      }
+                      onFocus={() => onFieldFocus("skills")}
                       onBlur={onFieldBlur}
                       placeholder="e.g. Languages or DevOps"
                     />
                   </div>
 
                   <div className="field d-flex flex-column gap-1">
-                    <label className="form-label text-secondary fw-semibold mb-1" style={{ fontSize: '0.82rem' }}>Tags (Comma separated values)</label>
-                    <input 
-                      type="text" 
-                      className="input-control form-control bg-dark border-secondary text-light py-2 px-3" 
-                      value={skill.items.join(', ') || ''} 
-                      onChange={(e) => handleUpdateSkillItems(skIdx, e.target.value)}
-                      onFocus={() => onFieldFocus('skills')}
+                    <label className="form-label">
+                      Tags (Comma separated values)
+                    </label>
+                    <input
+                      type="text"
+                      className="input-control"
+                      value={skill.items.join(", ") || ""}
+                      onChange={(e) =>
+                        handleUpdateSkillItems(skIdx, e.target.value)
+                      }
+                      onFocus={() => onFieldFocus("skills")}
                       onBlur={onFieldBlur}
                       placeholder="e.g. React, Next.js, Webpack, Redux"
                     />
-                    <span className="help-prompt text-secondary mt-1 d-block" style={{ fontSize: '0.76rem', fontStyle: 'italic' }}>Write tag entries separated by commas. We will render them as neat items.</span>
+                    <span
+                      className="help-prompt text-secondary mt-1 d-block"
+                      style={{ fontSize: "0.76rem", fontStyle: "italic" }}
+                    >
+                      Write tag entries separated by commas. We will render them
+                      as neat items.
+                    </span>
                   </div>
                 </div>
               </div>
             ))}
 
-            <button className="btn btn-primary py-2 fw-semibold w-100" onClick={handleAddSkillCategory}>
+            <button
+              className="btn btn-primary py-2 fw-semibold w-100"
+              onClick={handleAddSkillCategory}
+            >
               + Add Skill Category
             </button>
           </div>
@@ -689,55 +1041,110 @@ export default function BuilderForm({
       </div>
 
       {/* 5. CERTIFICATIONS */}
-      <div className={`form-group-card card bg-dark text-light border-secondary mb-3 ${activeSection === 'certifications' ? 'active border-primary shadow-sm' : 'border-opacity-25'}`}>
-        <div className="card-header bg-transparent border-bottom border-secondary border-opacity-10 py-3 px-4 d-flex align-items-center justify-content-between" onClick={() => toggleSection('certifications')} style={{ cursor: 'pointer', userSelect: 'none' }}>
-          <h3 className="fs-6 fw-bold text-light m-0 d-flex align-items-center gap-2">
-            <svg className="card-header-icon text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ width: '20px', height: '20px' }}>
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+      <div
+        className={`form-group-card mb-3 ${activeSection === "certifications" ? "active" : ""}`}
+      >
+        <div
+          className="card-header d-flex align-items-center justify-content-between"
+          onClick={() => toggleSection("certifications")}
+          style={{ cursor: "pointer", userSelect: "none" }}
+        >
+          <h3 className="m-0 d-flex align-items-center gap-2">
+            <svg
+              className="card-header-icon text-primary"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              style={{ width: "20px", height: "20px" }}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
+              />
             </svg>
             Certifications & Training
           </h3>
-          <span className="card-chevron" style={{ transition: 'transform 0.2s', transform: activeSection === 'certifications' ? 'rotate(180deg)' : 'none' }}>▼</span>
+          <span
+            className="card-chevron"
+            style={{
+              transition: "transform 0.2s",
+              transform:
+                activeSection === "certifications" ? "rotate(180deg)" : "none",
+            }}
+          >
+            ▼
+          </span>
         </div>
 
-        {activeSection === 'certifications' && (
-          <div className="card-body p-4 d-flex flex-column gap-3">
+        {activeSection === "certifications" && (
+          <div className="card-body d-flex flex-column gap-3">
             {formData.certifications.map((cert, certIdx) => (
-              <div key={cert.id || certIdx} className="repeater-item card bg-black bg-opacity-25 border border-secondary border-opacity-25 rounded mb-3">
-                <div className="repeater-item-header card-header bg-transparent border-bottom border-secondary border-opacity-10 py-2 px-3 d-flex align-items-center justify-content-between">
-                  <span className="fw-medium text-secondary" style={{ fontSize: '0.88rem' }}>🎖️ Cert: {cert.name || 'New Certification'}</span>
-                  <button className="btn btn-outline-danger btn-sm rounded-circle d-flex align-items-center justify-content-center" style={{ width: '28px', height: '28px', padding: 0 }} onClick={() => handleRemoveCertification(certIdx)}>✕</button>
+              <div key={cert.id || certIdx} className="repeater-item mb-3">
+                <div className="repeater-item-header d-flex align-items-center justify-content-between">
+                  <span
+                    className="fw-medium text-secondary"
+                    style={{ fontSize: "0.88rem" }}
+                  >
+                    🎖️ Cert: {cert.name || "New Certification"}
+                  </span>
+                  <button
+                    className="btn-repeater-delete"
+                    onClick={() => handleRemoveCertification(certIdx)}
+                    title="Remove Item"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                  </button>
                 </div>
                 <div className="repeater-item-body card-body p-3 d-flex flex-column gap-3">
                   <div className="field d-flex flex-column gap-1">
-                    <label className="form-label text-secondary fw-semibold mb-1" style={{ fontSize: '0.82rem' }}>Certification Name</label>
-                    <input 
-                      type="text" 
-                      className="input-control form-control bg-dark border-secondary text-light py-2 px-3" 
-                      value={cert.name || ''} 
-                      onChange={(e) => handleUpdateCertification(certIdx, 'name', e.target.value)}
+                    <label className="form-label">Certification Name</label>
+                    <input
+                      type="text"
+                      className="input-control"
+                      value={cert.name || ""}
+                      onChange={(e) =>
+                        handleUpdateCertification(
+                          certIdx,
+                          "name",
+                          e.target.value,
+                        )
+                      }
                       placeholder="e.g. AWS Certified Architect"
                     />
                   </div>
 
                   <div className="row g-3">
                     <div className="field col-md-6 d-flex flex-column gap-1">
-                      <label className="form-label text-secondary fw-semibold mb-1" style={{ fontSize: '0.82rem' }}>Issuing Institution</label>
-                      <input 
-                        type="text" 
-                        className="input-control form-control bg-dark border-secondary text-light py-2 px-3" 
-                        value={cert.issuer || ''} 
-                        onChange={(e) => handleUpdateCertification(certIdx, 'issuer', e.target.value)}
+                      <label className="form-label">Issuing Institution</label>
+                      <input
+                        type="text"
+                        className="input-control"
+                        value={cert.issuer || ""}
+                        onChange={(e) =>
+                          handleUpdateCertification(
+                            certIdx,
+                            "issuer",
+                            e.target.value,
+                          )
+                        }
                         placeholder="e.g. Amazon Web Services"
                       />
                     </div>
                     <div className="field col-md-6 d-flex flex-column gap-1">
-                      <label className="form-label text-secondary fw-semibold mb-1" style={{ fontSize: '0.82rem' }}>Year of Issue</label>
-                      <input 
-                        type="text" 
-                        className="input-control form-control bg-dark border-secondary text-light py-2 px-3" 
-                        value={cert.date || ''} 
-                        onChange={(e) => handleUpdateCertification(certIdx, 'date', e.target.value)}
+                      <label className="form-label">Year of Issue</label>
+                      <input
+                        type="text"
+                        className="input-control"
+                        value={cert.date || ""}
+                        onChange={(e) =>
+                          handleUpdateCertification(
+                            certIdx,
+                            "date",
+                            e.target.value,
+                          )
+                        }
                         placeholder="e.g. 2024"
                       />
                     </div>
@@ -746,7 +1153,10 @@ export default function BuilderForm({
               </div>
             ))}
 
-            <button className="btn btn-primary py-2 fw-semibold w-100" onClick={handleAddCertification}>
+            <button
+              className="btn btn-primary py-2 fw-semibold w-100"
+              onClick={handleAddCertification}
+            >
               + Add Certification
             </button>
           </div>
@@ -754,59 +1164,111 @@ export default function BuilderForm({
       </div>
 
       {/* 6. REFERENCES (Highly expected in Australia) */}
-      <div className={`form-group-card card bg-dark text-light border-secondary mb-3 ${activeSection === 'references' ? 'active border-primary shadow-sm' : 'border-opacity-25'}`}>
-        <div className="card-header bg-transparent border-bottom border-secondary border-opacity-10 py-3 px-4 d-flex align-items-center justify-content-between" onClick={() => toggleSection('references')} style={{ cursor: 'pointer', userSelect: 'none' }}>
-          <h3 className="fs-6 fw-bold text-light m-0 d-flex align-items-center gap-2">
-            <svg className="card-header-icon text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ width: '20px', height: '20px' }}>
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+      <div
+        className={`form-group-card mb-3 ${activeSection === "references" ? "active" : ""}`}
+      >
+        <div
+          className="card-header d-flex align-items-center justify-content-between"
+          onClick={() => toggleSection("references")}
+          style={{ cursor: "pointer", userSelect: "none" }}
+        >
+          <h3 className="m-0 d-flex align-items-center gap-2">
+            <svg
+              className="card-header-icon text-primary"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              style={{ width: "20px", height: "20px" }}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+              />
             </svg>
             Professional References
           </h3>
-          <span className="card-chevron" style={{ transition: 'transform 0.2s', transform: activeSection === 'references' ? 'rotate(180deg)' : 'none' }}>▼</span>
+          <span
+            className="card-chevron"
+            style={{
+              transition: "transform 0.2s",
+              transform:
+                activeSection === "references" ? "rotate(180deg)" : "none",
+            }}
+          >
+            ▼
+          </span>
         </div>
 
-        {activeSection === 'references' && (
-          <div className="card-body p-4 d-flex flex-column gap-3">
-            <span className="help-prompt text-primary fw-semibold mt-0 mb-2 d-block" style={{ fontSize: '0.76rem' }}>
-              🇦🇺 Australian Standard Highlight: Standard CVs in Australia typically include references or mark them 'Available upon request'.
+        {activeSection === "references" && (
+          <div className="card-body d-flex flex-column gap-3">
+            <span
+              className="help-prompt text-primary fw-semibold mt-0 mb-2 d-block"
+              style={{ fontSize: "0.76rem" }}
+            >
+              🇦🇺 Australian Standard Highlight: Standard CVs in Australia
+              typically include references or mark them 'Available upon
+              request'.
             </span>
             {formData.references.map((ref, refIdx) => (
-              <div key={ref.id || refIdx} className="repeater-item card bg-black bg-opacity-25 border border-secondary border-opacity-25 rounded mb-3">
-                <div className="repeater-item-header card-header bg-transparent border-bottom border-secondary border-opacity-10 py-2 px-3 d-flex align-items-center justify-content-between">
-                  <span className="fw-medium text-secondary" style={{ fontSize: '0.88rem' }}>👤 Reference #{refIdx + 1}: {ref.name || 'New Reference'}</span>
-                  <button className="btn btn-outline-danger btn-sm rounded-circle d-flex align-items-center justify-content-center" style={{ width: '28px', height: '28px', padding: 0 }} onClick={() => handleRemoveReference(refIdx)}>✕</button>
+              <div key={ref.id || refIdx} className="repeater-item mb-3">
+                <div className="repeater-item-header d-flex align-items-center justify-content-between">
+                  <span
+                    className="fw-medium text-secondary"
+                    style={{ fontSize: "0.88rem" }}
+                  >
+                    👤 Reference #{refIdx + 1}: {ref.name || "New Reference"}
+                  </span>
+                  <button
+                    className="btn-repeater-delete"
+                    onClick={() => handleRemoveReference(refIdx)}
+                    title="Remove Item"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                  </button>
                 </div>
                 <div className="repeater-item-body card-body p-3 d-flex flex-column gap-3">
                   <div className="row g-3">
                     <div className="field col-md-6 d-flex flex-column gap-1">
-                      <label className="form-label text-secondary fw-semibold mb-1" style={{ fontSize: '0.82rem' }}>Reference Name</label>
-                      <input 
-                        type="text" 
-                        className="input-control form-control bg-dark border-secondary text-light py-2 px-3" 
-                        value={ref.name || ''} 
-                        onChange={(e) => handleUpdateReference(refIdx, 'name', e.target.value)}
+                      <label className="form-label">Reference Name</label>
+                      <input
+                        type="text"
+                        className="input-control"
+                        value={ref.name || ""}
+                        onChange={(e) =>
+                          handleUpdateReference(refIdx, "name", e.target.value)
+                        }
                         placeholder="e.g. Dr. Jane Carter"
                       />
                     </div>
                     <div className="field col-md-6 d-flex flex-column gap-1">
-                      <label className="form-label text-secondary fw-semibold mb-1" style={{ fontSize: '0.82rem' }}>Role / Relationship / Company</label>
-                      <input 
-                        type="text" 
-                        className="input-control form-control bg-dark border-secondary text-light py-2 px-3" 
-                        value={ref.title || ''} 
-                        onChange={(e) => handleUpdateReference(refIdx, 'title', e.target.value)}
+                      <label className="form-label">
+                        Role / Relationship / Company
+                      </label>
+                      <input
+                        type="text"
+                        className="input-control"
+                        value={ref.title || ""}
+                        onChange={(e) =>
+                          handleUpdateReference(refIdx, "title", e.target.value)
+                        }
                         placeholder="e.g. VP Engineering at Tesla"
                       />
                     </div>
                   </div>
 
                   <div className="field d-flex flex-column gap-1">
-                    <label className="form-label text-secondary fw-semibold mb-1" style={{ fontSize: '0.82rem' }}>Contact Info (Email / Phone)</label>
-                    <input 
-                      type="text" 
-                      className="input-control form-control bg-dark border-secondary text-light py-2 px-3" 
-                      value={ref.contact || ''} 
-                      onChange={(e) => handleUpdateReference(refIdx, 'contact', e.target.value)}
+                    <label className="form-label">
+                      Contact Info (Email / Phone)
+                    </label>
+                    <input
+                      type="text"
+                      className="input-control"
+                      value={ref.contact || ""}
+                      onChange={(e) =>
+                        handleUpdateReference(refIdx, "contact", e.target.value)
+                      }
                       placeholder="e.g. jane.carter@email.com | +1 (555) 902-1823"
                     />
                   </div>
@@ -814,14 +1276,117 @@ export default function BuilderForm({
               </div>
             ))}
 
-            <button className="btn btn-primary py-2 fw-semibold w-100" onClick={handleAddReference}>
+            <button
+              className="btn btn-primary py-2 fw-semibold w-100"
+              onClick={handleAddReference}
+            >
               + Add Reference
             </button>
           </div>
         )}
       </div>
 
+      {/* DYNAMIC CUSTOM SECTIONS */}
+      {(formData.customSections || []).map((section, sectionIdx) => (
+        <div key={section.id} className={`form-group-card mb-3 ${activeSection === `custom-${section.id}` ? 'active' : ''}`}>
+          <div
+            className="card-header d-flex align-items-center justify-content-between"
+            onClick={() => toggleSection(`custom-${section.id}`)}
+            style={{ cursor: 'pointer', userSelect: 'none' }}
+          >
+            <h3 className="m-0 d-flex align-items-center gap-2">
+              <svg className="card-header-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ width: '20px', height: '20px', color: '#6366f1', flexShrink: 0 }}>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              <input
+                type="text"
+                className="custom-section-title-input"
+                value={section.title}
+                onChange={(e) => { e.stopPropagation(); handleUpdateCustomSectionTitle(sectionIdx, e.target.value); }}
+                onClick={(e) => e.stopPropagation()}
+                placeholder="Section Title"
+              />
+            </h3>
+            <div className="d-flex align-items-center gap-2">
+              <button
+                className="btn-repeater-delete"
+                onClick={(e) => { e.stopPropagation(); handleRemoveCustomSection(sectionIdx); }}
+                title="Remove Section"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+              </button>
+              <span
+                className="card-chevron"
+                style={{ transition: 'transform 0.2s', transform: activeSection === `custom-${section.id}` ? 'rotate(180deg)' : 'none', pointerEvents: 'none' }}
+              >▼</span>
+            </div>
+          </div>
 
+          {activeSection === `custom-${section.id}` && (
+            <div className="card-body d-flex flex-column gap-3">
+              {(section.items || []).map((item, itemIdx) => (
+                <div key={item.id || itemIdx} className="repeater-item mb-3">
+                  <div className="repeater-item-header d-flex align-items-center justify-content-between">
+                    <span className="fw-medium" style={{ fontSize: '0.82rem', color: '#94a3b8' }}>
+                      📌 Entry #{itemIdx + 1}: {item.title || 'New Entry'}
+                    </span>
+                    <button
+                      className="btn-repeater-delete"
+                      onClick={() => handleRemoveCustomItem(sectionIdx, itemIdx)}
+                      title="Remove Entry"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                    </button>
+                  </div>
+                  <div className="repeater-item-body d-flex flex-column gap-3">
+                    <div className="row g-3">
+                      <div className="field col-md-6 d-flex flex-column gap-1">
+                        <label className="form-label">Title</label>
+                        <input type="text" className="input-control" value={item.title || ''} onChange={(e) => handleUpdateCustomItem(sectionIdx, itemIdx, 'title', e.target.value)} placeholder="e.g. Project Name or Award" />
+                      </div>
+                      <div className="field col-md-6 d-flex flex-column gap-1">
+                        <label className="form-label">Subtitle / Organization</label>
+                        <input type="text" className="input-control" value={item.subtitle || ''} onChange={(e) => handleUpdateCustomItem(sectionIdx, itemIdx, 'subtitle', e.target.value)} placeholder="e.g. Company / Institution" />
+                      </div>
+                    </div>
+                    <div className="row g-3">
+                      <div className="field col-md-4 d-flex flex-column gap-1">
+                        <label className="form-label">Location</label>
+                        <input type="text" className="input-control" value={item.location || ''} onChange={(e) => handleUpdateCustomItem(sectionIdx, itemIdx, 'location', e.target.value)} placeholder="e.g. Remote / Austin, TX" />
+                      </div>
+                      <div className="field col-md-4 d-flex flex-column gap-1">
+                        <label className="form-label">Start Date</label>
+                        <input type="text" className="input-control" value={item.startDate || ''} onChange={(e) => handleUpdateCustomItem(sectionIdx, itemIdx, 'startDate', e.target.value)} placeholder="e.g. 2022-01" />
+                      </div>
+                      <div className="field col-md-4 d-flex flex-column gap-1">
+                        <label className="form-label">End Date</label>
+                        <input type="text" className="input-control" value={item.endDate || ''} onChange={(e) => handleUpdateCustomItem(sectionIdx, itemIdx, 'endDate', e.target.value)} placeholder="e.g. Present" />
+                      </div>
+                    </div>
+                    <div className="field d-flex flex-column gap-1">
+                      <label className="form-label">Description</label>
+                      <RichTextEditor
+                        value={item.description || ''}
+                        onChange={(content) => handleUpdateCustomItem(sectionIdx, itemIdx, 'description', content)}
+                        placeholder="Describe achievements, details, or outcomes..."
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+              <button className="btn btn-primary py-2 fw-semibold w-100" onClick={() => handleAddCustomItem(sectionIdx)}>
+                + Add Entry
+              </button>
+            </div>
+          )}
+        </div>
+      ))}
+
+      {/* ADD CUSTOM SECTION BUTTON */}
+      <button className="btn-add-custom-section" onClick={handleAddCustomSection}>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        Add Custom Section
+      </button>
 
     </div>
   );
