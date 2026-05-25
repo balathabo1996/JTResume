@@ -1,0 +1,523 @@
+import React, { useState } from 'react';
+import BuilderForm from './components/BuilderForm';
+import ResumePreview from './components/ResumePreview';
+import ComplianceScanner from './components/ComplianceScanner';
+import ImportModal from './components/ImportModal';
+import LandingPage from './components/LandingPage';
+import AuthPage from './components/AuthPage';
+import { mockResumeData } from './data/mockResumeData';
+
+// Baseline Empty Resume state schema
+const emptyResumeState = {
+  personalInfo: {
+    fullName: "",
+    jobTitle: "",
+    email: "",
+    phone: "",
+    location: "",
+    website: "",
+    linkedin: "",
+    languages: "",
+    summary: "",
+    photoUrl: "",
+    birthDate: "",
+    maritalStatus: ""
+  },
+  workExperience: [],
+  education: [],
+  skills: [],
+  certifications: [],
+  references: []
+};
+
+export default function App() {
+  const [currentView, setCurrentView] = useState('landing'); // 'landing' | 'editor'
+  const [formData, setFormData] = useState(emptyResumeState); // Empty slate by default for public deployment
+  const [templateStyle, setTemplateStyle] = useState('modern');
+  const [accentColor, setAccentColor] = useState('#1e3a8a'); // Default Classic Blue
+  const [spacingTuning, setSpacingTuning] = useState('normal'); // 'compact' | 'normal' | 'spacious'
+  const [fontPairing, setFontPairing] = useState('modern'); // 'modern' | 'editorial' | 'tech' | 'corporate'
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState('personal');
+  const [focusedFieldTip, setFocusedFieldTip] = useState(null);
+
+  /* --- ADVANCED SAAS ATS SCANNER STATE & LOGIC --- */
+  const [jobDescription, setJobDescription] = useState("");
+  const [targetKeywords, setTargetKeywords] = useState([]);
+
+  // Dictionary of standard high-impact ATS keywords
+  const COMMON_PROFESSIONAL_KEYWORDS = [
+    // Tech & Engineering
+    "React", "Vue", "Angular", "Next.js", "TypeScript", "JavaScript", "HTML", "CSS", "Node.js", "Python", 
+    "Java", "Go", "Golang", "C++", "C#", "Ruby", "PHP", "Rust", "Swift", "Kotlin", "AWS", "Azure", 
+    "GCP", "Docker", "Kubernetes", "DevOps", "CI/CD", "Git", "GitHub", "SQL", "NoSQL", "PostgreSQL", 
+    "MongoDB", "Redis", "Elasticsearch", "GraphQL", "REST", "APIs", "Microservices", "Serverless", 
+    "Linux", "Terraform", "Ansible", "Jenkins", "Webpack", "Redux", "Tailwind", "Bootstrap", "Jest", 
+    "Cypress", "Machine Learning", "AI", "Data Science", "Analytics", "Security", "Cryptography",
+    
+    // Agile & Project Management
+    "Agile", "Scrum", "Kanban", "Product Management", "Project Management", "Jira", "Confluence", 
+    "Leadership", "Mentorship", "Collaboration", "Strategy", "Roadmap", "Budgeting", "Product Launch",
+    "Design", "UX", "UI", "Figma", "Marketing", "SEO", "Sales", "Business Development", "Finance", 
+    "QA", "Testing", "SDLC", "Compliance", "Risk Management"
+  ];
+
+  const extractKeywords = (text) => {
+    if (!text) return [];
+    const matched = [];
+    
+    // 1. Dictionary matching (case-insensitive)
+    COMMON_PROFESSIONAL_KEYWORDS.forEach(kw => {
+      const escaped = kw.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+      const regex = new RegExp(`\\b${escaped}\\b`, 'i');
+      if (regex.test(text)) {
+        matched.push(kw);
+      }
+    });
+    
+    // 2. Dynamic acronym extraction (ALL CAPS words of 3-6 letters)
+    const acronyms = text.match(/\b[A-Z]{3,6}\b/g) || [];
+    acronyms.forEach(w => {
+      if (!matched.includes(w) && !["AND", "THE", "FOR", "ITS", "NOT", "YOU", "ARE", "THEY", "THIS", "WILL"].includes(w)) {
+        matched.push(w);
+      }
+    });
+
+    return matched.slice(0, 15); // Return top 15 parsed keywords
+  };
+
+  const handleJobDescriptionChange = (text) => {
+    setJobDescription(text);
+    setTargetKeywords(extractKeywords(text));
+  };
+
+  // State-derived Keyword matcher scanning the resume details in real-time
+  const getMatchedKeywords = () => {
+    if (targetKeywords.length === 0) return [];
+    
+    let searchString = "";
+    
+    // Profile
+    searchString += ` ${formData.personalInfo.fullName} ${formData.personalInfo.jobTitle} ${formData.personalInfo.summary}`;
+    
+    // Work
+    formData.workExperience.forEach(exp => {
+      searchString += ` ${exp.role} ${exp.company} ${exp.description}`;
+    });
+    
+    // Education
+    formData.education.forEach(edu => {
+      searchString += ` ${edu.degree} ${edu.school} ${edu.details}`;
+    });
+    
+    // Skills
+    formData.skills.forEach(sk => {
+      searchString += ` ${sk.category} ${sk.items.join(' ')}`;
+    });
+    
+    // Certs
+    formData.certifications.forEach(cert => {
+      searchString += ` ${cert.name} ${cert.issuer}`;
+    });
+
+    return targetKeywords.filter(kw => {
+      const escaped = kw.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+      const regex = new RegExp(`\\b${escaped}\\b`, 'i');
+      return regex.test(searchString);
+    });
+  };
+
+  const matchedKeywords = getMatchedKeywords();
+  const matchPercentage = targetKeywords.length > 0 
+    ? Math.round((matchedKeywords.length / targetKeywords.length) * 100) 
+    : 0;
+
+  // Accent color choices - expanded to 10 high-conversion corporate presets
+  const colors = [
+    { name: 'Classic Trust (Navy)', hex: '#1e3a8a' },
+    { name: 'Modern Innovation (Indigo)', hex: '#4f46e5' },
+    { name: 'Growth & Stability (Forest)', hex: '#064e3b' },
+    { name: 'Bold Influence (Crimson)', hex: '#881337' },
+    { name: 'Executive Elegance (Charcoal)', hex: '#334155' },
+    { name: 'Creative Corporate (Teal)', hex: '#0d9488' },
+    { name: 'Clean Tech (Steel Blue)', hex: '#0369a1' },
+    { name: 'Warm Terracotta (Amber)', hex: '#b45309' },
+    { name: 'Midnight Sapphire (Slate)', hex: '#0f172a' },
+    { name: 'Rich Burgundy (Plum)', hex: '#701a75' }
+  ];
+
+  // SaaS Contextual Expert Tips
+  const fieldTips = {
+    fullName: "💡 Pro Tip: Use your standard full professional name. Avoid abbreviations or nicknames to ensure maximum ATS matching.",
+    jobTitle: "💡 Pro Tip: Match your target job title exactly (e.g. 'Senior Systems Architect') to fit automated job criteria.",
+    contact: "🔒 Privacy Tip: Do not include full street addresses. City, State/Province (e.g. 'Seattle, WA') is sufficient and safe.",
+    summary: "💡 Style Tip: Keep summaries under 3-4 sentences. Highlight your highest impact credentials, action verbs, and core metrics.",
+    sensitive: "⚠️ Compliance Risk: Do NOT add photos, birthdates, or marital details. Equal opportunity employment rules in US/CA/AU discourage these.",
+    experience_bullets: "💡 Pro Tip: Quantify achievements with metrics (e.g., 'reduced load times by 40%') rather than just listing basic responsibilities.",
+    skills: "💡 Formatting Tip: Group skills into categories (e.g., 'DevOps', 'Languages') and list tags separated by commas."
+  };
+
+  /* --- Data State Updaters --- */
+  const updatePersonalInfo = (field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      personalInfo: {
+        ...prev.personalInfo,
+        [field]: value
+      }
+    }));
+  };
+
+  const updateWorkExperience = (updatedList) => {
+    setFormData(prev => ({ ...prev, workExperience: updatedList }));
+  };
+
+  const updateEducation = (updatedList) => {
+    setFormData(prev => ({ ...prev, education: updatedList }));
+  };
+
+  const updateSkills = (updatedList) => {
+    setFormData(prev => ({ ...prev, skills: updatedList }));
+  };
+
+  const updateCertifications = (updatedList) => {
+    setFormData(prev => ({ ...prev, certifications: updatedList }));
+  };
+
+  const updateReferences = (updatedList) => {
+    setFormData(prev => ({ ...prev, references: updatedList }));
+  };
+
+  const handleResetToMock = () => {
+    setFormData(mockResumeData);
+    setActiveSection('personal');
+  };
+
+  const handleClearData = () => {
+    setFormData(emptyResumeState);
+    setActiveSection('personal');
+  };
+
+  // Direct PDF Export using Native Print System
+  const handlePrintPDF = () => {
+    window.print();
+  };
+
+
+
+  const handleImportData = (newData) => {
+    setFormData(newData);
+    setActiveSection('personal');
+  };
+
+  if (currentView === 'landing') {
+    return <LandingPage onStartBuilder={() => setCurrentView('login')} />;
+  }
+
+  if (currentView === 'login') {
+    return <AuthPage onLogin={() => setCurrentView('editor')} onBackToHome={() => setCurrentView('landing')} />;
+  }
+
+  return (
+    <div className="app-container container-fluid p-0">
+      
+      {/* LEFT PANEL: The Interactive Builder Forms */}
+      <div className="app-sidebar bg-dark text-light border-end border-secondary border-opacity-25 d-flex flex-column h-100 overflow-y-auto">
+        
+        {/* Sticky Top Sidebar Panel: Brand, Stepper, and Actions */}
+        <div className="sidebar-sticky-header sticky-top shadow-sm" style={{ background: 'linear-gradient(180deg, #0d1117 0%, #0d1117 100%)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+          {/* Brand Header */}
+          <div className="sidebar-header d-flex align-items-center justify-content-between px-3 py-3">
+            <div 
+              className="brand" 
+              style={{ userSelect: 'none', cursor: 'pointer' }} 
+              onClick={() => setCurrentView('landing')}
+              title="Return to Home"
+            >
+              <span className="brand-jt">JT</span>
+              <span className="brand-resume">Resume</span>
+            </div>
+            <span className="badge rounded-pill fw-semibold" style={{ fontSize: '0.68rem', background: 'rgba(99,102,241,0.15)', color: '#a5b4fc', border: '1px solid rgba(99,102,241,0.3)', padding: '4px 10px' }}>
+              v1.0.0
+            </span>
+          </div>
+
+          {/* Step Progress Indicator Stepper */}
+          <div className="px-3 pb-3">
+            <div className="stepper-container d-flex align-items-center justify-content-between">
+              {[
+                { key: 'personal', num: 1, label: 'Profile', done: !!formData.personalInfo.fullName },
+                { key: 'experience', num: 2, label: 'Work', done: formData.workExperience.length > 0 },
+                { key: 'education', num: 3, label: 'Edu', done: formData.education.length > 0 },
+                { key: 'skills', num: 4, label: 'Skills', done: formData.skills.length > 0 },
+              ].map((step, idx) => (
+                <React.Fragment key={step.key}>
+                  <div className="d-flex flex-column align-items-center gap-1" style={{ flex: 1, cursor: 'pointer' }} onClick={() => setActiveSection(step.key)}>
+                    <div className={`step-circle ${activeSection === step.key ? 'active' : ''} ${step.done ? 'done' : ''}`}>
+                      {step.done ? '✓' : step.num}
+                    </div>
+                    <span className={`step-label ${activeSection === step.key ? 'active' : ''} ${step.done ? 'done' : ''}`}>{step.label}</span>
+                  </div>
+                  {idx < 3 && <div className={`step-line ${step.done ? 'active' : ''}`}></div>}
+                </React.Fragment>
+              ))}
+            </div>
+          </div>
+
+          {/* Dynamic Contextual Tip Card banner inside sticky panel */}
+          {focusedFieldTip && fieldTips[focusedFieldTip] && (
+            <div className="px-3 pb-2">
+              <div className="m-0 py-2 px-3 rounded-3" style={{ background: 'rgba(99,102,241,0.08)', borderLeft: '3px solid #6366f1', fontSize: '0.78rem', color: '#a5b4fc' }}>
+                {fieldTips[focusedFieldTip]}
+              </div>
+            </div>
+          )}
+
+          {/* Global Action Export & Import Panel */}
+          <div className="p-3" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+            <button
+              className="d-flex align-items-center justify-content-center gap-2 py-2 fw-bold w-100 rounded-3 border-0 mb-2 btn-export-pdf"
+              onClick={handlePrintPDF}
+            >
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ width: '16px', height: '16px' }}>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Export Professional PDF
+            </button>
+            <button
+              className="d-flex align-items-center justify-content-center gap-2 py-2 fw-medium w-100 rounded-3 btn-import-profile"
+              onClick={() => setIsImportModalOpen(true)}
+            >
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ width: '15px', height: '15px' }}>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+              </svg>
+              Upload Resume / Import Profile
+            </button>
+          </div>
+        </div>
+
+        {/* Welcome Onboarding widget */}
+        <div className="mx-3 my-3 p-3 rounded-3 welcome-widget">
+          <div className="fw-bold mb-2 d-flex align-items-center gap-2 welcome-widget-title">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ width: '16px', height: '16px' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+            Welcome to JTResume!
+          </div>
+          <ul className="list-unstyled mb-3 d-flex flex-column gap-1 welcome-list">
+            <li className="d-flex align-items-start gap-2"><span style={{ color: '#6366f1', marginTop: '1px' }}>▸</span> Type in fields or click <strong>Upload Resume</strong> to import your profile.</li>
+            <li className="d-flex align-items-start gap-2"><span style={{ color: '#6366f1', marginTop: '1px' }}>▸</span> Pick a template, color & font for a pro look.</li>
+            <li className="d-flex align-items-start gap-2"><span style={{ color: '#6366f1', marginTop: '1px' }}>▸</span> Export ATS-optimized PDFs in one click.</li>
+          </ul>
+          <div className="d-flex flex-column gap-2">
+            <div className="d-flex gap-2">
+              <button
+                className="flex-grow-1 py-2 rounded-3 border-0 fw-bold d-inline-flex align-items-center justify-content-center gap-1 btn-demo-profile"
+                onClick={handleResetToMock}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: '13px', height: '13px', flexShrink: 0 }}>
+                  <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+                </svg>
+                Load Demo Profile
+              </button>
+              <button
+                className="flex-grow-1 py-2 rounded-3 fw-bold d-inline-flex align-items-center justify-content-center gap-1 btn-clear-all"
+                onClick={handleClearData}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: '13px', height: '13px', flexShrink: 0 }}>
+                  <path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                  <line x1="10" y1="11" x2="10" y2="17" /><line x1="14" y1="11" x2="14" y2="17" />
+                </svg>
+                Clear All
+              </button>
+            </div>
+            <div className="text-center py-1 rounded-pill privacy-badge">
+              100% Private & Browser-Local
+            </div>
+          </div>
+        </div>
+
+        {/* Form sections */}
+        <BuilderForm 
+          formData={formData} 
+          updatePersonalInfo={updatePersonalInfo}
+          updateWorkExperience={updateWorkExperience}
+          updateEducation={updateEducation}
+          updateSkills={updateSkills}
+          updateCertifications={updateCertifications}
+          updateReferences={updateReferences}
+          onResetToMock={handleResetToMock}
+          onClearData={handleClearData}
+          activeSection={activeSection}
+          onSectionChange={setActiveSection}
+          onFieldFocus={setFocusedFieldTip}
+          onFieldBlur={() => setFocusedFieldTip(null)}
+          jobDescription={jobDescription}
+          onJobDescriptionChange={handleJobDescriptionChange}
+        />
+        
+      </div>
+
+      <div className="app-canvas bg-dark d-flex flex-column align-items-center h-100 overflow-y-auto p-4">
+        
+        {/* Settings Configurations bar */}
+        <div className="canvas-settings-bar mb-4" style={{ maxWidth: '880px', width: '100%', background: 'rgba(15,20,40,0.7)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(20px)', borderRadius: '16px', padding: '24px' }}>
+          
+          {/* Row 1: Resume Layout Templates Selector */}
+          <div className="d-flex flex-column gap-3 mb-3">
+            <div className="d-flex justify-content-between align-items-center">
+              <span style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '1px', color: '#6366f1', textTransform: 'uppercase' }}>
+                Step 1 — Select Resume Layout
+              </span>
+              <span style={{ fontSize: '0.63rem', background: 'rgba(99,102,241,0.12)', color: '#a5b4fc', border: '1px solid rgba(99,102,241,0.25)', borderRadius: '999px', padding: '2px 10px', fontWeight: 600 }}>
+                All ATS-Optimized
+              </span>
+            </div>
+            <div className="row g-2">
+              {[
+                { id: 'classic', label: 'Classic Formal', desc: 'Traditional centered serif for finance, law, & consulting' },
+                { id: 'modern', label: 'Modern Minimalist', desc: 'Sleek, highly polished standard for general corporate sectors' },
+                { id: 'creative', label: 'Creative Executive', desc: 'Premium 2-column sidebar design to maximize layout hierarchy' },
+                { id: 'executive', label: 'Executive Prestige', desc: 'Bold, structured corporate header layout for leadership impact' },
+                { id: 'tech', label: 'Tech Minimalist', desc: 'High-density tech presentation with dynamic skill badge rows' },
+                { id: 'academic', label: 'Academic Editorial', desc: 'Double-border editorial serif designed for researchers & scholars' }
+              ].map(tpl => (
+                <div className="col-md-4 col-sm-6" key={tpl.id}>
+                  <button
+                    type="button"
+                    className="border-0 text-start w-100 h-100 d-flex flex-column justify-content-between"
+                    style={{
+                      padding: '12px 14px', borderRadius: '10px', cursor: 'pointer', transition: 'all 0.2s ease',
+                      background: templateStyle === tpl.id ? 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)' : 'rgba(255,255,255,0.03)',
+                      border: templateStyle === tpl.id ? '1px solid rgba(139,92,246,0.5)' : '1px solid rgba(255,255,255,0.07)',
+                      boxShadow: templateStyle === tpl.id ? '0 4px 20px rgba(99,102,241,0.3)' : 'none'
+                    }}
+                    onClick={() => setTemplateStyle(tpl.id)}
+                  >
+                    <div style={{ fontWeight: 700, fontSize: '0.82rem', color: templateStyle === tpl.id ? '#fff' : '#e2e8f0', marginBottom: '4px' }}>{tpl.label}</div>
+                    <div style={{ fontSize: '0.68rem', color: templateStyle === tpl.id ? 'rgba(255,255,255,0.92)' : '#94a3b8', lineHeight: '1.3' }}>{tpl.desc}</div>
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)', margin: '4px 0 16px' }} />
+
+          {/* Row 2: Aesthetic Details & Spacing */}
+          <div className="row g-3">
+            
+            {/* Accent Color Palette Picker */}
+            <div className="col-md-5 d-flex flex-column gap-2">
+              <span style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '1px', color: '#6366f1', textTransform: 'uppercase' }}>Step 2 — Theme Accent</span>
+              <div className="d-flex flex-wrap gap-2 py-1">
+                {colors.map(color => (
+                  <button
+                    key={color.name}
+                    style={{
+                      backgroundColor: color.hex, width: '24px', height: '24px', borderRadius: '50%',
+                      border: accentColor === color.hex ? '2px solid #fff' : '2px solid rgba(255,255,255,0.2)',
+                      outline: accentColor === color.hex ? `3px solid ${color.hex}` : 'none',
+                      outlineOffset: '2px',
+                      boxShadow: accentColor === color.hex ? `0 0 10px ${color.hex}99` : 'inset 0 0 0 1px rgba(255,255,255,0.15)',
+                      cursor: 'pointer', transition: 'all 0.2s', position: 'relative'
+                    }}
+                    onClick={() => setAccentColor(color.hex)}
+                    title={color.name}
+                  >
+                    {accentColor === color.hex && (
+                      <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', color: '#fff', fontSize: '9px', fontWeight: 700 }}>✓</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Typography Presets Selector */}
+            <div className="col-md-4 d-flex flex-column gap-2">
+              <span style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '1px', color: '#6366f1', textTransform: 'uppercase' }}>Step 3 — Typography</span>
+              <div className="d-flex gap-1 flex-wrap">
+                {[
+                  { id: 'modern', label: 'Modern' },
+                  { id: 'editorial', label: 'Editorial' },
+                  { id: 'tech', label: 'Tech Clean' },
+                  { id: 'corporate', label: 'Corporate' }
+                ].map(pair => (
+                  <button
+                    key={pair.id}
+                    type="button"
+                    style={{
+                      padding: '5px 12px', borderRadius: '8px', border: fontPairing === pair.id ? '1px solid rgba(99,102,241,0.5)' : '1px solid rgba(255,255,255,0.08)',
+                      background: fontPairing === pair.id ? 'rgba(99,102,241,0.25)' : 'rgba(255,255,255,0.04)',
+                      color: fontPairing === pair.id ? '#a5b4fc' : '#64748b', fontSize: '0.73rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s'
+                    }}
+                    onClick={() => setFontPairing(pair.id)}
+                  >
+                    {pair.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Spacing Fit Selector */}
+            <div className="col-md-3 d-flex flex-column gap-2">
+              <span style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '1px', color: '#6366f1', textTransform: 'uppercase' }}>Step 4 — Spacing</span>
+              <div className="d-flex gap-1">
+                {[
+                  { id: 'compact', label: 'Compact' },
+                  { id: 'normal', label: 'Normal' },
+                  { id: 'spacious', label: 'Open' }
+                ].map(s => (
+                  <button
+                    key={s.id}
+                    type="button"
+                    style={{
+                      flex: 1, padding: '5px 4px', borderRadius: '8px', border: spacingTuning === s.id ? '1px solid rgba(99,102,241,0.5)' : '1px solid rgba(255,255,255,0.08)',
+                      background: spacingTuning === s.id ? 'rgba(99,102,241,0.25)' : 'rgba(255,255,255,0.04)',
+                      color: spacingTuning === s.id ? '#a5b4fc' : '#64748b', fontSize: '0.7rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s'
+                    }}
+                    onClick={() => setSpacingTuning(s.id)}
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        {/* Realtime compliance alerts block */}
+        <ComplianceScanner 
+          formData={formData} 
+          country="usa"
+          targetKeywords={targetKeywords}
+          matchedKeywords={matchedKeywords}
+          matchPercentage={matchPercentage}
+        />
+
+        {/* Floating Paper Preview */}
+        <div className="mt-3 mb-5 w-100 d-flex justify-content-center">
+          <ResumePreview 
+            formData={formData} 
+            country="usa"
+            templateStyle={templateStyle} 
+            accentColor={accentColor}
+            spacingTuning={spacingTuning}
+            fontPairing={fontPairing}
+            onLoadDemo={handleResetToMock}
+          />
+        </div>
+      </div>
+
+      {/* Overlay Modal for Uploading and Restoring backup files */}
+      <ImportModal 
+        isOpen={isImportModalOpen} 
+        onClose={() => setIsImportModalOpen(false)} 
+        onImportData={handleImportData}
+      />
+
+    </div>
+  );
+}
+
+
