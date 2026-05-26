@@ -219,7 +219,6 @@ export default function BuilderForm({
   const handleRemoveCustomSection = (sectionIdx) => {
     const updated = (formData.customSections || []).filter((_, i) => i !== sectionIdx);
     updateCustomSections(updated);
-    onSectionChange('personal');
   };
 
   const handleAddCustomItem = (sectionIdx) => {
@@ -1383,7 +1382,7 @@ export default function BuilderForm({
       ))}
 
       {/* ADD CUSTOM SECTION BUTTON */}
-      <button className="btn-add-custom-section" onClick={handleAddCustomSection}>
+      <button className="btn-add-custom-section mb-5" onClick={handleAddCustomSection}>
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
         Add Custom Section
       </button>

@@ -39,8 +39,9 @@ export default function App() {
   const [spacingTuning, setSpacingTuning] = useState('normal'); // 'compact' | 'normal' | 'spacious'
   const [fontPairing, setFontPairing] = useState('modern'); // 'modern' | 'editorial' | 'tech' | 'corporate'
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState('personal');
+  const [activeSection, setActiveSection] = useState(null);
   const [focusedFieldTip, setFocusedFieldTip] = useState(null);
+  const [mobileTab, setMobileTab] = useState('editor'); // 'editor' | 'preview'
 
   /* --- ADVANCED SAAS ATS SCANNER STATE & LOGIC --- */
   const [jobDescription, setJobDescription] = useState("");
@@ -195,12 +196,12 @@ export default function App() {
 
   const handleResetToMock = () => {
     setFormData(mockResumeData);
-    setActiveSection('personal');
+    setActiveSection(null);
   };
 
   const handleClearData = () => {
     setFormData(emptyResumeState);
-    setActiveSection('personal');
+    setActiveSection(null);
   };
 
   // Direct PDF Export using Native Print System
@@ -212,7 +213,7 @@ export default function App() {
 
   const handleImportData = (newData) => {
     setFormData(newData);
-    setActiveSection('personal');
+    setActiveSection(null);
   };
 
   if (currentView === 'landing') {
@@ -227,7 +228,7 @@ export default function App() {
     <div className="app-container container-fluid p-0">
       
       {/* LEFT PANEL: The Interactive Builder Forms */}
-      <div className="app-sidebar bg-dark text-light border-end border-secondary border-opacity-25 d-flex flex-column h-100 overflow-y-auto">
+      <div className={`app-sidebar bg-dark text-light border-end border-secondary border-opacity-25 flex-column h-100 overflow-y-auto ${mobileTab === 'editor' ? 'd-flex' : 'd-none d-lg-flex'}`}>
         
         {/* Sticky Top Sidebar Panel: Brand, Stepper, and Actions */}
         <div className="sidebar-sticky-header sticky-top shadow-sm" style={{ background: 'linear-gradient(180deg, #0d1117 0%, #0d1117 100%)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
@@ -371,10 +372,10 @@ export default function App() {
         
       </div>
 
-      <div className="app-canvas bg-dark d-flex flex-column align-items-center h-100 overflow-y-auto p-4">
+      <div className={`app-canvas bg-dark flex-column align-items-center h-100 overflow-y-auto p-4 ${mobileTab === 'preview' ? 'd-flex' : 'd-none d-lg-flex'}`}>
         
         {/* Settings Configurations bar */}
-        <div className="canvas-settings-bar mb-4" style={{ maxWidth: '880px', width: '100%', background: 'rgba(15,20,40,0.7)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(20px)', borderRadius: '16px', padding: '24px' }}>
+        <div className="canvas-settings-bar mb-4 mx-auto" style={{ maxWidth: '880px', width: '100%', background: 'rgba(15,20,40,0.7)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(20px)', borderRadius: '16px', padding: '24px' }}>
           
           {/* Row 1: Resume Layout Templates Selector */}
           <div className="d-flex flex-column gap-3 mb-3">
@@ -415,7 +416,7 @@ export default function App() {
           <div className="row g-3">
             
             {/* Accent Color Palette Picker */}
-            <div className="col-md-5 d-flex flex-column gap-2">
+            <div className="col-md-4 d-flex flex-column gap-2">
               <span style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '1px', color: '#6366f1', textTransform: 'uppercase' }}>Step 2 — Theme Accent</span>
               <div className="d-flex flex-wrap gap-2 py-1">
                 {colors.map(color => (
@@ -443,7 +444,7 @@ export default function App() {
             {/* Typography Presets Selector */}
             <div className="col-md-4 d-flex flex-column gap-2">
               <span style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '1px', color: '#6366f1', textTransform: 'uppercase' }}>Step 3 — Typography</span>
-              <div className="d-flex gap-1 flex-wrap">
+              <div className="d-grid gap-2" style={{ gridTemplateColumns: '1fr 1fr' }}>
                 {[
                   { id: 'modern', label: 'Modern' },
                   { id: 'editorial', label: 'Editorial' },
@@ -455,6 +456,7 @@ export default function App() {
                     type="button"
                     className={`settings-pill-btn ${fontPairing === pair.id ? 'active' : ''}`}
                     onClick={() => setFontPairing(pair.id)}
+                    style={{ padding: '8px 12px' }}
                   >
                     {pair.label}
                   </button>
@@ -463,7 +465,7 @@ export default function App() {
             </div>
 
             {/* Spacing Fit Selector */}
-            <div className="col-md-3 d-flex flex-column gap-2">
+            <div className="col-md-4 d-flex flex-column gap-2">
               <span style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '1px', color: '#6366f1', textTransform: 'uppercase' }}>Step 4 — Spacing</span>
               <div className="d-flex gap-1">
                 {[
@@ -516,6 +518,28 @@ export default function App() {
         onClose={() => setIsImportModalOpen(false)} 
         onImportData={handleImportData}
       />
+
+      {/* Mobile Bottom Navigation Bar (Visible only on lg and down) */}
+      <div className="mobile-bottom-nav d-lg-none d-flex position-fixed bottom-0 start-0 w-100 bg-dark border-top border-secondary" style={{ zIndex: 1000, height: '64px' }}>
+        <button 
+          className={`mobile-nav-btn flex-fill d-flex flex-column align-items-center justify-content-center bg-transparent border-0 ${mobileTab === 'editor' ? 'active' : ''}`} 
+          onClick={() => setMobileTab('editor')}
+        >
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ width: '22px', height: '22px', marginBottom: '2px' }}>
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+          <span>Editor</span>
+        </button>
+        <button 
+          className={`mobile-nav-btn flex-fill d-flex flex-column align-items-center justify-content-center bg-transparent border-0 border-start border-secondary border-opacity-25 ${mobileTab === 'preview' ? 'active' : ''}`} 
+          onClick={() => setMobileTab('preview')}
+        >
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ width: '22px', height: '22px', marginBottom: '2px' }}>
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <span>Preview</span>
+        </button>
+      </div>
 
     </div>
   );

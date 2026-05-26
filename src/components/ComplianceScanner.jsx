@@ -55,7 +55,7 @@ export default function ComplianceScanner({
     : score;
 
   return (
-    <div className="compliance-checker container-fluid p-0 mb-3" style={{ maxWidth: '880px' }}>
+    <div className="compliance-checker container-fluid p-0 mb-3 mx-auto" style={{ maxWidth: '880px' }}>
       
       {/* 1. Show Active Warnings */}
       {issues.map(issue => (

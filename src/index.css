@@ -71,9 +71,42 @@ h1, h2, h3, h4, h5, h6 {
 @media (max-width: 1024px) {
   .app-container {
     grid-template-columns: 1fr;
-    height: auto;
-    overflow: auto;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
   }
+  
+  .app-sidebar, .app-canvas {
+    padding-bottom: 74px !important; /* Space for the bottom nav */
+  }
+}
+
+/* Mobile Bottom Navigation Bar Styles */
+.mobile-bottom-nav {
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
+  background: rgba(13, 17, 23, 0.95) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.mobile-nav-btn {
+  color: #64748b;
+  transition: all 0.2s ease;
+  padding-top: 6px;
+}
+
+.mobile-nav-btn span {
+  font-size: 11px;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.mobile-nav-btn.active {
+  color: #6366f1 !important;
+}
+
+.mobile-nav-btn.active svg {
+  filter: drop-shadow(0 0 6px rgba(99, 102, 241, 0.5));
 }
 
 /* Premium Dark Mode Colors & Spacing Overrides for Bootstrap Components */
@@ -212,9 +245,62 @@ h1, h2, h3, h4, h5, h6 {
   padding: 20px !important;
 }
 
+/* Custom Section Button styling */
+.btn-add-custom-section {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 2px dashed rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  color: #a5b4fc;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  margin-bottom: 24px;
+}
+
+.btn-add-custom-section:hover {
+  background: rgba(99, 102, 241, 0.08);
+  border-color: rgba(99, 102, 241, 0.4);
+  color: #c7d2fe;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1);
+}
+
+.btn-add-custom-section:active {
+  transform: translateY(1px);
+}
+
 /* ============================================
    PREMIUM FORM INPUT SYSTEM
    ============================================ */
+
+/* Custom Section Title Input in headers */
+.custom-section-title-input {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid transparent;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.2);
+  color: #f1f5f9;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 6px;
+  width: 220px;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.custom-section-title-input:hover,
+.custom-section-title-input:focus {
+  background: rgba(0, 0, 0, 0.4);
+  border-color: rgba(99, 102, 241, 0.4);
+  border-bottom-style: solid;
+}
 
 /* Base input — override all Bootstrap dark nonsense */
 .form-control,
