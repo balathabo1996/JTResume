@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useLayoutEffect, useEffect } from "react";
 import RichTextEditor from "./RichTextEditor";
 
 export default function BuilderForm({
   formData,
   updatePersonalInfo,
   updateWorkExperience,
+  updateProjects,
   updateEducation,
   updateSkills,
   updateCertifications,
@@ -22,6 +23,166 @@ export default function BuilderForm({
   const toggleSection = (section) => {
     onSectionChange(activeSection === section ? null : section);
   };
+
+  // ── Section reorder state ──────────────────────────────
+  const [sectionOrder, setSectionOrder] = useState([
+    'personal', 'experience', 'projects',
+    'education', 'skills', 'certifications', 'references'
+  ]);
+
+  const dragItem = useRef(null);
+  const dragOverItem = useRef(null);
+
+  const ALL_STANDARD_SECTIONS = [
+    { id: 'experience', label: 'Work Experience' },
+    { id: 'projects', label: 'Projects' },
+    { id: 'education', label: 'Education' },
+    { id: 'skills', label: 'Skills & Competencies' },
+    { id: 'certifications', label: 'Certifications' },
+    { id: 'references', label: 'References' }
+  ];
+
+  const deletedSections = ALL_STANDARD_SECTIONS.filter(
+    sec => !sectionOrder.includes(sec.id)
+  );
+
+  const handleDeleteSection = (key) => {
+    setSectionOrder(prev => prev.filter(item => item !== key));
+    if (key === 'experience') updateWorkExperience([]);
+    else if (key === 'projects') updateProjects([]);
+    else if (key === 'education') updateEducation([]);
+    else if (key === 'skills') updateSkills([]);
+    else if (key === 'certifications') updateCertifications([]);
+    else if (key === 'references') updateReferences([]);
+    
+    if (activeSection === key) {
+      onSectionChange(null);
+    }
+  };
+
+  // Synchronize custom sections into sectionOrder when customSections array changes (e.g. on load, import, mock data reset, etc.)
+  useEffect(() => {
+    const customSecs = formData.customSections || [];
+    setSectionOrder(prev => {
+      let nextOrder = prev.filter(item => {
+        const isStandard = ALL_STANDARD_SECTIONS.some(sec => sec.id === item) || item === 'personal' || item === 'jobScanner';
+        if (isStandard) return true;
+        const customId = item.replace(/^custom-/, '');
+        return customSecs.some(sec => sec.id === customId);
+      });
+
+      customSecs.forEach(sec => {
+        const itemKey = `custom-${sec.id}`;
+        if (!nextOrder.includes(itemKey)) {
+          nextOrder.push(itemKey);
+        }
+      });
+
+      return nextOrder;
+    });
+  }, [formData.customSections]);
+
+  const handleDragStart = (e, key) => {
+    dragItem.current = key;
+    e.dataTransfer.effectAllowed = 'move';
+    e.currentTarget.classList.add('dragging');
+  };
+
+  const handleDragEnter = (e, key) => {
+    dragOverItem.current = key;
+  };
+
+  const handleDragOver = (e, key) => {
+    e.preventDefault();
+    if (dragItem.current && dragItem.current !== key) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const relativeY = e.clientY - rect.top;
+      const midpoint = rect.height / 2;
+      
+      const dragIdx = sectionOrder.indexOf(dragItem.current);
+      const hoverIdx = sectionOrder.indexOf(key);
+      
+      if (dragIdx === -1 || hoverIdx === -1) return;
+      
+      // Dragging down: only swap if cursor goes past midpoint
+      if (dragIdx < hoverIdx && relativeY < midpoint) {
+        return;
+      }
+      
+      // Dragging up: only swap if cursor goes above midpoint
+      if (dragIdx > hoverIdx && relativeY > midpoint) {
+        return;
+      }
+      
+      setSectionOrder(prev => {
+        const arr = [...prev];
+        const dIdx = arr.indexOf(dragItem.current);
+        const hIdx = arr.indexOf(key);
+        if (dIdx === -1 || hIdx === -1) return prev;
+        
+        arr.splice(dIdx, 1);
+        arr.splice(hIdx, 0, dragItem.current);
+        return arr;
+      });
+    }
+  };
+
+  const handleDragEnd = (e) => {
+    e.currentTarget.classList.remove('dragging');
+    dragItem.current = null;
+    dragOverItem.current = null;
+  };
+
+  const DragHandle = () => (
+    <div className="drag-handle" style={{ cursor: 'grab', padding: '0 8px', color: '#94a3b8' }}>
+      <svg width="12" height="20" viewBox="0 0 12 20" fill="currentColor"><circle cx="4" cy="4" r="1.5"/><circle cx="4" cy="10" r="1.5"/><circle cx="4" cy="16" r="1.5"/><circle cx="8" cy="4" r="1.5"/><circle cx="8" cy="10" r="1.5"/><circle cx="8" cy="16" r="1.5"/></svg>
+    </div>
+  );
+
+  const containerRef = useRef(null);
+  const positionsRef = useRef({});
+
+  useLayoutEffect(() => {
+    if (!containerRef.current) return;
+    const cards = containerRef.current.querySelectorAll('.form-group-card');
+    
+    // 1. Get the new positions (Last)
+    const newPositions = {};
+    cards.forEach(card => {
+      const rect = card.getBoundingClientRect();
+      const id = card.getAttribute('data-id');
+      if (id) {
+        newPositions[id] = rect.top;
+      }
+    });
+
+    // 2. Animate transition from Old (First) to New (Last)
+    cards.forEach(card => {
+      const id = card.getAttribute('data-id');
+      if (id && positionsRef.current[id] !== undefined) {
+        const oldTop = positionsRef.current[id];
+        const newTop = newPositions[id];
+        const deltaY = oldTop - newTop;
+
+        if (deltaY !== 0) {
+          // Invert: snap back to the old position immediately
+          card.style.transition = 'none';
+          card.style.transform = `translateY(${deltaY}px)`;
+
+          // Play: animate back to the new natural position (translateY(0))
+          requestAnimationFrame(() => {
+            // Force a DOM reflow
+            card.getBoundingClientRect();
+            card.style.transition = 'transform 0.28s cubic-bezier(0.2, 0, 0, 1)';
+            card.style.transform = 'translateY(0)';
+          });
+        }
+      }
+    });
+
+    // 3. Save positions for next render
+    positionsRef.current = newPositions;
+  }, [sectionOrder]);
 
   // Helper arrays for action verbs
   const actionVerbs = [
@@ -99,6 +260,38 @@ export default function BuilderForm({
     const updated = [...formData.workExperience];
     updated[index] = { ...updated[index], description: htmlText };
     updateWorkExperience(updated);
+  };
+
+  /* --- Projects Array Operations --- */
+  const handleAddProject = () => {
+    const newProject = {
+      id: `proj-${Date.now()}`,
+      name: '',
+      techStack: '',
+      liveUrl: '',
+      githubUrl: '',
+      startDate: '',
+      endDate: '',
+      description: ''
+    };
+    updateProjects([...(formData.projects || []), newProject]);
+  };
+
+  const handleUpdateProject = (index, field, value) => {
+    const updated = [...(formData.projects || [])];
+    updated[index] = { ...updated[index], [field]: value };
+    updateProjects(updated);
+  };
+
+  const handleRemoveProject = (index) => {
+    const updated = (formData.projects || []).filter((_, i) => i !== index);
+    updateProjects(updated);
+  };
+
+  const handleUpdateProjectDescriptionHtml = (index, htmlText) => {
+    const updated = [...(formData.projects || [])];
+    updated[index] = { ...updated[index], description: htmlText };
+    updateProjects(updated);
   };
 
   /* --- Education Array Operations --- */
@@ -201,13 +394,15 @@ export default function BuilderForm({
 
   /* --- Custom Sections Operations --- */
   const handleAddCustomSection = () => {
+    const customId = `custom-${Date.now()}`;
     const newSection = {
-      id: `custom-${Date.now()}`,
+      id: customId,
       title: 'Custom Section',
       items: []
     };
     updateCustomSections([...(formData.customSections || []), newSection]);
-    onSectionChange(`custom-${newSection.id}`);
+    setSectionOrder(prev => [...prev, `custom-${customId}`]);
+    onSectionChange(`custom-${customId}`);
   };
 
   const handleUpdateCustomSectionTitle = (sectionIdx, value) => {
@@ -217,6 +412,10 @@ export default function BuilderForm({
   };
 
   const handleRemoveCustomSection = (sectionIdx) => {
+    const sectionToRemove = (formData.customSections || [])[sectionIdx];
+    if (sectionToRemove) {
+      setSectionOrder(prev => prev.filter(item => item !== `custom-${sectionToRemove.id}`));
+    }
     const updated = (formData.customSections || []).filter((_, i) => i !== sectionIdx);
     updateCustomSections(updated);
   };
@@ -260,7 +459,7 @@ export default function BuilderForm({
   return (
     <div className="form-section">
       {/* 0. TARGET JOB ATS SCANNER CARD */}
-      <div
+      <div data-id="jobScanner" style={{ order: -100 }}
         className={`form-group-card mb-3 ${activeSection === "jobScanner" ? "active" : ""}`}
       >
         <div
@@ -285,16 +484,18 @@ export default function BuilderForm({
             </svg>
             Target Job ATS Scanner
           </h3>
-          <span
-            className="card-chevron"
-            style={{
-              transition: "transform 0.2s",
-              transform:
-                activeSection === "jobScanner" ? "rotate(180deg)" : "none",
-            }}
-          >
-            ▼
-          </span>
+          <div className="d-flex align-items-center gap-2">
+            <span
+              className="card-chevron"
+              style={{
+                transition: "transform 0.2s",
+                transform:
+                  activeSection === "jobScanner" ? "rotate(180deg)" : "none",
+              }}
+            >
+              ▼
+            </span>
+          </div>
         </div>
 
         {activeSection === "jobScanner" && (
@@ -326,7 +527,7 @@ export default function BuilderForm({
       </div>
 
       {/* 1. PERSONAL INFORMATION */}
-      <div
+      <div data-id="personal" style={{ order: sectionOrder.indexOf('personal') !== -1 ? sectionOrder.indexOf('personal') : 99 }} draggable onDragStart={(e) => handleDragStart(e, 'personal')} onDragEnter={(e) => handleDragEnter(e, 'personal')} onDragEnd={handleDragEnd} onDragOver={(e) => handleDragOver(e, 'personal')}
         className={`form-group-card mb-3 ${activeSection === "personal" ? "active" : ""}`}
       >
         <div
@@ -351,16 +552,19 @@ export default function BuilderForm({
             </svg>
             Personal Information
           </h3>
-          <span
-            className="card-chevron"
-            style={{
-              transition: "transform 0.2s",
-              transform:
-                activeSection === "personal" ? "rotate(180deg)" : "none",
-            }}
-          >
-            ▼
-          </span>
+          <div className="d-flex align-items-center gap-2">
+            <DragHandle />
+            <span
+              className="card-chevron"
+              style={{
+                transition: "transform 0.2s",
+                transform:
+                  activeSection === "personal" ? "rotate(180deg)" : "none",
+              }}
+            >
+              ▼
+            </span>
+          </div>
         </div>
 
         {activeSection === "personal" && (
@@ -560,41 +764,53 @@ export default function BuilderForm({
       </div>
 
       {/* 2. WORK EXPERIENCE */}
-      <div
-        className={`form-group-card mb-3 ${activeSection === "experience" ? "active" : ""}`}
-      >
-        <div
-          className="card-header d-flex align-items-center justify-content-between"
-          onClick={() => toggleSection("experience")}
-          style={{ cursor: "pointer", userSelect: "none" }}
+      {sectionOrder.includes('experience') && (
+        <div data-id="experience" style={{ order: sectionOrder.indexOf('experience') !== -1 ? sectionOrder.indexOf('experience') : 99 }} draggable onDragStart={(e) => handleDragStart(e, 'experience')} onDragEnter={(e) => handleDragEnter(e, 'experience')} onDragEnd={handleDragEnd} onDragOver={(e) => handleDragOver(e, 'experience')}
+          className={`form-group-card mb-3 ${activeSection === "experience" ? "active" : ""}`}
         >
-          <h3 className="m-0 d-flex align-items-center gap-2">
-            <svg
-              className="card-header-icon text-primary"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              style={{ width: "20px", height: "20px" }}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-              />
-            </svg>
-            Work Experience
-          </h3>
-          <span
-            className="card-chevron"
-            style={{
-              transition: "transform 0.2s",
-              transform:
-                activeSection === "experience" ? "rotate(180deg)" : "none",
-            }}
+          <div
+            className="card-header d-flex align-items-center justify-content-between"
+            onClick={() => toggleSection("experience")}
+            style={{ cursor: "pointer", userSelect: "none" }}
           >
-            ▼
-          </span>
+            <h3 className="m-0 d-flex align-items-center gap-2">
+              <svg
+                className="card-header-icon text-primary"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                style={{ width: "20px", height: "20px" }}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                />
+              </svg>
+              Work Experience
+            </h3>
+            <div className="d-flex align-items-center gap-2">
+              <DragHandle />
+              <button
+                className="btn-repeater-delete"
+                onClick={(e) => { e.stopPropagation(); handleDeleteSection("experience"); }}
+                title="Delete Section"
+                style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '2px', display: 'flex', alignItems: 'center' }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+              </button>
+              <span
+              className="card-chevron"
+              style={{
+                transition: "transform 0.2s",
+                transform:
+                  activeSection === "experience" ? "rotate(180deg)" : "none",
+              }}
+            >
+              ▼
+            </span>
+          </div>
         </div>
 
         {activeSection === "experience" && (
@@ -750,43 +966,150 @@ export default function BuilderForm({
           </div>
         )}
       </div>
+      )}
+
+      {/* 2b. PROJECTS */}
+      {sectionOrder.includes('projects') && (
+        <div data-id="projects" style={{ order: sectionOrder.indexOf('projects') !== -1 ? sectionOrder.indexOf('projects') : 99 }} draggable onDragStart={(e) => handleDragStart(e, 'projects')} onDragEnter={(e) => handleDragEnter(e, 'projects')} onDragEnd={handleDragEnd} onDragOver={(e) => handleDragOver(e, 'projects')} className={`form-group-card mb-3 ${activeSection === 'projects' ? 'active' : ''}`}>
+          <div
+            className="card-header d-flex align-items-center justify-content-between"
+            onClick={() => toggleSection('projects')}
+            style={{ cursor: 'pointer', userSelect: 'none' }}
+          >
+            <h3 className="m-0 d-flex align-items-center gap-2">
+              <svg className="card-header-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ width: '20px', height: '20px', color: '#6366f1' }}>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+              </svg>
+              Projects
+            </h3>
+            <div className="d-flex align-items-center gap-2">
+              <DragHandle />
+              <button
+                className="btn-repeater-delete"
+                onClick={(e) => { e.stopPropagation(); handleDeleteSection("projects"); }}
+                title="Delete Section"
+                style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '2px', display: 'flex', alignItems: 'center' }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+              </button>
+              <span className="card-chevron" style={{ transition: 'transform 0.2s', transform: activeSection === 'projects' ? 'rotate(180deg)' : 'none' }}>▼</span>
+            </div>
+          </div>
+
+        {activeSection === 'projects' && (
+          <div className="card-body d-flex flex-column gap-3">
+            {(formData.projects || []).map((proj, projIdx) => (
+              <div key={proj.id || projIdx} className="repeater-item mb-3">
+                <div className="repeater-item-header d-flex align-items-center justify-content-between">
+                  <span className="fw-medium" style={{ fontSize: '0.82rem', color: '#94a3b8' }}>🖥️ Project #{projIdx + 1}: {proj.name || 'New Project'}</span>
+                  <button
+                    className="btn-repeater-delete"
+                    onClick={() => handleRemoveProject(projIdx)}
+                    title="Remove Project"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                  </button>
+                </div>
+                <div className="repeater-item-body d-flex flex-column gap-3">
+                  <div className="row g-3">
+                    <div className="field col-md-8 d-flex flex-column gap-1">
+                      <label className="form-label">Project Name</label>
+                      <input type="text" className="input-control" value={proj.name || ''} onChange={(e) => handleUpdateProject(projIdx, 'name', e.target.value)} placeholder="e.g. E-Commerce Platform" />
+                    </div>
+                    <div className="field col-md-4 d-flex flex-column gap-1" style={{ display: 'flex', gap: '8px' }}>
+                      <div className="d-flex flex-column gap-1" style={{ flex: 1 }}>
+                        <label className="form-label">Start</label>
+                        <input type="text" className="input-control" value={proj.startDate || ''} onChange={(e) => handleUpdateProject(projIdx, 'startDate', e.target.value)} placeholder="2023-01" />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="row g-3">
+                    <div className="field col-md-6 d-flex flex-column gap-1">
+                      <label className="form-label">Tech Stack</label>
+                      <input type="text" className="input-control" value={proj.techStack || ''} onChange={(e) => handleUpdateProject(projIdx, 'techStack', e.target.value)} placeholder="e.g. React, Node.js, PostgreSQL" />
+                    </div>
+                    <div className="field col-md-6 d-flex flex-column gap-1">
+                      <label className="form-label">End Date</label>
+                      <input type="text" className="input-control" value={proj.endDate || ''} onChange={(e) => handleUpdateProject(projIdx, 'endDate', e.target.value)} placeholder="e.g. Present" />
+                    </div>
+                  </div>
+                  <div className="row g-3">
+                    <div className="field col-md-6 d-flex flex-column gap-1">
+                      <label className="form-label">🔗 Live URL (Optional)</label>
+                      <input type="text" className="input-control" value={proj.liveUrl || ''} onChange={(e) => handleUpdateProject(projIdx, 'liveUrl', e.target.value)} placeholder="e.g. https://myapp.com" />
+                    </div>
+                    <div className="field col-md-6 d-flex flex-column gap-1">
+                      <label className="form-label">💻 GitHub URL (Optional)</label>
+                      <input type="text" className="input-control" value={proj.githubUrl || ''} onChange={(e) => handleUpdateProject(projIdx, 'githubUrl', e.target.value)} placeholder="e.g. github.com/user/repo" />
+                    </div>
+                  </div>
+                  <div className="field d-flex flex-column gap-1">
+                    <label className="form-label">Description & Key Highlights</label>
+                    <RichTextEditor
+                      value={proj.description || ''}
+                      onChange={(content) => handleUpdateProjectDescriptionHtml(projIdx, content)}
+                      placeholder="Describe the project's purpose, impact, and your role..."
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+            <button className="btn btn-primary py-2 fw-semibold w-100" onClick={handleAddProject}>
+              + Add Project
+            </button>
+          </div>
+        )}
+      </div>
+      )}
 
       {/* 3. EDUCATION */}
-      <div
-        className={`form-group-card mb-3 ${activeSection === "education" ? "active" : ""}`}
-      >
-        <div
-          className="card-header d-flex align-items-center justify-content-between"
-          onClick={() => toggleSection("education")}
-          style={{ cursor: "pointer", userSelect: "none" }}
+      {sectionOrder.includes('education') && (
+        <div data-id="education" style={{ order: sectionOrder.indexOf('education') !== -1 ? sectionOrder.indexOf('education') : 99 }} draggable onDragStart={(e) => handleDragStart(e, 'education')} onDragEnter={(e) => handleDragEnter(e, 'education')} onDragEnd={handleDragEnd} onDragOver={(e) => handleDragOver(e, 'education')}
+          className={`form-group-card mb-3 ${activeSection === "education" ? "active" : ""}`}
         >
-          <h3 className="m-0 d-flex align-items-center gap-2">
-            <svg
-              className="card-header-icon text-primary"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              style={{ width: "20px", height: "20px" }}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222"
-              />
-            </svg>
-            Education & Academic Background
-          </h3>
-          <span
-            className="card-chevron"
-            style={{
-              transition: "transform 0.2s",
-              transform:
-                activeSection === "education" ? "rotate(180deg)" : "none",
-            }}
+          <div
+            className="card-header d-flex align-items-center justify-content-between"
+            onClick={() => toggleSection("education")}
+            style={{ cursor: "pointer", userSelect: "none" }}
           >
-            ▼
-          </span>
+            <h3 className="m-0 d-flex align-items-center gap-2">
+              <svg
+                className="card-header-icon text-primary"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                style={{ width: "20px", height: "20px" }}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222"
+                />
+              </svg>
+              Education & Academic Background
+            </h3>
+            <div className="d-flex align-items-center gap-2">
+              <DragHandle />
+              <button
+                className="btn-repeater-delete"
+                onClick={(e) => { e.stopPropagation(); handleDeleteSection("education"); }}
+                title="Delete Section"
+                style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '2px', display: 'flex', alignItems: 'center' }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+              </button>
+              <span
+              className="card-chevron"
+              style={{
+                transition: "transform 0.2s",
+                transform:
+                  activeSection === "education" ? "rotate(180deg)" : "none",
+              }}
+            >
+              ▼
+            </span>
+          </div>
         </div>
 
         {activeSection === "education" && (
@@ -929,42 +1252,55 @@ export default function BuilderForm({
           </div>
         )}
       </div>
+      )}
 
       {/* 4. SKILLS & CORE COMPETENCIES */}
-      <div
-        className={`form-group-card mb-3 ${activeSection === "skills" ? "active" : ""}`}
-      >
-        <div
-          className="card-header d-flex align-items-center justify-content-between"
-          onClick={() => toggleSection("skills")}
-          style={{ cursor: "pointer", userSelect: "none" }}
+      {sectionOrder.includes('skills') && (
+        <div data-id="skills" style={{ order: sectionOrder.indexOf('skills') !== -1 ? sectionOrder.indexOf('skills') : 99 }} draggable onDragStart={(e) => handleDragStart(e, 'skills')} onDragEnter={(e) => handleDragEnter(e, 'skills')} onDragEnd={handleDragEnd} onDragOver={(e) => handleDragOver(e, 'skills')}
+          className={`form-group-card mb-3 ${activeSection === "skills" ? "active" : ""}`}
         >
-          <h3 className="m-0 d-flex align-items-center gap-2">
-            <svg
-              className="card-header-icon text-primary"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              style={{ width: "20px", height: "20px" }}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-              />
-            </svg>
-            Skills & Core Competencies
-          </h3>
-          <span
-            className="card-chevron"
-            style={{
-              transition: "transform 0.2s",
-              transform: activeSection === "skills" ? "rotate(180deg)" : "none",
-            }}
+          <div
+            className="card-header d-flex align-items-center justify-content-between"
+            onClick={() => toggleSection("skills")}
+            style={{ cursor: "pointer", userSelect: "none" }}
           >
-            ▼
-          </span>
+            <h3 className="m-0 d-flex align-items-center gap-2">
+              <svg
+                className="card-header-icon text-primary"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                style={{ width: "20px", height: "20px" }}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                />
+              </svg>
+              Skills & Core Competencies
+            </h3>
+            <div className="d-flex align-items-center gap-2">
+              <DragHandle />
+              <button
+                className="btn-repeater-delete"
+                onClick={(e) => { e.stopPropagation(); handleDeleteSection("skills"); }}
+                title="Delete Section"
+                style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '2px', display: 'flex', alignItems: 'center' }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+              </button>
+              <span
+              className="card-chevron"
+              style={{
+                transition: "transform 0.2s",
+                transform: activeSection === "skills" ? "rotate(180deg)" : "none",
+              }}
+            >
+              ▼
+            </span>
+          </div>
         </div>
 
         {activeSection === "skills" && (
@@ -1038,44 +1374,57 @@ export default function BuilderForm({
           </div>
         )}
       </div>
+      )}
 
       {/* 5. CERTIFICATIONS */}
-      <div
-        className={`form-group-card mb-3 ${activeSection === "certifications" ? "active" : ""}`}
-      >
-        <div
-          className="card-header d-flex align-items-center justify-content-between"
-          onClick={() => toggleSection("certifications")}
-          style={{ cursor: "pointer", userSelect: "none" }}
+      {sectionOrder.includes('certifications') && (
+        <div data-id="certifications" style={{ order: sectionOrder.indexOf('certifications') !== -1 ? sectionOrder.indexOf('certifications') : 99 }} draggable onDragStart={(e) => handleDragStart(e, 'certifications')} onDragEnter={(e) => handleDragEnter(e, 'certifications')} onDragEnd={handleDragEnd} onDragOver={(e) => handleDragOver(e, 'certifications')}
+          className={`form-group-card mb-3 ${activeSection === "certifications" ? "active" : ""}`}
         >
-          <h3 className="m-0 d-flex align-items-center gap-2">
-            <svg
-              className="card-header-icon text-primary"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              style={{ width: "20px", height: "20px" }}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
-              />
-            </svg>
-            Certifications & Training
-          </h3>
-          <span
-            className="card-chevron"
-            style={{
-              transition: "transform 0.2s",
-              transform:
-                activeSection === "certifications" ? "rotate(180deg)" : "none",
-            }}
+          <div
+            className="card-header d-flex align-items-center justify-content-between"
+            onClick={() => toggleSection("certifications")}
+            style={{ cursor: "pointer", userSelect: "none" }}
           >
-            ▼
-          </span>
-        </div>
+            <h3 className="m-0 d-flex align-items-center gap-2">
+              <svg
+                className="card-header-icon text-primary"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                style={{ width: "20px", height: "20px" }}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138z"
+                />
+              </svg>
+              Certifications & Training
+            </h3>
+            <div className="d-flex align-items-center gap-2">
+              <DragHandle />
+              <button
+                className="btn-repeater-delete"
+                onClick={(e) => { e.stopPropagation(); handleDeleteSection("certifications"); }}
+                title="Delete Section"
+                style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '2px', display: 'flex', alignItems: 'center' }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+              </button>
+              <span
+                className="card-chevron"
+                style={{
+                  transition: "transform 0.2s",
+                  transform:
+                    activeSection === "certifications" ? "rotate(180deg)" : "none",
+                }}
+              >
+                ▼
+              </span>
+            </div>
+          </div>
 
         {activeSection === "certifications" && (
           <div className="card-body d-flex flex-column gap-3">
@@ -1161,55 +1510,60 @@ export default function BuilderForm({
           </div>
         )}
       </div>
+      )}
 
       {/* 6. REFERENCES (Highly expected in Australia) */}
-      <div
-        className={`form-group-card mb-3 ${activeSection === "references" ? "active" : ""}`}
-      >
-        <div
-          className="card-header d-flex align-items-center justify-content-between"
-          onClick={() => toggleSection("references")}
-          style={{ cursor: "pointer", userSelect: "none" }}
+      {sectionOrder.includes('references') && (
+        <div data-id="references" style={{ order: sectionOrder.indexOf('references') !== -1 ? sectionOrder.indexOf('references') : 99 }} draggable onDragStart={(e) => handleDragStart(e, 'references')} onDragEnter={(e) => handleDragEnter(e, 'references')} onDragEnd={handleDragEnd} onDragOver={(e) => handleDragOver(e, 'references')}
+          className={`form-group-card mb-3 ${activeSection === "references" ? "active" : ""}`}
         >
-          <h3 className="m-0 d-flex align-items-center gap-2">
-            <svg
-              className="card-header-icon text-primary"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              style={{ width: "20px", height: "20px" }}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-              />
-            </svg>
-            Professional References
-          </h3>
-          <span
-            className="card-chevron"
-            style={{
-              transition: "transform 0.2s",
-              transform:
-                activeSection === "references" ? "rotate(180deg)" : "none",
-            }}
+          <div
+            className="card-header d-flex align-items-center justify-content-between"
+            onClick={() => toggleSection("references")}
+            style={{ cursor: "pointer", userSelect: "none" }}
           >
-            ▼
-          </span>
+            <h3 className="m-0 d-flex align-items-center gap-2">
+              <svg
+                className="card-header-icon text-primary"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                style={{ width: "20px", height: "20px" }}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                />
+              </svg>
+              Professional References
+            </h3>
+            <div className="d-flex align-items-center gap-2">
+              <DragHandle />
+              <button
+                className="btn-repeater-delete"
+                onClick={(e) => { e.stopPropagation(); handleDeleteSection("references"); }}
+                title="Delete Section"
+                style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '2px', display: 'flex', alignItems: 'center' }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+              </button>
+              <span
+              className="card-chevron"
+              style={{
+                transition: "transform 0.2s",
+                transform:
+                  activeSection === "references" ? "rotate(180deg)" : "none",
+              }}
+            >
+              ▼
+            </span>
+          </div>
         </div>
 
         {activeSection === "references" && (
           <div className="card-body d-flex flex-column gap-3">
-            <span
-              className="help-prompt text-primary fw-semibold mt-0 mb-2 d-block"
-              style={{ fontSize: "0.76rem" }}
-            >
-              🇦🇺 Australian Standard Highlight: Standard CVs in Australia
-              typically include references or mark them 'Available upon
-              request'.
-            </span>
             {formData.references.map((ref, refIdx) => (
               <div key={ref.id || refIdx} className="repeater-item mb-3">
                 <div className="repeater-item-header d-flex align-items-center justify-content-between">
@@ -1284,10 +1638,11 @@ export default function BuilderForm({
           </div>
         )}
       </div>
+      )}
 
       {/* DYNAMIC CUSTOM SECTIONS */}
       {(formData.customSections || []).map((section, sectionIdx) => (
-        <div key={section.id} className={`form-group-card mb-3 ${activeSection === `custom-${section.id}` ? 'active' : ''}`}>
+        <div key={section.id} data-id={"custom-" + section.id} style={{ order: sectionOrder.indexOf("custom-" + section.id) !== -1 ? sectionOrder.indexOf("custom-" + section.id) : 99 }} draggable onDragStart={(e) => handleDragStart(e, "custom-" + section.id)} onDragEnter={(e) => handleDragEnter(e, "custom-" + section.id)} onDragEnd={handleDragEnd} onDragOver={(e) => handleDragOver(e, "custom-" + section.id)} className={`form-group-card mb-3 ${activeSection === `custom-${section.id}` ? 'active' : ''}`}>
           <div
             className="card-header d-flex align-items-center justify-content-between"
             onClick={() => toggleSection(`custom-${section.id}`)}
@@ -1307,6 +1662,7 @@ export default function BuilderForm({
               />
             </h3>
             <div className="d-flex align-items-center gap-2">
+              <DragHandle />
               <button
                 className="btn-repeater-delete"
                 onClick={(e) => { e.stopPropagation(); handleRemoveCustomSection(sectionIdx); }}
@@ -1381,11 +1737,67 @@ export default function BuilderForm({
         </div>
       ))}
 
-      {/* ADD CUSTOM SECTION BUTTON */}
-      <button className="btn-add-custom-section mb-5" onClick={handleAddCustomSection}>
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-        Add Custom Section
-      </button>
+      {/* ADD SECTIONS PANEL */}
+      <div style={{ order: 998, display: 'flex', flexDirection: 'column', gap: '10px', padding: '16px', background: 'rgba(255, 255, 255, 0.03)', borderRadius: '12px', border: '1px dashed rgba(255, 255, 255, 0.1)', marginBottom: '32px' }} className="mb-4">
+        <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 5v14M5 12h14"/></svg>
+          Add Sections to Resume
+        </div>
+        
+        {deletedSections.length > 0 && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '4px' }}>
+            {deletedSections.map(sec => (
+              <button
+                key={sec.id}
+                onClick={() => {
+                  setSectionOrder(prev => [...prev, sec.id]);
+                  onSectionChange(sec.id);
+                }}
+                style={{
+                  fontSize: '0.74rem',
+                  padding: '6px 12px',
+                  borderRadius: '20px',
+                  background: 'rgba(99, 102, 241, 0.15)',
+                  color: '#a5b4fc',
+                  border: '1px solid rgba(99, 102, 241, 0.3)',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  fontWeight: 600
+                }}
+                className="btn-restore-section"
+              >
+                <span>+</span> {sec.label}
+              </button>
+            ))}
+          </div>
+        )}
+        
+        <button
+          onClick={handleAddCustomSection}
+          style={{
+            marginTop: deletedSections.length > 0 ? '8px' : '4px',
+            fontSize: '0.76rem',
+            padding: '8px 14px',
+            borderRadius: '8px',
+            background: '#6366f1',
+            color: '#fff',
+            border: 'none',
+            fontWeight: 600,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '6px',
+            transition: 'all 0.2s'
+          }}
+          className="btn-add-custom-section"
+        >
+          <span>+</span> Add Custom Section
+        </button>
+      </div>
 
     </div>
   );

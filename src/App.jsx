@@ -1,3 +1,4 @@
+"use client";
 import React, { useState } from 'react';
 import BuilderForm from './components/BuilderForm';
 import ResumePreview from './components/ResumePreview';
@@ -24,6 +25,7 @@ const emptyResumeState = {
     maritalStatus: ""
   },
   workExperience: [],
+  projects: [],
   education: [],
   skills: [],
   certifications: [],
@@ -33,6 +35,8 @@ const emptyResumeState = {
 
 export default function App() {
   const [currentView, setCurrentView] = useState('landing'); // 'landing' | 'editor'
+  const [user, setUser] = useState(null);
+  const [profileOpen, setProfileOpen] = useState(false); // profile modal
   const [formData, setFormData] = useState(emptyResumeState); // Empty slate by default for public deployment
   const [templateStyle, setTemplateStyle] = useState('modern');
   const [accentColor, setAccentColor] = useState('#1e3a8a'); // Default Classic Blue
@@ -190,6 +194,10 @@ export default function App() {
     setFormData(prev => ({ ...prev, references: updatedList }));
   };
 
+  const updateProjects = (updatedList) => {
+    setFormData(prev => ({ ...prev, projects: updatedList }));
+  };
+
   const updateCustomSections = (updatedList) => {
     setFormData(prev => ({ ...prev, customSections: updatedList }));
   };
@@ -216,23 +224,197 @@ export default function App() {
     setActiveSection(null);
   };
 
+  const handleLoginSuccess = (userData) => {
+    setUser(userData);
+    setCurrentView('editor');
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    setUser(null);
+    setProfileOpen(false);
+    setFormData(emptyResumeState);
+    setCurrentView('landing');
+  };
+
+  // Helper: get initials from name
+  const getInitials = (name) => {
+    if (!name) return '?';
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
+
+  // Helper: provider badge color
+  const providerColor = { google: '#4285F4', github: '#24292e', linkedin: '#0a66c2', passkey: '#6366f1' };
+  const providerLabel = { google: 'Google', github: 'GitHub', linkedin: 'LinkedIn', passkey: 'Passkey', email: 'Email & Password' };
+
   if (currentView === 'landing') {
     return <LandingPage onStartBuilder={() => setCurrentView('login')} />;
   }
 
   if (currentView === 'login') {
-    return <AuthPage onLogin={() => setCurrentView('editor')} onBackToHome={() => setCurrentView('landing')} />;
+    return <AuthPage onLogin={handleLoginSuccess} onBackToHome={() => setCurrentView('landing')} />;
   }
 
   return (
     <div className="app-container container-fluid p-0">
-      
+
+      {/* ── User Profile Modal ─────────────────────────────────────── */}
+      {profileOpen && (
+        <div
+          onClick={() => setProfileOpen(false)}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 9999,
+            background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px',
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: 'linear-gradient(145deg, #0f172a 0%, #1e1b4b 100%)',
+              border: '1px solid rgba(99,102,241,0.2)',
+              borderRadius: '24px',
+              padding: '0',
+              width: '100%',
+              maxWidth: '420px',
+              boxShadow: '0 30px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(99,102,241,0.1)',
+              overflow: 'hidden',
+            }}
+          >
+            {/* Header banner */}
+            <div style={{
+              background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
+              padding: '32px 28px 20px 28px',
+              position: 'relative',
+            }}>
+              <button
+                onClick={() => setProfileOpen(false)}
+                style={{ position: 'absolute', top: '14px', right: '16px', background: 'none', border: 'none', color: 'rgba(255,255,255,0.7)', fontSize: '20px', cursor: 'pointer', lineHeight: 1 }}
+              >✕</button>
+
+              {/* Avatar */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                {user?.avatar ? (
+                  <img
+                    src={user.avatar}
+                    alt={user.fullName}
+                    style={{ width: '64px', height: '64px', borderRadius: '50%', border: '3px solid rgba(255,255,255,0.3)', objectFit: 'cover' }}
+                  />
+                ) : (
+                  <div style={{
+                    width: '64px', height: '64px', borderRadius: '50%',
+                    background: 'rgba(255,255,255,0.2)',
+                    border: '3px solid rgba(255,255,255,0.3)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '22px', fontWeight: '800', color: '#fff',
+                  }}>
+                    {getInitials(user?.fullName)}
+                  </div>
+                )}
+                <div>
+                  <div style={{ color: '#fff', fontWeight: '800', fontSize: '18px', lineHeight: 1.2 }}>{user?.fullName || 'User'}</div>
+                  <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '13px', marginTop: '4px' }}>{user?.email}</div>
+                  {user?.provider && user.provider !== 'email' && (
+                    <span style={{
+                      display: 'inline-block', marginTop: '6px',
+                      background: providerColor[user.provider] || '#6366f1',
+                      color: '#fff', fontSize: '11px', fontWeight: '600',
+                      padding: '2px 10px', borderRadius: '999px',
+                    }}>
+                      via {providerLabel[user.provider] || user.provider}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Body */}
+            <div style={{ padding: '24px 28px' }}>
+
+              {/* Account info rows */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
+                <div style={{
+                  background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)',
+                  borderRadius: '12px', padding: '14px 16px',
+                  display: 'flex', alignItems: 'center', gap: '12px',
+                }}>
+                  <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#6366f1" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                  <div>
+                    <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Full Name</div>
+                    <div style={{ color: '#e2e8f0', fontSize: '14px', marginTop: '2px' }}>{user?.fullName || '—'}</div>
+                  </div>
+                </div>
+
+                <div style={{
+                  background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)',
+                  borderRadius: '12px', padding: '14px 16px',
+                  display: 'flex', alignItems: 'center', gap: '12px',
+                }}>
+                  <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#6366f1" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                  <div>
+                    <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Email</div>
+                    <div style={{ color: '#e2e8f0', fontSize: '14px', marginTop: '2px' }}>{user?.email || '—'}</div>
+                  </div>
+                </div>
+
+                <div style={{
+                  background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)',
+                  borderRadius: '12px', padding: '14px 16px',
+                  display: 'flex', alignItems: 'center', gap: '12px',
+                }}>
+                  <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#6366f1" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                  <div>
+                    <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Sign-in Method</div>
+                    <div style={{ color: '#e2e8f0', fontSize: '14px', marginTop: '2px' }}>{providerLabel[user?.provider] || 'Email & Password'}</div>
+                  </div>
+                </div>
+
+                {user?.createdAt && (
+                  <div style={{
+                    background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)',
+                    borderRadius: '12px', padding: '14px 16px',
+                    display: 'flex', alignItems: 'center', gap: '12px',
+                  }}>
+                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#6366f1" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                    <div>
+                      <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Member Since</div>
+                      <div style={{ color: '#e2e8f0', fontSize: '14px', marginTop: '2px' }}>{new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Logout button */}
+              <button
+                onClick={handleLogout}
+                style={{
+                  width: '100%', padding: '13px',
+                  background: 'rgba(239,68,68,0.1)',
+                  border: '1px solid rgba(239,68,68,0.25)',
+                  borderRadius: '12px',
+                  color: '#f87171', fontWeight: '700', fontSize: '14px',
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                  transition: 'all 0.2s',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.18)'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.4)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.1)'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.25)'; }}
+              >
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* LEFT PANEL: The Interactive Builder Forms */}
       <div className={`app-sidebar bg-dark text-light border-end border-secondary border-opacity-25 flex-column h-100 overflow-y-auto ${mobileTab === 'editor' ? 'd-flex' : 'd-none d-lg-flex'}`}>
         
         {/* Sticky Top Sidebar Panel: Brand, Stepper, and Actions */}
         <div className="sidebar-sticky-header sticky-top shadow-sm" style={{ background: 'linear-gradient(180deg, #0d1117 0%, #0d1117 100%)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-          {/* Brand Header */}
+          {/* Brand + User Avatar Header */}
           <div className="sidebar-header d-flex align-items-center justify-content-between px-3 py-3">
             <div 
               className="brand" 
@@ -243,9 +425,36 @@ export default function App() {
               <span className="brand-jt">JT</span>
               <span className="brand-resume">Resume</span>
             </div>
-            <span className="badge rounded-pill fw-semibold" style={{ fontSize: '0.68rem', background: 'rgba(99,102,241,0.15)', color: '#a5b4fc', border: '1px solid rgba(99,102,241,0.3)', padding: '4px 10px' }}>
-              v1.0.0
-            </span>
+
+            {/* User avatar button */}
+            {user && (
+              <button
+                onClick={() => setProfileOpen(true)}
+                title={`Signed in as ${user.fullName}`}
+                style={{
+                  background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', gap: '8px',
+                }}
+              >
+                {user.avatar ? (
+                  <img
+                    src={user.avatar}
+                    alt={user.fullName}
+                    style={{ width: '34px', height: '34px', borderRadius: '50%', border: '2px solid rgba(99,102,241,0.5)', objectFit: 'cover' }}
+                  />
+                ) : (
+                  <div style={{
+                    width: '34px', height: '34px', borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
+                    border: '2px solid rgba(99,102,241,0.5)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '13px', fontWeight: '800', color: '#fff', flexShrink: 0,
+                  }}>
+                    {getInitials(user.fullName)}
+                  </div>
+                )}
+              </button>
+            )}
           </div>
 
           {/* Step Progress Indicator Stepper */}
@@ -355,6 +564,7 @@ export default function App() {
           formData={formData} 
           updatePersonalInfo={updatePersonalInfo}
           updateWorkExperience={updateWorkExperience}
+          updateProjects={updateProjects}
           updateEducation={updateEducation}
           updateSkills={updateSkills}
           updateCertifications={updateCertifications}

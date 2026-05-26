@@ -85,5 +85,6 @@ export const mockResumeData = {
       contact: "marcus.vance@example.com | +1 (555) 438-2910"
     }
   ],
+  projects: [],
   customSections: []
 };

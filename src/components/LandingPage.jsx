@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
 
 const MiniResumeMockup = ({ layout, color, name }) => {
   const role = name === 'Emma Wilson' ? 'Product Designer' : name === 'Sarah Martinez' ? 'Marketing Manager' : 'Software Engineer';
@@ -85,6 +86,36 @@ const MiniResumeMockup = ({ layout, color, name }) => {
 export default function LandingPage({ onStartBuilder }) {
   const [scrolled, setScrolled] = useState(false);
 
+  // Contact Form hook-form setup
+  const { register, handleSubmit: handleHookSubmit, reset, formState: { errors } } = useForm();
+  const [contactSending, setContactSending] = useState(false);
+  const [contactFeedback, setContactFeedback] = useState({ type: '', text: '' });
+
+  const handleContactSubmit = async (formData) => {
+    setContactSending(true);
+    setContactFeedback({ type: '', text: '' });
+
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to send message.');
+      }
+
+      setContactFeedback({ type: 'success', text: data.message || 'Message sent successfully!' });
+      reset();
+    } catch (err) {
+      setContactFeedback({ type: 'danger', text: err.message });
+    } finally {
+      setContactSending(false);
+    }
+  };
+
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
@@ -113,12 +144,15 @@ export default function LandingPage({ onStartBuilder }) {
           </button>
 
           <div className="collapse navbar-collapse" id="navbarContent">
-            <ul className="navbar-nav ms-auto me-4 mb-2 mb-lg-0 gap-4 fw-medium" style={{ fontSize: '0.9rem', color: '#cbd5e1' }}>
+            <ul className="navbar-nav mx-auto mb-2 mb-lg-0 gap-4 fw-medium" style={{ fontSize: '0.9rem', color: '#cbd5e1' }}>
               <li className="nav-item"><a className="nav-link text-light nav-hover" href="#features">Features</a></li>
               <li className="nav-item"><a className="nav-link text-light nav-hover" href="#templates">Templates</a></li>
+              <li className="nav-item"><a className="nav-link text-light nav-hover" href="#contact">Contact</a></li>
             </ul>
             <div className="d-flex align-items-center gap-3">
-              <button className="btn btn-link text-light text-decoration-none fw-medium" style={{ fontSize: '0.9rem' }} onClick={onStartBuilder}>Sign In</button>
+              <button className="btn nav-signin-btn px-4 py-2 fw-bold text-light text-decoration-none rounded-pill" onClick={onStartBuilder}>
+                Sign In
+              </button>
               <button className="btn btn-primary px-4 py-2 fw-bold rounded-pill shadow-lg cta-btn" onClick={onStartBuilder}>
                 Build My Resume
               </button>
@@ -293,6 +327,96 @@ export default function LandingPage({ onStartBuilder }) {
                  <MiniResumeMockup key={`r2-${arrayIndex}-${i}`} layout={tpl.layout} color={tpl.color} name={tpl.name} />
                )))}
              </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 5. Contact Section */}
+      <section id="contact" className="py-5" style={{ background: 'linear-gradient(to bottom, #0a0d16 0%, #060913 100%)', position: 'relative' }}>
+        <div className="container py-5 position-relative z-1" style={{ maxWidth: '800px' }}>
+          <div className="text-center mb-5">
+            <span className="text-indigo fw-bold text-uppercase" style={{ letterSpacing: '1px' }}>Get in Touch</span>
+            <h2 className="display-5 fw-bold mt-2">Have questions? Contact us!</h2>
+            <p className="text-secondary mt-2">Drop us a line and our team will get back to you shortly.</p>
+          </div>
+
+          {contactFeedback.text && (
+            <div className={`alert alert-${contactFeedback.type} py-3 px-4 rounded-3 mb-4 text-center`} style={{ fontSize: '0.9rem', fontWeight: 600 }}>
+              {contactFeedback.text}
+            </div>
+          )}
+
+          <div className="contact-card p-5 rounded-4" style={{ 
+            background: 'linear-gradient(145deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.4) 100%)',
+            border: '1px solid rgba(255, 255, 255, 0.05)',
+            backdropFilter: 'blur(10px)'
+          }}>
+            <form onSubmit={handleHookSubmit(handleContactSubmit)}>
+              <div className="row g-4">
+                <div className="col-md-6">
+                  <label className="form-label fw-bold text-light mb-2" style={{ fontSize: '0.85rem' }}>Full Name</label>
+                  <input 
+                    type="text" 
+                    className={`form-control auth-input py-2.5 ${errors.name ? 'is-invalid' : ''}`}
+                    placeholder="John Doe" 
+                    {...register('name', { required: 'Full Name is required' })}
+                    disabled={contactSending}
+                  />
+                  {errors.name && <div className="invalid-feedback">{errors.name.message}</div>}
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label fw-bold text-light mb-2" style={{ fontSize: '0.85rem' }}>Email Address</label>
+                  <input 
+                    type="email" 
+                    className={`form-control auth-input py-2.5 ${errors.email ? 'is-invalid' : ''}`}
+                    placeholder="john.doe@example.com" 
+                    {...register('email', { 
+                      required: 'Email address is required',
+                      pattern: {
+                        value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                        message: 'Invalid email address'
+                      }
+                    })}
+                    disabled={contactSending}
+                  />
+                  {errors.email && <div className="invalid-feedback">{errors.email.message}</div>}
+                </div>
+                <div className="col-12">
+                  <label className="form-label fw-bold text-light mb-2" style={{ fontSize: '0.85rem' }}>Subject</label>
+                  <input 
+                    type="text" 
+                    className={`form-control auth-input py-2.5 ${errors.subject ? 'is-invalid' : ''}`}
+                    placeholder="How can we help you?" 
+                    {...register('subject', { required: 'Subject is required' })}
+                    disabled={contactSending}
+                  />
+                  {errors.subject && <div className="invalid-feedback">{errors.subject.message}</div>}
+                </div>
+                <div className="col-12">
+                  <label className="form-label fw-bold text-light mb-2" style={{ fontSize: '0.85rem' }}>Message</label>
+                  <textarea 
+                    className={`form-control auth-input py-2.5 ${errors.message ? 'is-invalid' : ''}`}
+                    rows="5"
+                    placeholder="Tell us more about your inquiry..." 
+                    {...register('message', { required: 'Message is required' })}
+                    disabled={contactSending}
+                  ></textarea>
+                  {errors.message && <div className="invalid-feedback">{errors.message.message}</div>}
+                </div>
+                <div className="col-12 text-center mt-4">
+                  <button type="submit" className="btn btn-primary px-5 py-3 fw-bold rounded-pill shadow-lg cta-btn" disabled={contactSending}>
+                    {contactSending ? (
+                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true">Sending...</span>
+                    ) : (
+                      <>
+                        Send Message
+                        <svg className="ms-2" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </form>
           </div>
         </div>
       </section>
