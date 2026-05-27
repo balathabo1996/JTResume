@@ -1,5 +1,6 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './globals.css';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 export const metadata = {
   title: 'JTResume | Premium Multi-Country ATS Resume Builder',
@@ -18,6 +19,7 @@ export default function RootLayout({ children }) {
       </head>
       <body>
         {children}
+        <SpeedInsights />
       </body>
     </html>
   );
