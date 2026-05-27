@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 
-export default function Dashboard({ user, onSelectResume, onLogout }) {
+export default function Dashboard({ user, onSelectResume, onLogout, onOpenProfile, onGoHome, onGenerateCoverLetter }) {
+  const getInitials = (name) => {
+    if (!name) return '?';
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
   const [resumes, setResumes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -9,8 +13,15 @@ export default function Dashboard({ user, onSelectResume, onLogout }) {
   const [showRename, setShowRename] = useState(false);
   const [editingResume, setEditingResume] = useState(null);
   const [newTitle, setNewTitle] = useState('');
-  const [actionLoading, setActionLoading] = useState(false);
+  
+  const [showCreate, setShowCreate] = useState(false);
+  const [createTitle, setCreateTitle] = useState('');
+  
+  const [showDelete, setShowDelete] = useState(false);
+  const [deletingResumeId, setDeletingResumeId] = useState(null);
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
 
+  const [actionLoading, setActionLoading] = useState(false);
   useEffect(() => {
     fetchResumes();
   }, [user]);
@@ -29,19 +40,25 @@ export default function Dashboard({ user, onSelectResume, onLogout }) {
     }
   };
 
-  const handleCreateNew = async () => {
-    const title = prompt("Enter a title for your new resume:", "Software Engineer Resume");
-    if (!title) return;
+  const handleCreateNew = () => {
+    setCreateTitle("");
+    setShowCreate(true);
+  };
+
+  const submitCreateNew = async (e) => {
+    e.preventDefault();
+    if (!createTitle.trim()) return;
 
     setActionLoading(true);
     try {
       const res = await fetch('/api/resumes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.email || user._id, title })
+        body: JSON.stringify({ userId: user.email || user._id, title: createTitle })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
+      setShowCreate(false);
       onSelectResume(data.resumeId);
     } catch (err) {
       alert("Error creating resume: " + err.message);
@@ -50,19 +67,26 @@ export default function Dashboard({ user, onSelectResume, onLogout }) {
     }
   };
 
-  const handleDelete = async (e, id) => {
+  const handleDeleteClick = (e, id) => {
     e.stopPropagation();
-    if (!window.confirm("Are you sure you want to delete this resume? This cannot be undone.")) return;
+    setDeletingResumeId(id);
+    setShowDelete(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deletingResumeId) return;
 
     setActionLoading(true);
     try {
-      const res = await fetch(`/api/resumes/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/resumes/${deletingResumeId}`, { method: 'DELETE' });
       if (!res.ok) throw new Error("Failed to delete");
+      setShowDelete(false);
       await fetchResumes();
     } catch (err) {
       alert(err.message);
     } finally {
       setActionLoading(false);
+      setDeletingResumeId(null);
     }
   };
 
@@ -117,24 +141,91 @@ export default function Dashboard({ user, onSelectResume, onLogout }) {
 
       <div className="container position-relative" style={{ maxWidth: '1000px', zIndex: 1 }}>
         
-        {/* Header */}
-        <div className="d-flex justify-content-between align-items-center mb-5 pb-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-          <div>
-            <h1 className="fw-bolder mb-1" style={{ background: 'linear-gradient(to right, #fff, #a5b4fc)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Your Resumes</h1>
-            <p className="mb-0" style={{ color: '#94a3b8' }}>Manage and tailor your resumes for different applications.</p>
+        {/* Top Navbar */}
+        <div className="d-flex justify-content-between align-items-center mb-4 pb-2">
+          <div className="brand" style={{ userSelect: 'none', display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={onGoHome}>
+            <span className="brand-jt" style={{ fontSize: '1.75rem' }}>JT</span><span className="brand-resume" style={{ fontSize: '1.75rem' }}>Resume</span>
           </div>
-          <div className="d-flex align-items-center gap-3">
-            <span className="d-none d-sm-inline" style={{ color: '#94a3b8', fontSize: '0.9rem' }}>Logged in as <span className="fw-medium text-light">{user.fullName}</span></span>
-            <button 
-              className="btn btn-sm px-3 py-2 fw-medium" 
-              onClick={onLogout}
-              style={{ background: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', transition: 'all 0.2s' }}
-              onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)' }}
-              onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)' }}
+          <div className="position-relative">
+            <button
+              onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+              onBlur={() => setTimeout(() => setShowProfileDropdown(false), 200)}
+              style={{
+                background: 'rgba(30, 41, 59, 0.6)', border: '1px solid rgba(255,255,255,0.1)', padding: '6px 12px 6px 16px', borderRadius: '30px', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: '12px', transition: 'all 0.2s', backdropFilter: 'blur(10px)'
+              }}
+              onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(30, 41, 59, 0.8)' }}
+              onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(30, 41, 59, 0.6)' }}
             >
-              Sign Out
+              <div className="text-start">
+                <div className="fw-bold text-light" style={{ fontSize: '0.85rem', lineHeight: '1.2' }}>{user.fullName}</div>
+                <div style={{ color: '#94a3b8', fontSize: '0.7rem' }}>User</div>
+              </div>
+              {user.avatar ? (
+                <img
+                  src={user.avatar}
+                  alt={user.fullName}
+                  style={{ width: '32px', height: '32px', borderRadius: '50%', border: '2px solid rgba(99,102,241,0.5)', objectFit: 'cover' }}
+                />
+              ) : (
+                <div style={{
+                  width: '32px', height: '32px', borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '12px', fontWeight: '800', color: '#fff', flexShrink: 0,
+                }}>
+                  {getInitials(user.fullName)}
+                </div>
+              )}
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: showProfileDropdown ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
             </button>
+
+            {/* Profile Dropdown */}
+            {showProfileDropdown && (
+              <div 
+                style={{
+                  position: 'absolute', top: 'calc(100% + 12px)', right: 0, width: '200px',
+                  background: 'rgba(30, 41, 59, 0.95)', border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: '12px', padding: '8px', zIndex: 100,
+                  boxShadow: '0 20px 40px rgba(0,0,0,0.5)', backdropFilter: 'blur(10px)',
+                }}
+              >
+                <div style={{ position: 'absolute', top: '-6px', right: '30px', width: '12px', height: '12px', background: 'rgba(30, 41, 59, 0.95)', borderLeft: '1px solid rgba(255,255,255,0.1)', borderTop: '1px solid rgba(255,255,255,0.1)', transform: 'rotate(45deg)' }}></div>
+                
+                <button 
+                  className="d-flex align-items-center gap-3 rounded-3"
+                  onClick={onOpenProfile}
+                  style={{ padding: '10px 14px', color: '#e2e8f0', background: 'transparent', border: 'none', width: '100%', textAlign: 'left', transition: 'all 0.2s', fontSize: '0.9rem' }}
+                  onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#fff' }}
+                  onMouseOut={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#e2e8f0' }}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                  Profile Settings
+                </button>
+                
+                <div style={{ height: '1px', background: 'rgba(255,255,255,0.08)', margin: '4px 8px' }}></div>
+                
+                <button 
+                  className="d-flex align-items-center gap-3 rounded-3"
+                  onClick={onLogout}
+                  style={{ padding: '10px 14px', color: '#f87171', background: 'transparent', border: 'none', width: '100%', textAlign: 'left', transition: 'all 0.2s', fontSize: '0.9rem' }}
+                  onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(248,113,113,0.1)'; e.currentTarget.style.color = '#fca5a5' }}
+                  onMouseOut={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#f87171' }}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                  Logout
+                </button>
+              </div>
+            )}
           </div>
+        </div>
+
+        {/* Page Header */}
+        <div className="mb-5 pb-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+          <h1 className="fw-bolder mb-1" style={{ background: 'linear-gradient(to right, #fff, #a5b4fc)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Your Resumes</h1>
+          <p className="mb-0" style={{ color: '#94a3b8' }}>Manage and tailor your resumes for different applications.</p>
         </div>
 
         {error && <div className="alert alert-danger">{error}</div>}
@@ -211,16 +302,16 @@ export default function Dashboard({ user, onSelectResume, onLogout }) {
                   <div className="card-body d-flex flex-column p-4">
                     
                     {/* Resume Icon & Title */}
-                    <div className="d-flex align-items-start gap-3 mb-3">
-                      <div className="rounded-3 p-2" style={{ background: 'rgba(99,102,241,0.1)', color: '#818cf8', border: '1px solid rgba(99,102,241,0.2)' }}>
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                    <div className="d-flex flex-column align-items-center mb-3 text-center w-100">
+                      <div className="rounded-circle d-flex align-items-center justify-content-center mb-3" style={{ width: '56px', height: '56px', background: 'linear-gradient(135deg, rgba(99,102,241,0.15), rgba(168,85,247,0.15))', color: '#a5b4fc', border: '1px solid rgba(99,102,241,0.2)', boxShadow: '0 4px 12px rgba(99,102,241,0.1)', transition: 'all 0.3s' }}>
+                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
                       </div>
-                      <div style={{ flex: 1 }}>
-                        <h5 className="fw-bolder mb-1 text-truncate text-light" style={{ maxWidth: '170px' }} title={resume.title}>{resume.title}</h5>
-                        <p className="mb-0" style={{ color: '#94a3b8', fontSize: '0.75rem', fontWeight: 500 }}>
-                          Updated {new Date(resume.updatedAt).toLocaleDateString()}
-                        </p>
-                      </div>
+                      <h5 className="fw-bolder mb-1 text-light w-100 px-1" style={{ lineHeight: '1.4', wordBreak: 'break-word', overflowWrap: 'break-word', letterSpacing: '0.3px' }}>
+                        {resume.title}
+                      </h5>
+                      <span style={{ color: '#94a3b8', fontSize: '0.8rem', fontWeight: 500, marginTop: '6px' }}>
+                        Updated {new Date(resume.updatedAt).toLocaleDateString()}
+                      </span>
                     </div>
 
                     <div className="mt-auto d-flex justify-content-between align-items-center pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
@@ -248,7 +339,21 @@ export default function Dashboard({ user, onSelectResume, onLogout }) {
                       </button>
                       <button 
                         className="btn btn-sm px-2 py-1 action-btn"
-                        onClick={(e) => handleDelete(e, resume._id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onGenerateCoverLetter(resume._id);
+                        }}
+                        disabled={actionLoading}
+                        title="Generate Cover Letter"
+                        style={{ color: '#a855f7', background: 'transparent', border: 'none', transition: 'all 0.2s', borderRadius: '6px' }}
+                        onMouseOver={(e) => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.background = 'rgba(168,85,247,0.2)'; }}
+                        onMouseOut={(e) => { e.currentTarget.style.color = '#a855f7'; e.currentTarget.style.background = 'transparent'; }}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                      </button>
+                      <button 
+                        className="btn btn-sm px-2 py-1 action-btn"
+                        onClick={(e) => handleDeleteClick(e, resume._id)}
                         disabled={actionLoading}
                         title="Delete"
                         style={{ color: '#f87171', background: 'transparent', border: 'none', transition: 'all 0.2s', borderRadius: '6px' }}
@@ -269,15 +374,15 @@ export default function Dashboard({ user, onSelectResume, onLogout }) {
 
       {/* Rename Modal */}
       {showRename && (
-        <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(5px)' }}>
+        <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(15,23,42,0.5)', backdropFilter: 'blur(8px)' }}>
           <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content text-light" style={{ background: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}>
-              <div className="modal-header border-bottom-0 pb-0">
+            <div className="modal-content text-light" style={{ background: 'rgba(30, 41, 59, 0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}>
+              <div className="modal-header border-bottom-0 pb-0 pt-4 px-4">
                 <h5 className="modal-title fw-bold">Rename Resume</h5>
                 <button type="button" className="btn-close btn-close-white" onClick={() => setShowRename(false)}></button>
               </div>
               <form onSubmit={handleRename}>
-                <div className="modal-body pt-3 pb-4">
+                <div className="modal-body pt-3 pb-4 px-4">
                   <input 
                     type="text" 
                     className="form-control bg-dark text-light" 
@@ -287,13 +392,70 @@ export default function Dashboard({ user, onSelectResume, onLogout }) {
                     autoFocus
                   />
                 </div>
-                <div className="modal-footer border-top-0 pt-0">
+                <div className="modal-footer border-top-0 pt-0 px-4 pb-4">
                   <button type="button" className="btn btn-link text-secondary text-decoration-none" onClick={() => setShowRename(false)}>Cancel</button>
                   <button type="submit" className="btn btn-primary px-4 rounded-3" disabled={actionLoading || !newTitle.trim()} style={{ background: '#6366f1', border: 'none' }}>
                     {actionLoading ? 'Saving...' : 'Save'}
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create New Modal */}
+      {showCreate && (
+        <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(15,23,42,0.5)', backdropFilter: 'blur(8px)' }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content text-light" style={{ background: 'rgba(30, 41, 59, 0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}>
+              <div className="modal-header border-bottom-0 pb-0 pt-4 px-4">
+                <h5 className="modal-title fw-bold">Create New Resume</h5>
+                <button type="button" className="btn-close btn-close-white" onClick={() => setShowCreate(false)}></button>
+              </div>
+              <form onSubmit={submitCreateNew}>
+                <div className="modal-body pt-3 pb-4 px-4">
+                  <label className="form-label text-light mb-2">Enter a title for your new resume:</label>
+                  <input 
+                    type="text" 
+                    className="form-control bg-dark text-light" 
+                    value={createTitle} 
+                    onChange={e => setCreateTitle(e.target.value)}
+                    placeholder="e.g. Software Engineer Resume"
+                    style={{ border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '12px' }}
+                    autoFocus
+                  />
+                </div>
+                <div className="modal-footer border-top-0 pt-0 px-4 pb-4">
+                  <button type="button" className="btn btn-link text-secondary text-decoration-none" onClick={() => setShowCreate(false)}>Cancel</button>
+                  <button type="submit" className="btn btn-primary px-4 rounded-3" disabled={actionLoading || !createTitle.trim()} style={{ background: '#6366f1', border: 'none' }}>
+                    {actionLoading ? 'Creating...' : 'Create'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDelete && (
+        <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(15,23,42,0.5)', backdropFilter: 'blur(8px)' }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content text-light" style={{ background: 'rgba(30, 41, 59, 0.95)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: '16px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}>
+              <div className="modal-header border-bottom-0 pb-0 pt-4 px-4">
+                <h5 className="modal-title fw-bold text-danger">Delete Resume</h5>
+                <button type="button" className="btn-close btn-close-white" onClick={() => setShowDelete(false)}></button>
+              </div>
+              <div className="modal-body pt-3 pb-4 px-4">
+                <p className="mb-0 text-light">Are you sure you want to delete this resume? This action cannot be undone.</p>
+              </div>
+              <div className="modal-footer border-top-0 pt-0 px-4 pb-4">
+                <button type="button" className="btn btn-link text-secondary text-decoration-none" onClick={() => setShowDelete(false)}>Cancel</button>
+                <button type="button" className="btn btn-danger px-4 rounded-3" onClick={confirmDelete} disabled={actionLoading} style={{ background: '#ef4444', border: 'none' }}>
+                  {actionLoading ? 'Deleting...' : 'Delete'}
+                </button>
+              </div>
             </div>
           </div>
         </div>

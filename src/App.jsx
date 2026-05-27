@@ -8,7 +8,8 @@ import ImportModal from './components/ImportModal';
 import LandingPage from './components/LandingPage';
 import AuthPage from './components/AuthPage';
 import Dashboard from './components/Dashboard';
-import { mockResumeData } from './data/mockResumeData';
+import CoverLetterGenerator from './components/CoverLetterGenerator';
+import { generateDocx } from './utils/docxExport';
 
 // Baseline Empty Resume state schema
 const emptyResumeState = {
@@ -63,6 +64,8 @@ export default function App() {
   const [mobileTab, setMobileTab] = useState('editor'); // 'editor' | 'preview'
   const [currentResumeId, setCurrentResumeId] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
 
   // Auto-save logic
   useEffect(() => {
@@ -73,7 +76,13 @@ export default function App() {
           await fetch(`/api/resumes/${currentResumeId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ data: formData })
+            body: JSON.stringify({ 
+              data: formData,
+              templateStyle,
+              accentColor,
+              spacingTuning,
+              fontPairing
+            })
           });
         } catch (e) {
           console.error("Auto-save failed", e);
@@ -83,7 +92,7 @@ export default function App() {
       }, 1500); // 1.5s debounce
       return () => clearTimeout(timer);
     }
-  }, [formData, currentResumeId, currentView, isInitializing]);
+  }, [formData, templateStyle, accentColor, spacingTuning, fontPairing, currentResumeId, currentView, isInitializing]);
 
   // Persist session on reload
   useEffect(() => {
@@ -255,10 +264,7 @@ export default function App() {
     setFormData(prev => ({ ...prev, customSections: updatedList }));
   };
 
-  const handleResetToMock = () => {
-    setFormData(mockResumeData);
-    setActiveSection(null);
-  };
+
 
   const handleClearData = () => {
     setFormData(emptyResumeState);
@@ -268,6 +274,18 @@ export default function App() {
   // Direct PDF Export using Native Print System
   const handlePrintPDF = () => {
     window.print();
+  };
+
+  const handleCopyPublicLink = async () => {
+    if (!currentResumeId) return;
+    const url = `${window.location.origin}/view/${currentResumeId}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy link', err);
+    }
   };
 
 
@@ -407,28 +425,38 @@ export default function App() {
     return <AuthPage onLogin={handleLoginSuccess} onBackToHome={() => setCurrentView('landing')} />;
   }
 
-  if (currentView === 'dashboard') {
-    return (
-      <Dashboard 
-        user={user} 
-        onLogout={handleLogout}
-        onSelectResume={(id) => {
-          setCurrentResumeId(id);
-          setCurrentView('editor');
-          fetch(`/api/resumes/${id}`)
-            .then(res => res.json())
-            .then(data => {
-              if (data.success && data.resume) {
-                setFormData(data.resume.data || emptyResumeState);
-              }
-            });
-        }} 
-      />
-    );
-  }
-
   return (
-    <div className="app-container container-fluid p-0">
+    <div className="app-root" style={{ width: '100vw', height: '100vh', position: 'relative', overflow: 'hidden' }}>
+
+      {currentView === 'dashboard' && (
+        <div style={{ position: 'absolute', inset: 0, zIndex: 10, overflowY: 'auto', backgroundColor: '#0f172a' }}>
+          <Dashboard 
+            user={user} 
+            onGoHome={() => setCurrentView('landing')}
+            onLogout={handleLogout}
+            onOpenProfile={openProfileModal}
+            onGenerateCoverLetter={(id) => {
+              setCurrentResumeId(id);
+              setCurrentView('coverLetter');
+            }}
+            onSelectResume={(id) => {
+              setCurrentResumeId(id);
+              setCurrentView('editor');
+              fetch(`/api/resumes/${id}`)
+                .then(res => res.json())
+                .then(data => {
+                  if (data.success && data.resume) {
+                    setFormData(data.resume.data || emptyResumeState);
+                    if (data.resume.templateStyle) setTemplateStyle(data.resume.templateStyle);
+                    if (data.resume.accentColor) setAccentColor(data.resume.accentColor);
+                    if (data.resume.spacingTuning) setSpacingTuning(data.resume.spacingTuning);
+                    if (data.resume.fontPairing) setFontPairing(data.resume.fontPairing);
+                  }
+                });
+            }} 
+          />
+        </div>
+      )}
 
       {/* ── User Profile Modal ─────────────────────────────────────── */}
       {profileOpen && (
@@ -436,95 +464,107 @@ export default function App() {
           onClick={() => setProfileOpen(false)}
           style={{
             position: 'fixed', inset: 0, zIndex: 9999,
-            background: 'rgba(15,23,42,0.85)', backdropFilter: 'blur(12px)',
+            background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(8px)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px',
           }}
         >
           <div
             onClick={(e) => e.stopPropagation()}
             style={{
-              background: 'rgba(30, 41, 59, 0.7)',
+              background: 'rgba(30, 41, 59, 0.95)',
               backdropFilter: 'blur(20px)',
               border: '1px solid rgba(255,255,255,0.1)',
               borderRadius: '24px',
               padding: '0',
               width: '100%',
-              maxWidth: '420px',
-              boxShadow: '0 30px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(99,102,241,0.1)',
+              maxWidth: '400px',
+              boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
               overflow: 'hidden',
             }}
           >
-            {/* Header banner */}
+            {/* Header Cover Banner */}
             <div style={{
-              background: 'linear-gradient(135deg, rgba(99,102,241,0.15) 0%, rgba(124,58,237,0.05) 100%)',
-              borderBottom: '1px solid rgba(255,255,255,0.05)',
-              padding: '32px 28px 24px 28px',
+              height: '110px',
+              background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
               position: 'relative',
             }}>
+              <div style={{ position: 'absolute', inset: 0, background: 'url("https://www.transparenttextures.com/patterns/cubes.png")', opacity: 0.2 }}></div>
               <button
                 onClick={() => setProfileOpen(false)}
-                style={{ position: 'absolute', top: '14px', right: '16px', background: 'none', border: 'none', color: 'rgba(255,255,255,0.7)', fontSize: '20px', cursor: 'pointer', lineHeight: 1 }}
+                style={{ position: 'absolute', top: '16px', right: '16px', background: 'rgba(0,0,0,0.2)', border: 'none', color: '#fff', fontSize: '18px', width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', backdropFilter: 'blur(4px)' }}
+                onMouseOver={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.4)'}
+                onMouseOut={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.2)'}
               >✕</button>
+            </div>
 
-              {/* Avatar */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            {/* Body */}
+            <div style={{ padding: '0 28px 28px 28px', position: 'relative', marginTop: '-42px' }}>
+              
+              {/* Overlapping Avatar and Action Button */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '16px' }}>
                 {user?.avatar ? (
                   <img
                     src={user.avatar}
                     alt={user.fullName}
-                    style={{ width: '64px', height: '64px', borderRadius: '50%', border: '3px solid rgba(255,255,255,0.3)', objectFit: 'cover' }}
+                    style={{ width: '84px', height: '84px', borderRadius: '50%', border: '4px solid rgb(30, 41, 59)', objectFit: 'cover', background: 'rgb(30, 41, 59)' }}
                   />
                 ) : (
                   <div style={{
-                    width: '64px', height: '64px', borderRadius: '50%',
-                    background: 'rgba(255,255,255,0.2)',
-                    border: '3px solid rgba(255,255,255,0.3)',
+                    width: '84px', height: '84px', borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #38bdf8, #818cf8)',
+                    border: '4px solid rgb(30, 41, 59)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '22px', fontWeight: '800', color: '#fff',
+                    fontSize: '28px', fontWeight: '800', color: '#fff',
                   }}>
                     {getInitials(user?.fullName)}
                   </div>
                 )}
-                <div>
-                  <div style={{ color: '#fff', fontWeight: '800', fontSize: '18px', lineHeight: 1.2 }}>{user?.fullName || 'User'}</div>
-                  <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '13px', marginTop: '4px' }}>{user?.email}</div>
+
+                {!isEditingProfile && (
+                  <button
+                    onClick={() => setIsEditingProfile(true)}
+                    style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '12px', fontWeight: '600', padding: '8px 16px', borderRadius: '20px', cursor: 'pointer', transition: 'all 0.2s', marginBottom: '0' }}
+                    onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
+                    onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
+                  >
+                    Edit Profile
+                  </button>
+                )}
+              </div>
+
+              {/* Name & Email Info */}
+              <div style={{ marginBottom: '24px' }}>
+                <h2 style={{ color: '#f8fafc', fontSize: '22px', fontWeight: '800', margin: '0 0 2px 0', letterSpacing: '-0.5px' }}>{user?.fullName || 'User'}</h2>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ color: '#94a3b8', fontSize: '14px' }}>{user?.email}</span>
                   {user?.provider && user.provider !== 'email' && (
-                    <span style={{
-                      display: 'inline-block', marginTop: '6px',
-                      background: providerColor[user.provider] || '#6366f1',
-                      color: '#fff', fontSize: '11px', fontWeight: '600',
-                      padding: '2px 10px', borderRadius: '999px',
-                    }}>
-                      via {providerLabel[user.provider] || user.provider}
+                    <span style={{ background: providerColor[user.provider] || '#6366f1', color: '#fff', fontSize: '10px', fontWeight: '700', padding: '2px 8px', borderRadius: '12px', textTransform: 'uppercase' }}>
+                      {providerLabel[user.provider] || user.provider}
                     </span>
                   )}
                 </div>
               </div>
-            </div>
-
-            {/* Body */}
-            <div style={{ padding: '24px 28px' }}>
 
               {editProfileMessage.text && (
-                <div style={{ padding: '10px', marginBottom: '16px', borderRadius: '6px', fontSize: '12px', background: editProfileMessage.type === 'success' ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)', color: editProfileMessage.type === 'success' ? '#10b981' : '#f87171', border: `1px solid ${editProfileMessage.type === 'success' ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}` }}>
+                <div style={{ padding: '10px 14px', marginBottom: '20px', borderRadius: '8px', fontSize: '13px', background: editProfileMessage.type === 'success' ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)', color: editProfileMessage.type === 'success' ? '#34d399' : '#f87171', border: `1px solid ${editProfileMessage.type === 'success' ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}` }}>
                   {editProfileMessage.text}
                 </div>
               )}
 
               {isEditingProfile ? (
-                <form onSubmit={handleProfileSubmit(handleProfileUpdate)} style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <label style={{ fontSize: '11px', color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase' }}>Full Name</label>
+                <form onSubmit={handleProfileSubmit(handleProfileUpdate)} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '11px', color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase', marginBottom: '6px', letterSpacing: '0.5px' }}>Full Name</label>
                     <input
                       type="text"
                       {...registerProfile('fullName', { required: 'Full Name is required' })}
                       disabled={editProfileLoading}
-                      style={{ padding: '10px 12px', borderRadius: '8px', background: 'rgba(0,0,0,0.2)', border: `1px solid ${profileErrors.fullName ? '#ef4444' : 'rgba(255,255,255,0.1)'}`, color: '#fff', fontSize: '14px' }}
+                      style={{ width: '100%', padding: '12px 14px', borderRadius: '10px', background: 'rgba(0,0,0,0.2)', border: `1px solid ${profileErrors.fullName ? '#ef4444' : 'rgba(255,255,255,0.1)'}`, color: '#fff', fontSize: '14px', transition: 'border-color 0.2s' }}
                     />
-                    {profileErrors.fullName && <span style={{ color: '#ef4444', fontSize: '11px', marginTop: '2px' }}>{profileErrors.fullName.message}</span>}
+                    {profileErrors.fullName && <span style={{ color: '#ef4444', fontSize: '11px', marginTop: '4px', display: 'block' }}>{profileErrors.fullName.message}</span>}
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <label style={{ fontSize: '11px', color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase' }}>Email Address</label>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '11px', color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase', marginBottom: '6px', letterSpacing: '0.5px' }}>Email Address</label>
                     <input
                       type="email"
                       {...registerProfile('email', { 
@@ -535,12 +575,12 @@ export default function App() {
                         }
                       })}
                       disabled={editProfileLoading}
-                      style={{ padding: '10px 12px', borderRadius: '8px', background: 'rgba(0,0,0,0.2)', border: `1px solid ${profileErrors.email ? '#ef4444' : 'rgba(255,255,255,0.1)'}`, color: '#fff', fontSize: '14px' }}
+                      style={{ width: '100%', padding: '12px 14px', borderRadius: '10px', background: 'rgba(0,0,0,0.2)', border: `1px solid ${profileErrors.email ? '#ef4444' : 'rgba(255,255,255,0.1)'}`, color: '#fff', fontSize: '14px', transition: 'border-color 0.2s' }}
                     />
-                    {profileErrors.email && <span style={{ color: '#ef4444', fontSize: '11px', marginTop: '2px' }}>{profileErrors.email.message}</span>}
+                    {profileErrors.email && <span style={{ color: '#ef4444', fontSize: '11px', marginTop: '4px', display: 'block' }}>{profileErrors.email.message}</span>}
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <label style={{ fontSize: '11px', color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase' }}>Phone Number (Optional)</label>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '11px', color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase', marginBottom: '6px', letterSpacing: '0.5px' }}>Phone Number <span style={{ color: '#64748b', textTransform: 'none', fontWeight: '400' }}>(Optional)</span></label>
                     <input
                       type="text"
                       {...registerProfile('phone', {
@@ -550,11 +590,11 @@ export default function App() {
                         }
                       })}
                       disabled={editProfileLoading}
-                      style={{ padding: '10px 12px', borderRadius: '8px', background: 'rgba(0,0,0,0.2)', border: `1px solid ${profileErrors.phone ? '#ef4444' : 'rgba(255,255,255,0.1)'}`, color: '#fff', fontSize: '14px' }}
+                      style={{ width: '100%', padding: '12px 14px', borderRadius: '10px', background: 'rgba(0,0,0,0.2)', border: `1px solid ${profileErrors.phone ? '#ef4444' : 'rgba(255,255,255,0.1)'}`, color: '#fff', fontSize: '14px', transition: 'border-color 0.2s' }}
                     />
-                    {profileErrors.phone && <span style={{ color: '#ef4444', fontSize: '11px', marginTop: '2px' }}>{profileErrors.phone.message}</span>}
+                    {profileErrors.phone && <span style={{ color: '#ef4444', fontSize: '11px', marginTop: '4px', display: 'block' }}>{profileErrors.phone.message}</span>}
                   </div>
-                  <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                  <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
                     <button
                       type="button"
                       onClick={() => {
@@ -563,190 +603,149 @@ export default function App() {
                         setEditProfileMessage({ type: '', text: '' });
                       }}
                       disabled={editProfileLoading}
-                      style={{ flex: 1, padding: '10px', background: 'rgba(255,255,255,0.05)', color: '#e2e8f0', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', fontWeight: '600', fontSize: '13px' }}
+                      style={{ flex: 1, padding: '12px', background: 'transparent', color: '#cbd5e1', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', fontWeight: '600', fontSize: '14px', cursor: 'pointer' }}
                     >Cancel</button>
                     <button
                       type="submit"
                       disabled={editProfileLoading}
-                      style={{ flex: 2, padding: '10px', background: '#6366f1', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: '600', fontSize: '13px', opacity: editProfileLoading ? 0.7 : 1 }}
+                      style={{ flex: 1, padding: '12px', background: '#4f46e5', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: '600', fontSize: '14px', cursor: 'pointer', opacity: editProfileLoading ? 0.7 : 1 }}
                     >
-                      {editProfileLoading ? 'Saving...' : 'Save Changes'}
+                      {editProfileLoading ? 'Saving...' : 'Save'}
                     </button>
                   </div>
                 </form>
               ) : (
                 /* STATIC PROFILE DISPLAY */
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '-8px' }}>
-                    <button
-                      onClick={() => setIsEditingProfile(true)}
-                      style={{ background: 'none', border: 'none', color: '#818cf8', fontSize: '12px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', padding: 0 }}
-                    >
-                      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                      Edit Profile
-                    </button>
-                  </div>
-
-                  <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#818cf8" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                <>
+                  <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '20px' }}>
+                    <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '16px', marginBottom: '16px' }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: '10px', color: '#64748b', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Phone Number</div>
+                        <div style={{ color: '#f1f5f9', fontSize: '14px', marginTop: '4px', fontWeight: '500' }}>{user?.phone || '—'}</div>
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: '10px', color: '#64748b', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Member Since</div>
+                        <div style={{ color: '#f1f5f9', fontSize: '14px', marginTop: '4px', fontWeight: '500' }}>{user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '—'}</div>
+                      </div>
+                    </div>
                     <div>
-                      <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Full Name</div>
-                      <div style={{ color: '#e2e8f0', fontSize: '14px', marginTop: '2px' }}>{user?.fullName || '—'}</div>
+                      <div style={{ fontSize: '10px', color: '#64748b', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Sign-in Method</div>
+                      <div style={{ color: '#f1f5f9', fontSize: '14px', marginTop: '4px', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                        {providerLabel[user?.provider] || 'Email & Password'}
+                      </div>
                     </div>
                   </div>
 
-                  <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#818cf8" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-                    <div>
-                      <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Email Address</div>
-                      <div style={{ color: '#e2e8f0', fontSize: '14px', marginTop: '2px' }}>{user?.email || '—'}</div>
-                    </div>
-                  </div>
-
-                  {user?.phone && (
-                    <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#818cf8" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
-                      <div>
-                        <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Phone Number</div>
-                        <div style={{ color: '#e2e8f0', fontSize: '14px', marginTop: '2px' }}>{user.phone}</div>
-                      </div>
-                    </div>
-                  )}
-
-                  <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#818cf8" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
-                    <div>
-                      <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Sign-in Method</div>
-                      <div style={{ color: '#e2e8f0', fontSize: '14px', marginTop: '2px' }}>{providerLabel[user?.provider] || 'Email & Password'}</div>
-                    </div>
-                  </div>
-
-                  {user?.createdAt && (
-                    <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#818cf8" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                      <div>
-                        <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Member Since</div>
-                        <div style={{ color: '#e2e8f0', fontSize: '14px', marginTop: '2px' }}>{new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Password Change Section (only for Email users) */}
-              {(!user?.provider || user?.provider === 'email') && (
-                <div style={{ marginBottom: '24px' }}>
-                  <button
-                    onClick={() => setShowPasswordForm(!showPasswordForm)}
-                    style={{
-                      width: '100%', padding: '12px',
-                      background: 'rgba(255,255,255,0.03)',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      borderRadius: '10px',
-                      color: '#e2e8f0', fontSize: '13px', fontWeight: '600',
-                      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-                      Change Password
-                    </div>
-                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" style={{ transform: showPasswordForm ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
-
-                  {showPasswordForm && (
-                    <form onSubmit={handlePasswordSubmit(handlePasswordChange)} style={{ marginTop: '12px', padding: '16px', background: 'rgba(0,0,0,0.2)', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                      {passwordMessage.text && (
-                        <div style={{ padding: '10px', marginBottom: '12px', borderRadius: '6px', fontSize: '12px', background: passwordMessage.type === 'success' ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)', color: passwordMessage.type === 'success' ? '#10b981' : '#f87171', border: `1px solid ${passwordMessage.type === 'success' ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}` }}>
-                          {passwordMessage.text}
-                        </div>
-                      )}
-                      
-                      <div style={{ marginBottom: '12px' }}>
-                        <input
-                          type="password"
-                          placeholder="Current Password"
-                          {...registerPassword('currentPassword', { required: 'Current password is required' })}
-                          disabled={passwordLoading}
-                          style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', background: 'rgba(0,0,0,0.2)', border: `1px solid ${passwordErrors.currentPassword ? '#ef4444' : 'rgba(255,255,255,0.1)'}`, color: '#fff', fontSize: '13px' }}
-                        />
-                        {passwordErrors.currentPassword && <span style={{ color: '#ef4444', fontSize: '11px', marginTop: '2px', display: 'block' }}>{passwordErrors.currentPassword.message}</span>}
-                      </div>
-                      <div style={{ marginBottom: '12px' }}>
-                        <input
-                          type="password"
-                          placeholder="New Password"
-                          {...registerPassword('newPassword', { 
-                            required: 'New password is required',
-                            minLength: { value: 8, message: 'Password must be at least 8 characters' },
-                            pattern: {
-                              value: /^(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z\d]).{8,}$/,
-                              message: 'Must contain an uppercase letter, a number, and a special character'
-                            }
-                          })}
-                          disabled={passwordLoading}
-                          style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', background: 'rgba(0,0,0,0.2)', border: `1px solid ${passwordErrors.newPassword ? '#ef4444' : 'rgba(255,255,255,0.1)'}`, color: '#fff', fontSize: '13px' }}
-                        />
-                        {passwordErrors.newPassword && <span style={{ color: '#ef4444', fontSize: '11px', marginTop: '2px', display: 'block' }}>{passwordErrors.newPassword.message}</span>}
-                      </div>
-                      <div style={{ marginBottom: '16px' }}>
-                        <input
-                          type="password"
-                          placeholder="Confirm New Password"
-                          {...registerPassword('confirmPassword', { 
-                            required: 'Please confirm your new password',
-                            validate: (val, formValues) => val === formValues.newPassword || 'Passwords do not match'
-                          })}
-                          disabled={passwordLoading}
-                          style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', background: 'rgba(0,0,0,0.2)', border: `1px solid ${passwordErrors.confirmPassword ? '#ef4444' : 'rgba(255,255,255,0.1)'}`, color: '#fff', fontSize: '13px' }}
-                        />
-                        {passwordErrors.confirmPassword && <span style={{ color: '#ef4444', fontSize: '11px', marginTop: '2px', display: 'block' }}>{passwordErrors.confirmPassword.message}</span>}
-                      </div>
+                  {/* Password Change Section (only for Email users) */}
+                  {(!user?.provider || user?.provider === 'email') && (
+                    <div style={{ marginTop: '20px' }}>
                       <button
-                        type="submit"
-                        disabled={passwordLoading}
+                        onClick={() => setShowPasswordForm(!showPasswordForm)}
                         style={{
-                          width: '100%', padding: '10px',
-                          background: '#6366f1', color: '#fff', border: 'none', borderRadius: '6px',
-                          fontWeight: '600', fontSize: '13px', cursor: passwordLoading ? 'not-allowed' : 'pointer',
-                          opacity: passwordLoading ? 0.7 : 1
+                          width: '100%', padding: '14px 16px',
+                          background: 'rgba(255,255,255,0.03)',
+                          border: '1px solid rgba(255,255,255,0.08)',
+                          borderRadius: '12px',
+                          color: '#e2e8f0', fontSize: '13px', fontWeight: '600',
+                          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                          cursor: 'pointer', transition: 'all 0.2s'
                         }}
+                        onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
+                        onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
                       >
-                        {passwordLoading ? 'Updating...' : 'Update Password'}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#a5b4fc" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                          Change Password
+                        </div>
+                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" style={{ transform: showPasswordForm ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                        </svg>
                       </button>
-                    </form>
-                  )}
-                </div>
-              )}
 
-              {/* Logout button */}
-              <button
-                onClick={handleLogout}
-                style={{
-                  width: '100%', padding: '13px',
-                  background: 'rgba(239,68,68,0.1)',
-                  border: '1px solid rgba(239,68,68,0.25)',
-                  borderRadius: '12px',
-                  color: '#f87171', fontWeight: '700', fontSize: '14px',
-                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                  transition: 'all 0.2s',
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.18)'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.4)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.1)'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.25)'; }}
-              >
-                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-                Sign Out
-              </button>
+                      {showPasswordForm && (
+                        <form onSubmit={handlePasswordSubmit(handlePasswordChange)} style={{ marginTop: '12px', padding: '20px', background: 'rgba(0,0,0,0.15)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                          {passwordMessage.text && (
+                            <div style={{ padding: '10px 12px', marginBottom: '16px', borderRadius: '8px', fontSize: '12px', background: passwordMessage.type === 'success' ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)', color: passwordMessage.type === 'success' ? '#34d399' : '#f87171', border: `1px solid ${passwordMessage.type === 'success' ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}` }}>
+                              {passwordMessage.text}
+                            </div>
+                          )}
+                          
+                          <div style={{ marginBottom: '16px' }}>
+                            <input
+                              type="password"
+                              placeholder="Current Password"
+                              {...registerPassword('currentPassword', { required: 'Current password is required' })}
+                              disabled={passwordLoading}
+                              style={{ width: '100%', padding: '12px 14px', borderRadius: '8px', background: 'rgba(0,0,0,0.3)', border: `1px solid ${passwordErrors.currentPassword ? '#ef4444' : 'rgba(255,255,255,0.1)'}`, color: '#fff', fontSize: '13px', transition: 'border-color 0.2s' }}
+                            />
+                            {passwordErrors.currentPassword && <span style={{ color: '#ef4444', fontSize: '11px', marginTop: '4px', display: 'block' }}>{passwordErrors.currentPassword.message}</span>}
+                          </div>
+                          <div style={{ marginBottom: '16px' }}>
+                            <input
+                              type="password"
+                              placeholder="New Password"
+                              {...registerPassword('newPassword', { 
+                                required: 'New password is required',
+                                minLength: { value: 8, message: 'Password must be at least 8 characters' },
+                                pattern: {
+                                  value: /^(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z\d]).{8,}$/,
+                                  message: 'Must contain an uppercase letter, a number, and a special character'
+                                }
+                              })}
+                              disabled={passwordLoading}
+                              style={{ width: '100%', padding: '12px 14px', borderRadius: '8px', background: 'rgba(0,0,0,0.3)', border: `1px solid ${passwordErrors.newPassword ? '#ef4444' : 'rgba(255,255,255,0.1)'}`, color: '#fff', fontSize: '13px', transition: 'border-color 0.2s' }}
+                            />
+                            {passwordErrors.newPassword && <span style={{ color: '#ef4444', fontSize: '11px', marginTop: '4px', display: 'block' }}>{passwordErrors.newPassword.message}</span>}
+                          </div>
+                          <div style={{ marginBottom: '20px' }}>
+                            <input
+                              type="password"
+                              placeholder="Confirm New Password"
+                              {...registerPassword('confirmPassword', { 
+                                required: 'Please confirm your new password',
+                                validate: (val, formValues) => val === formValues.newPassword || 'Passwords do not match'
+                              })}
+                              disabled={passwordLoading}
+                              style={{ width: '100%', padding: '12px 14px', borderRadius: '8px', background: 'rgba(0,0,0,0.3)', border: `1px solid ${passwordErrors.confirmPassword ? '#ef4444' : 'rgba(255,255,255,0.1)'}`, color: '#fff', fontSize: '13px', transition: 'border-color 0.2s' }}
+                            />
+                            {passwordErrors.confirmPassword && <span style={{ color: '#ef4444', fontSize: '11px', marginTop: '4px', display: 'block' }}>{passwordErrors.confirmPassword.message}</span>}
+                          </div>
+                          <button
+                            type="submit"
+                            disabled={passwordLoading}
+                            style={{
+                              width: '100%', padding: '12px',
+                              background: '#4f46e5', color: '#fff', border: 'none', borderRadius: '8px',
+                              fontWeight: '600', fontSize: '13px', cursor: passwordLoading ? 'not-allowed' : 'pointer',
+                              opacity: passwordLoading ? 0.7 : 1, transition: 'opacity 0.2s'
+                            }}
+                          >
+                            {passwordLoading ? 'Updating...' : 'Update Password'}
+                          </button>
+                        </form>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           </div>
         </div>
       )}
 
+      {currentView === 'coverLetter' && (
+        <div style={{ position: 'absolute', inset: 0, zIndex: 10, overflowY: 'hidden', backgroundColor: '#0f172a', display: 'flex' }}>
+          <CoverLetterGenerator 
+            resumeId={currentResumeId} 
+            onBack={() => setCurrentView('dashboard')} 
+            onGoHome={() => setCurrentView('landing')}
+          />
+        </div>
+      )}
+
+      {currentView === 'editor' && (
+      <div className="app-container container-fluid p-0" style={{ position: 'absolute', inset: 0, zIndex: 5 }}>
       {/* LEFT PANEL: The Interactive Builder Forms */}
       <div className={`app-sidebar bg-dark text-light border-end border-secondary border-opacity-25 flex-column h-100 overflow-y-auto ${mobileTab === 'editor' ? 'd-flex' : 'd-none d-lg-flex'}`}>
         
@@ -754,49 +753,105 @@ export default function App() {
         <div className="sidebar-sticky-header sticky-top shadow-sm" style={{ background: 'linear-gradient(180deg, #0d1117 0%, #0d1117 100%)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
           {/* Brand + User Avatar Header */}
           <div className="sidebar-header d-flex align-items-center justify-content-between px-3 py-3">
-            <div 
-              className="brand" 
-              style={{ userSelect: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }} 
-              onClick={() => setCurrentView('dashboard')}
-              title="Return to Dashboard"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-              <div>
-                <span className="brand-jt">JT</span><span className="brand-resume">Resume</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div 
+                style={{ cursor: 'pointer', color: '#a5b4fc', display: 'flex', alignItems: 'center', padding: '4px' }} 
+                onClick={() => setCurrentView('dashboard')}
+                title="Return to Dashboard"
+              >
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+              </div>
+              <div 
+                className="brand" 
+                style={{ userSelect: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }} 
+                onClick={() => setCurrentView('landing')}
+                title="Return to Home"
+              >
+                <div>
+                  <span className="brand-jt">JT</span><span className="brand-resume">Resume</span>
+                </div>
               </div>
             </div>
 
             {/* User avatar button & Saving state */}
-            <div className="d-flex align-items-center gap-2">
-              {isSaving && <span style={{ fontSize: '0.75rem', color: '#a5b4fc', fontStyle: 'italic' }}>Saving...</span>}
+            <div className="d-flex align-items-center gap-2 position-relative">
+              {isSaving && <span style={{ fontSize: '0.75rem', color: '#a5b4fc', fontStyle: 'italic', marginRight: '4px' }}>Saving...</span>}
               {user && (
-                <button
-                  onClick={openProfileModal}
-                  title={`Signed in as ${user.fullName}`}
-                  style={{
-                    background: 'none', border: 'none', padding: 0, cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', gap: '8px',
-                  }}
-                >
-                {user.avatar ? (
-                  <img
-                    src={user.avatar}
-                    alt={user.fullName}
-                    style={{ width: '34px', height: '34px', borderRadius: '50%', border: '2px solid rgba(99,102,241,0.5)', objectFit: 'cover' }}
-                  />
-                ) : (
-                  <div style={{
-                    width: '34px', height: '34px', borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
-                    border: '2px solid rgba(99,102,241,0.5)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '13px', fontWeight: '800', color: '#fff', flexShrink: 0,
-                  }}>
-                    {getInitials(user.fullName)}
-                  </div>
-                )}
-              </button>
-            )}
+                <>
+                  <button
+                    onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+                    onBlur={() => setTimeout(() => setShowProfileDropdown(false), 200)}
+                    style={{
+                      background: 'rgba(30, 41, 59, 0.6)', border: '1px solid rgba(255,255,255,0.1)', padding: '4px 8px 4px 12px', borderRadius: '30px', cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s', backdropFilter: 'blur(10px)'
+                    }}
+                    onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(30, 41, 59, 0.8)' }}
+                    onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(30, 41, 59, 0.6)' }}
+                  >
+                    <div className="text-start d-none d-md-block">
+                      <div className="fw-bold text-light" style={{ fontSize: '0.75rem', lineHeight: '1.2' }}>{user.fullName}</div>
+                      <div style={{ color: '#94a3b8', fontSize: '0.65rem' }}>User</div>
+                    </div>
+                    {user.avatar ? (
+                      <img
+                        src={user.avatar}
+                        alt={user.fullName}
+                        style={{ width: '28px', height: '28px', borderRadius: '50%', border: '2px solid rgba(99,102,241,0.5)', objectFit: 'cover' }}
+                      />
+                    ) : (
+                      <div style={{
+                        width: '28px', height: '28px', borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: '11px', fontWeight: '800', color: '#fff', flexShrink: 0,
+                      }}>
+                        {getInitials(user.fullName)}
+                      </div>
+                    )}
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: showProfileDropdown ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
+                      <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                  </button>
+
+                  {/* Profile Dropdown */}
+                  {showProfileDropdown && (
+                    <div 
+                      style={{
+                        position: 'absolute', top: 'calc(100% + 12px)', right: 0, width: '200px',
+                        background: 'rgba(30, 41, 59, 0.95)', border: '1px solid rgba(255,255,255,0.1)',
+                        borderRadius: '12px', padding: '8px', zIndex: 100,
+                        boxShadow: '0 20px 40px rgba(0,0,0,0.5)', backdropFilter: 'blur(10px)',
+                      }}
+                    >
+                      <div style={{ position: 'absolute', top: '-6px', right: '30px', width: '12px', height: '12px', background: 'rgba(30, 41, 59, 0.95)', borderLeft: '1px solid rgba(255,255,255,0.1)', borderTop: '1px solid rgba(255,255,255,0.1)', transform: 'rotate(45deg)' }}></div>
+                      
+                      <button 
+                        className="d-flex align-items-center gap-3 rounded-3"
+                        onClick={openProfileModal}
+                        style={{ padding: '10px 14px', color: '#e2e8f0', background: 'transparent', border: 'none', width: '100%', textAlign: 'left', transition: 'all 0.2s', fontSize: '0.9rem' }}
+                        onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#fff' }}
+                        onMouseOut={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#e2e8f0' }}
+                      >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                        Profile Settings
+                      </button>
+                      
+                      <div style={{ height: '1px', background: 'rgba(255,255,255,0.08)', margin: '4px 8px' }}></div>
+                      
+                      <button 
+                        className="d-flex align-items-center gap-3 rounded-3"
+                        onClick={handleLogout}
+                        style={{ padding: '10px 14px', color: '#f87171', background: 'transparent', border: 'none', width: '100%', textAlign: 'left', transition: 'all 0.2s', fontSize: '0.9rem' }}
+                        onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(248,113,113,0.1)'; e.currentTarget.style.color = '#fca5a5' }}
+                        onMouseOut={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#f87171' }}
+                      >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                        Logout
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           </div>
 
@@ -843,6 +898,37 @@ export default function App() {
               Export Professional PDF
             </button>
             <button
+              className="d-flex align-items-center justify-content-center gap-2 py-2 fw-bold w-100 rounded-3 border-0 mb-2 btn-export-pdf"
+              style={{ background: 'linear-gradient(135deg, #2563eb 0%, #1e40af 100%)' }}
+              onClick={() => generateDocx(formData)}
+            >
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ width: '16px', height: '16px' }}>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Download DOCX (Word)
+            </button>
+            <button
+              className="d-flex align-items-center justify-content-center gap-2 py-2 fw-bold w-100 rounded-3 mb-2"
+              onClick={handleCopyPublicLink}
+              style={{
+                background: copySuccess ? 'rgba(34, 197, 94, 0.15)' : 'rgba(99, 102, 241, 0.1)',
+                border: copySuccess ? '1px solid rgba(34, 197, 94, 0.3)' : '1px solid rgba(99, 102, 241, 0.2)',
+                color: copySuccess ? '#4ade80' : '#818cf8',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              {copySuccess ? (
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ width: '16px', height: '16px' }}>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                </svg>
+              ) : (
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ width: '16px', height: '16px' }}>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                </svg>
+              )}
+              {copySuccess ? 'Link Copied!' : 'Copy Public Share Link'}
+            </button>
+            <button
               className="d-flex align-items-center justify-content-center gap-2 py-2 fw-medium w-100 rounded-3 btn-import-profile"
               onClick={() => setIsImportModalOpen(true)}
             >
@@ -854,53 +940,6 @@ export default function App() {
           </div>
         </div>
 
-        {/* Welcome Onboarding widget */}
-        <div className="mx-3 my-3 p-3 rounded-3 welcome-widget">
-          <div className="fw-bold mb-2 d-flex align-items-center gap-2 welcome-widget-title">
-            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ width: '16px', height: '16px' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-            Welcome to JTResume!
-          </div>
-          <ul className="list-unstyled mb-3 d-flex flex-column gap-1 welcome-list">
-            <li className="d-flex align-items-start gap-2">
-              <span style={{ color: '#6366f1', marginTop: '1px', flexShrink: 0 }}>▸</span> 
-              <span>Type in fields or click <strong>Upload Resume</strong> to import your profile.</span>
-            </li>
-            <li className="d-flex align-items-start gap-2">
-              <span style={{ color: '#6366f1', marginTop: '1px', flexShrink: 0 }}>▸</span> 
-              <span>Pick a template, color & font for a pro look.</span>
-            </li>
-            <li className="d-flex align-items-start gap-2">
-              <span style={{ color: '#6366f1', marginTop: '1px', flexShrink: 0 }}>▸</span> 
-              <span>Export ATS-optimized PDFs in one click.</span>
-            </li>
-          </ul>
-          <div className="d-flex flex-column gap-2">
-            <div className="d-flex gap-2">
-              <button
-                className="flex-grow-1 py-2 rounded-3 border-0 fw-bold d-inline-flex align-items-center justify-content-center gap-1 btn-demo-profile"
-                onClick={handleResetToMock}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: '13px', height: '13px', flexShrink: 0 }}>
-                  <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
-                </svg>
-                Load Demo Profile
-              </button>
-              <button
-                className="flex-grow-1 py-2 rounded-3 fw-bold d-inline-flex align-items-center justify-content-center gap-1 btn-clear-all"
-                onClick={handleClearData}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: '13px', height: '13px', flexShrink: 0 }}>
-                  <path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-                  <line x1="10" y1="11" x2="10" y2="17" /><line x1="14" y1="11" x2="14" y2="17" />
-                </svg>
-                Clear All
-              </button>
-            </div>
-            <div className="text-center py-1 rounded-pill privacy-badge">
-              100% Private & Browser-Local
-            </div>
-          </div>
-        </div>
 
         {/* Form sections */}
         <BuilderForm 
@@ -913,7 +952,6 @@ export default function App() {
           updateCertifications={updateCertifications}
           updateReferences={updateReferences}
           updateCustomSections={updateCustomSections}
-          onResetToMock={handleResetToMock}
           onClearData={handleClearData}
           activeSection={activeSection}
           onSectionChange={setActiveSection}
@@ -1060,7 +1098,6 @@ export default function App() {
             accentColor={accentColor}
             spacingTuning={spacingTuning}
             fontPairing={fontPairing}
-            onLoadDemo={handleResetToMock}
           />
         </div>
       </div>
@@ -1094,8 +1131,10 @@ export default function App() {
         </button>
       </div>
 
+      </div>
+      )}
+
     </div>
   );
 }
-
 

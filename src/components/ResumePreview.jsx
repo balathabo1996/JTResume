@@ -1,6 +1,7 @@
 import React from 'react';
+import DOMPurify from 'isomorphic-dompurify';
 
-export default function ResumePreview({ formData, country = 'usa', templateStyle, accentColor, spacingTuning = 'normal', fontPairing = 'modern', onLoadDemo }) {
+export default function ResumePreview({ formData, country = 'usa', templateStyle, accentColor, spacingTuning = 'normal', fontPairing = 'modern' }) {
   const { personalInfo, workExperience, education, skills, certifications, references } = formData;
 
   const isEmpty = !personalInfo.fullName && workExperience.length === 0 && education.length === 0;
@@ -343,7 +344,7 @@ export default function ResumePreview({ formData, country = 'usa', templateStyle
                   <div className="block-subtitle">
                     {exp.location}
                   </div>
-                  <div className="rich-text-content" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                  <div className="rich-text-content" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(exp.description || '') }} />
                 </div>
               ))}
             </div>
@@ -489,7 +490,7 @@ export default function ResumePreview({ formData, country = 'usa', templateStyle
                 <div className="block-subtitle d-flex justify-content-between align-items-center mb-1">
                   <span>{exp.location}</span>
                 </div>
-                <div className="rich-text-content" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                <div className="rich-text-content" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(exp.description || '') }} />
               </div>
             ))}
           </div>
@@ -642,7 +643,7 @@ export default function ResumePreview({ formData, country = 'usa', templateStyle
                 <div className="block-subtitle mb-1" style={{ fontSize: '0.8rem' }}>
                   {exp.location}
                 </div>
-                <div className="rich-text-content" style={{ fontSize: '0.82rem' }} dangerouslySetInnerHTML={{ __html: exp.description }} />
+                <div className="rich-text-content" style={{ fontSize: '0.82rem' }} dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(exp.description || '') }} />
               </div>
             ))}
           </div>
@@ -756,7 +757,7 @@ export default function ResumePreview({ formData, country = 'usa', templateStyle
                 <div className="block-subtitle mb-1" style={{ fontStyle: 'italic', fontSize: '0.82rem' }}>
                   {exp.location}
                 </div>
-                <div className="rich-text-content" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                <div className="rich-text-content" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(exp.description || '') }} />
               </div>
             ))}
           </div>
@@ -953,7 +954,7 @@ export default function ResumePreview({ formData, country = 'usa', templateStyle
                 <div className="block-subtitle">
                   {exp.location}
                 </div>
-                <div className="rich-text-content" dangerouslySetInnerHTML={{ __html: exp.description }} />
+                <div className="rich-text-content" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(exp.description || '') }} />
               </div>
             ))}
           </div>

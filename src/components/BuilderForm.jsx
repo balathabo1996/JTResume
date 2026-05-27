@@ -68,6 +68,7 @@ export default function BuilderForm({
   };
 
   // ── Section reorder state ──────────────────────────────
+  const [enhancingProjIdx, setEnhancingProjIdx] = useState(null);
   const [sectionOrder, setSectionOrder] = useState([
     'personal', 'experience', 'projects',
     'education', 'skills', 'certifications', 'references'
@@ -182,12 +183,76 @@ export default function BuilderForm({
     </div>
   );
 
+  // ── Array Items Reorder state ──────────────────────────────
+  const [expandedItems, setExpandedItems] = useState({});
+  const toggleItemCollapse = (itemKey) => {
+    setExpandedItems(prev => ({
+      ...prev,
+      [itemKey]: !prev[itemKey]
+    }));
+  };
+
+  const dragItemIdx = useRef(null);
+  const dragOverItemIdx = useRef(null);
+  const dragItemType = useRef(null);
+
+  const handleItemDragStart = (e, index, type) => {
+    dragItemIdx.current = index;
+    dragItemType.current = type;
+    e.dataTransfer.effectAllowed = 'move';
+    e.currentTarget.classList.add('dragging-item');
+    e.stopPropagation();
+  };
+
+  const handleItemDragEnter = (e, index, type) => {
+    if (dragItemType.current !== type) return;
+    dragOverItemIdx.current = index;
+  };
+
+  const handleItemDragOver = (e, index, type, updater, array) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (dragItemType.current !== type) return;
+    if (dragItemIdx.current !== null && dragItemIdx.current !== index) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const relativeY = e.clientY - rect.top;
+      const midpoint = rect.height / 2;
+      
+      const dragIdx = dragItemIdx.current;
+      const hoverIdx = index;
+      
+      if (dragIdx < hoverIdx && relativeY < midpoint) return;
+      if (dragIdx > hoverIdx && relativeY > midpoint) return;
+      
+      const newArray = [...array];
+      const draggedItem = newArray[dragIdx];
+      newArray.splice(dragIdx, 1);
+      newArray.splice(hoverIdx, 0, draggedItem);
+      
+      updater(newArray);
+      dragItemIdx.current = hoverIdx;
+    }
+  };
+
+  const handleItemDragEnd = (e) => {
+    e.currentTarget.classList.remove('dragging-item');
+    dragItemIdx.current = null;
+    dragOverItemIdx.current = null;
+    dragItemType.current = null;
+  };
+
+  const ItemDragHandle = () => (
+    <div className="item-drag-handle" style={{ cursor: 'grab', padding: '4px', color: '#94a3b8', display: 'flex', alignItems: 'center' }}>
+      <svg width="10" height="16" viewBox="0 0 12 20" fill="currentColor"><circle cx="4" cy="4" r="1.5"/><circle cx="4" cy="10" r="1.5"/><circle cx="4" cy="16" r="1.5"/><circle cx="8" cy="4" r="1.5"/><circle cx="8" cy="10" r="1.5"/><circle cx="8" cy="16" r="1.5"/></svg>
+    </div>
+  );
+
   const containerRef = useRef(null);
   const positionsRef = useRef({});
 
   useLayoutEffect(() => {
     if (!containerRef.current) return;
-    const cards = containerRef.current.querySelectorAll('.form-group-card');
+    const cards = containerRef.current.querySelectorAll('.form-group-card, .repeater-item');
     
     // 1. Get the new positions (Last)
     const newPositions = {};
@@ -201,6 +266,8 @@ export default function BuilderForm({
 
     // 2. Animate transition from Old (First) to New (Last)
     cards.forEach(card => {
+      if (card.classList.contains('dragging') || card.classList.contains('dragging-item')) return;
+      
       const id = card.getAttribute('data-id');
       if (id && positionsRef.current[id] !== undefined) {
         const oldTop = positionsRef.current[id];
@@ -209,15 +276,15 @@ export default function BuilderForm({
 
         if (deltaY !== 0) {
           // Invert: snap back to the old position immediately
-          card.style.transition = 'none';
-          card.style.transform = `translateY(${deltaY}px)`;
+          card.style.setProperty('transition', 'none', 'important');
+          card.style.setProperty('transform', `translateY(${deltaY}px)`, 'important');
 
           // Play: animate back to the new natural position (translateY(0))
           requestAnimationFrame(() => {
             // Force a DOM reflow
             card.getBoundingClientRect();
-            card.style.transition = 'transform 0.28s cubic-bezier(0.2, 0, 0, 1)';
-            card.style.transform = 'translateY(0)';
+            card.style.setProperty('transition', 'transform 0.28s cubic-bezier(0.2, 0, 0, 1)', 'important');
+            card.style.setProperty('transform', 'translateY(0)', 'important');
           });
         }
       }
@@ -225,7 +292,7 @@ export default function BuilderForm({
 
     // 3. Save positions for next render
     positionsRef.current = newPositions;
-  }, [sectionOrder]);
+  }, [sectionOrder, formData, expandedItems]);
 
   // Helper arrays for action verbs
   const actionVerbs = [
@@ -500,7 +567,7 @@ export default function BuilderForm({
 
 
   return (
-    <div className="form-section">
+    <div className="form-section" ref={containerRef} style={{ display: 'flex', flexDirection: 'column' }}>
       {/* 0. TARGET JOB ATS SCANNER CARD */}
       <div data-id="jobScanner" style={{ order: -100 }}
         className={`form-group-card mb-3 ${activeSection === "jobScanner" ? "active" : ""}`}
@@ -814,23 +881,33 @@ export default function BuilderForm({
         {activeSection === "experience" && (
           <div className="card-body d-flex flex-column gap-3">
             {formData.workExperience.map((exp, expIdx) => (
-              <div key={exp.id || expIdx} className="repeater-item mb-3">
-                <div className="repeater-item-header d-flex align-items-center justify-content-between">
+              <div 
+                key={exp.id || expIdx} 
+                data-id={exp.id || 'exp-' + expIdx}
+                className="repeater-item mb-3"
+                draggable
+                onDragStart={(e) => handleItemDragStart(e, expIdx, 'experience')}
+                onDragEnter={(e) => handleItemDragEnter(e, expIdx, 'experience')}
+                onDragEnd={handleItemDragEnd}
+                onDragOver={(e) => handleItemDragOver(e, expIdx, 'experience', updateWorkExperience, formData.workExperience)}
+              >
+                <div className="repeater-item-header d-flex align-items-center justify-content-between" onClick={() => toggleItemCollapse(exp.id || `exp-${expIdx}`)} style={{ cursor: 'pointer', userSelect: 'none' }}>
                   <span
-                    className="fw-medium text-secondary d-flex align-items-center"
+                    className="fw-medium text-secondary d-flex align-items-center gap-1"
                     style={{ fontSize: "0.88rem" }}
                   >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg> Role #{expIdx + 1}: {exp.role || "New Position"}
+                    <ItemDragHandle />
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg> Role #{expIdx + 1}: {exp.role || "New Position"}
                   </span>
-                  <button
-                    className="btn-repeater-delete"
-                    onClick={() => handleRemoveExperience(expIdx)}
+                  <div className="d-flex align-items-center gap-2"><span style={{ color: '#94a3b8', transform: expandedItems[exp.id || `exp-${expIdx}`] ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', display: 'inline-block', fontSize: '0.8rem' }}>▼</span><button className="btn-repeater-delete"
+                    onClick={(e) => { e.stopPropagation(); handleRemoveExperience(expIdx); }}
                     title="Remove Item"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                  </button>
+                  </button></div>
                 </div>
-                <div className="repeater-item-body card-body p-3 d-flex flex-column gap-3">
+                {expandedItems[exp.id || `exp-${expIdx}`] && (
+                  <div className="repeater-item-body card-body p-3 d-flex flex-column gap-3">
                   <div className="row g-3">
                     <div className="field col-md-6 d-flex flex-column gap-1">
                       <label className="form-label">Job Title / Role</label>
@@ -975,6 +1052,7 @@ export default function BuilderForm({
                     </span>
                   </div>
                 </div>
+                )}
               </div>
             ))}
 
@@ -1020,18 +1098,30 @@ export default function BuilderForm({
         {activeSection === 'projects' && (
           <div className="card-body d-flex flex-column gap-3">
             {(formData.projects || []).map((proj, projIdx) => (
-              <div key={proj.id || projIdx} className="repeater-item mb-3">
-                <div className="repeater-item-header d-flex align-items-center justify-content-between">
-                  <span className="fw-medium d-flex align-items-center" style={{ fontSize: '0.82rem', color: '#94a3b8' }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg> Project #{projIdx + 1}: {proj.name || 'New Project'}</span>
-                  <button
-                    className="btn-repeater-delete"
-                    onClick={() => handleRemoveProject(projIdx)}
+              <div 
+                key={proj.id || projIdx} 
+                data-id={proj.id || 'proj-' + projIdx}
+                className="repeater-item mb-3"
+                draggable
+                onDragStart={(e) => handleItemDragStart(e, projIdx, 'projects')}
+                onDragEnter={(e) => handleItemDragEnter(e, projIdx, 'projects')}
+                onDragEnd={handleItemDragEnd}
+                onDragOver={(e) => handleItemDragOver(e, projIdx, 'projects', updateProjects, formData.projects || [])}
+              >
+                <div className="repeater-item-header d-flex align-items-center justify-content-between" onClick={() => toggleItemCollapse(proj.id || `proj-${projIdx}`)} style={{ cursor: 'pointer', userSelect: 'none' }}>
+                  <span className="fw-medium d-flex align-items-center gap-1" style={{ fontSize: '0.82rem', color: '#94a3b8' }}>
+                    <ItemDragHandle />
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg> Project #{projIdx + 1}: {proj.name || 'New Project'}
+                  </span>
+                  <div className="d-flex align-items-center gap-2"><span style={{ color: '#94a3b8', transform: expandedItems[proj.id || `proj-${projIdx}`] ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', display: 'inline-block', fontSize: '0.8rem' }}>▼</span><button className="btn-repeater-delete"
+                    onClick={(e) => { e.stopPropagation(); handleRemoveProject(projIdx); }}
                     title="Remove Project"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                  </button>
+                  </button></div>
                 </div>
-                <div className="repeater-item-body d-flex flex-column gap-3">
+                {expandedItems[proj.id || `proj-${projIdx}`] && (
+                  <div className="repeater-item-body d-flex flex-column gap-3">
                   <div className="row g-3">
                     <div className="field col-md-8 d-flex flex-column gap-1">
                       <label className="form-label">Project Name</label>
@@ -1065,7 +1155,30 @@ export default function BuilderForm({
                     </div>
                   </div>
                   <div className="field d-flex flex-column gap-1">
-                    <label className="form-label">Description & Key Highlights</label>
+                    <div className="d-flex justify-content-between align-items-center">
+                      <label className="form-label mb-0">Description & Key Highlights</label>
+                      <button 
+                        type="button" 
+                        onClick={async () => {
+                          setEnhancingProjIdx(projIdx);
+                          const currentContent = Array.isArray(proj.description)
+                            ? `<ul><li>${proj.description.join("</li><li>")}</li></ul>`
+                            : proj.description || "";
+                          const enhanced = await handleEnhanceBullet(currentContent, proj.title, 'Project');
+                          handleUpdateProjectDescriptionHtml(projIdx, enhanced);
+                          setEnhancingProjIdx(null);
+                        }} 
+                        disabled={enhancingProjIdx === projIdx}
+                        className="btn btn-sm btn-outline-info border-0 d-flex align-items-center gap-1"
+                        style={{ fontSize: '0.8rem', padding: '2px 8px' }}
+                      >
+                        {enhancingProjIdx === projIdx ? (
+                          <><span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Enhancing...</>
+                        ) : (
+                          <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '4px' }}><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg> Enhance with AI</>
+                        )}
+                      </button>
+                    </div>
                     <RichTextEditor
                       value={proj.description || ''}
                       onChange={(content) => handleUpdateProjectDescriptionHtml(projIdx, content)}
@@ -1073,6 +1186,7 @@ export default function BuilderForm({
                     />
                   </div>
                 </div>
+                )}
               </div>
             ))}
             <button className="btn btn-primary py-2 fw-semibold w-100" onClick={handleAddProject}>
@@ -1136,23 +1250,33 @@ export default function BuilderForm({
         {activeSection === "education" && (
           <div className="card-body d-flex flex-column gap-3">
             {formData.education.map((edu, eduIdx) => (
-              <div key={edu.id || eduIdx} className="repeater-item mb-3">
-                <div className="repeater-item-header d-flex align-items-center justify-content-between">
+              <div 
+                key={edu.id || eduIdx} 
+                data-id={edu.id || 'edu-' + eduIdx}
+                className="repeater-item mb-3"
+                draggable
+                onDragStart={(e) => handleItemDragStart(e, eduIdx, 'education')}
+                onDragEnter={(e) => handleItemDragEnter(e, eduIdx, 'education')}
+                onDragEnd={handleItemDragEnd}
+                onDragOver={(e) => handleItemDragOver(e, eduIdx, 'education', updateEducation, formData.education)}
+              >
+                <div className="repeater-item-header d-flex align-items-center justify-content-between" onClick={() => toggleItemCollapse(edu.id || `edu-${eduIdx}`)} style={{ cursor: 'pointer', userSelect: 'none' }}>
                   <span
-                    className="fw-medium text-secondary d-flex align-items-center"
+                    className="fw-medium text-secondary d-flex align-items-center gap-1"
                     style={{ fontSize: "0.88rem" }}
                   >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}><path d="M21.42 10.922a2 2 0 0 0-.019-3.838L12.83 4.336a2 2 0 0 0-1.66 0L2.6 7.08a2 2 0 0 0 0 3.838l9.36 4.336a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg> Education #{eduIdx + 1}: {edu.degree || "New Degree"}
+                    <ItemDragHandle />
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.42 10.922a2 2 0 0 0-.019-3.838L12.83 4.336a2 2 0 0 0-1.66 0L2.6 7.08a2 2 0 0 0 0 3.838l9.36 4.336a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg> Education #{eduIdx + 1}: {edu.degree || "New Degree"}
                   </span>
-                  <button
-                    className="btn-repeater-delete"
-                    onClick={() => handleRemoveEducation(eduIdx)}
+                  <div className="d-flex align-items-center gap-2"><span style={{ color: '#94a3b8', transform: expandedItems[edu.id || `edu-${eduIdx}`] ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', display: 'inline-block', fontSize: '0.8rem' }}>▼</span><button className="btn-repeater-delete"
+                    onClick={(e) => { e.stopPropagation(); handleRemoveEducation(eduIdx); }}
                     title="Remove Item"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                  </button>
+                  </button></div>
                 </div>
-                <div className="repeater-item-body card-body p-3 d-flex flex-column gap-3">
+                {expandedItems[edu.id || `edu-${eduIdx}`] && (
+                  <div className="repeater-item-body card-body p-3 d-flex flex-column gap-3">
                   <div className="field d-flex flex-column gap-1">
                     <label className="form-label">Degree / Certificate</label>
                     <input
@@ -1261,6 +1385,7 @@ export default function BuilderForm({
                     />
                   </div>
                 </div>
+                )}
               </div>
             ))}
 
@@ -1327,23 +1452,33 @@ export default function BuilderForm({
         {activeSection === "skills" && (
           <div className="card-body d-flex flex-column gap-3">
             {formData.skills.map((skill, skIdx) => (
-              <div key={skill.id || skIdx} className="repeater-item mb-3">
-                <div className="repeater-item-header d-flex align-items-center justify-content-between">
+              <div 
+                key={skill.id || skIdx} 
+                data-id={skill.id || 'sk-' + skIdx}
+                className="repeater-item mb-3"
+                draggable
+                onDragStart={(e) => handleItemDragStart(e, skIdx, 'skills')}
+                onDragEnter={(e) => handleItemDragEnter(e, skIdx, 'skills')}
+                onDragEnd={handleItemDragEnd}
+                onDragOver={(e) => handleItemDragOver(e, skIdx, 'skills', updateSkills, formData.skills)}
+              >
+                <div className="repeater-item-header d-flex align-items-center justify-content-between" onClick={() => toggleItemCollapse(skill.id || `sk-${skIdx}`)} style={{ cursor: 'pointer', userSelect: 'none' }}>
                   <span
-                    className="fw-medium text-secondary d-flex align-items-center"
+                    className="fw-medium text-secondary d-flex align-items-center gap-1"
                     style={{ fontSize: "0.88rem" }}
                   >
+                    <ItemDragHandle />
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Skill Category: {skill.category || "New Category"}
                   </span>
-                  <button
-                    className="btn-repeater-delete"
-                    onClick={() => handleRemoveSkillCategory(skIdx)}
+                  <div className="d-flex align-items-center gap-2"><span style={{ color: '#94a3b8', transform: expandedItems[skill.id || `sk-${skIdx}`] ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', display: 'inline-block', fontSize: '0.8rem' }}>▼</span><button className="btn-repeater-delete"
+                    onClick={(e) => { e.stopPropagation(); handleRemoveSkillCategory(skIdx); }}
                     title="Remove Item"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                  </button>
+                  </button></div>
                 </div>
-                <div className="repeater-item-body card-body p-3 d-flex flex-column gap-3">
+                {expandedItems[skill.id || `sk-${skIdx}`] && (
+                  <div className="repeater-item-body card-body p-3 d-flex flex-column gap-3">
                   <div className="field d-flex flex-column gap-1">
                     <label className="form-label">Category Title</label>
                     <input
@@ -1383,6 +1518,7 @@ export default function BuilderForm({
                     </span>
                   </div>
                 </div>
+                )}
               </div>
             ))}
 
@@ -1450,23 +1586,33 @@ export default function BuilderForm({
         {activeSection === "certifications" && (
           <div className="card-body d-flex flex-column gap-3">
             {formData.certifications.map((cert, certIdx) => (
-              <div key={cert.id || certIdx} className="repeater-item mb-3">
-                <div className="repeater-item-header d-flex align-items-center justify-content-between">
+              <div 
+                key={cert.id || certIdx} 
+                data-id={cert.id || 'cert-' + certIdx}
+                className="repeater-item mb-3"
+                draggable
+                onDragStart={(e) => handleItemDragStart(e, certIdx, 'certifications')}
+                onDragEnter={(e) => handleItemDragEnter(e, certIdx, 'certifications')}
+                onDragEnd={handleItemDragEnd}
+                onDragOver={(e) => handleItemDragOver(e, certIdx, 'certifications', updateCertifications, formData.certifications)}
+              >
+                <div className="repeater-item-header d-flex align-items-center justify-content-between" onClick={() => toggleItemCollapse(cert.id || `cert-${certIdx}`)} style={{ cursor: 'pointer', userSelect: 'none' }}>
                   <span
-                    className="fw-medium text-secondary d-flex align-items-center"
+                    className="fw-medium text-secondary d-flex align-items-center gap-1"
                     style={{ fontSize: "0.88rem" }}
                   >
+                    <ItemDragHandle />
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg> Cert: {cert.name || "New Certification"}
                   </span>
-                  <button
-                    className="btn-repeater-delete"
-                    onClick={() => handleRemoveCertification(certIdx)}
+                  <div className="d-flex align-items-center gap-2"><span style={{ color: '#94a3b8', transform: expandedItems[cert.id || `cert-${certIdx}`] ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', display: 'inline-block', fontSize: '0.8rem' }}>▼</span><button className="btn-repeater-delete"
+                    onClick={(e) => { e.stopPropagation(); handleRemoveCertification(certIdx); }}
                     title="Remove Item"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                  </button>
+                  </button></div>
                 </div>
-                <div className="repeater-item-body card-body p-3 d-flex flex-column gap-3">
+                {expandedItems[cert.id || `cert-${certIdx}`] && (
+                  <div className="repeater-item-body card-body p-3 d-flex flex-column gap-3">
                   <div className="field d-flex flex-column gap-1">
                     <label className="form-label">Certification Name</label>
                     <input
@@ -1519,6 +1665,7 @@ export default function BuilderForm({
                     </div>
                   </div>
                 </div>
+                )}
               </div>
             ))}
 
@@ -1586,23 +1733,33 @@ export default function BuilderForm({
         {activeSection === "references" && (
           <div className="card-body d-flex flex-column gap-3">
             {formData.references.map((ref, refIdx) => (
-              <div key={ref.id || refIdx} className="repeater-item mb-3">
-                <div className="repeater-item-header d-flex align-items-center justify-content-between">
+              <div 
+                key={ref.id || refIdx} 
+                data-id={ref.id || 'ref-' + refIdx}
+                className="repeater-item mb-3"
+                draggable
+                onDragStart={(e) => handleItemDragStart(e, refIdx, 'references')}
+                onDragEnter={(e) => handleItemDragEnter(e, refIdx, 'references')}
+                onDragEnd={handleItemDragEnd}
+                onDragOver={(e) => handleItemDragOver(e, refIdx, 'references', updateReferences, formData.references)}
+              >
+                <div className="repeater-item-header d-flex align-items-center justify-content-between" onClick={() => toggleItemCollapse(ref.id || `ref-${refIdx}`)} style={{ cursor: 'pointer', userSelect: 'none' }}>
                   <span
-                    className="fw-medium text-secondary d-flex align-items-center"
+                    className="fw-medium text-secondary d-flex align-items-center gap-1"
                     style={{ fontSize: "0.88rem" }}
                   >
+                    <ItemDragHandle />
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Reference #{refIdx + 1}: {ref.name || "New Reference"}
                   </span>
-                  <button
-                    className="btn-repeater-delete"
-                    onClick={() => handleRemoveReference(refIdx)}
+                  <div className="d-flex align-items-center gap-2"><span style={{ color: '#94a3b8', transform: expandedItems[ref.id || `ref-${refIdx}`] ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', display: 'inline-block', fontSize: '0.8rem' }}>▼</span><button className="btn-repeater-delete"
+                    onClick={(e) => { e.stopPropagation(); handleRemoveReference(refIdx); }}
                     title="Remove Item"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                  </button>
+                  </button></div>
                 </div>
-                <div className="repeater-item-body card-body p-3 d-flex flex-column gap-3">
+                {expandedItems[ref.id || `ref-${refIdx}`] && (
+                  <div className="repeater-item-body card-body p-3 d-flex flex-column gap-3">
                   <div className="row g-3">
                     <div className="field col-md-6 d-flex flex-column gap-1">
                       <label className="form-label">Reference Name</label>
@@ -1647,6 +1804,7 @@ export default function BuilderForm({
                     />
                   </div>
                 </div>
+                )}
               </div>
             ))}
 
@@ -1701,19 +1859,39 @@ export default function BuilderForm({
           {activeSection === `custom-${section.id}` && (
             <div className="card-body d-flex flex-column gap-3">
               {(section.items || []).map((item, itemIdx) => (
-                <div key={item.id || itemIdx} className="repeater-item mb-3">
-                  <div className="repeater-item-header d-flex align-items-center justify-content-between">
-                    <span className="fw-medium" style={{ fontSize: '0.82rem', color: '#94a3b8' }}>
+                <div 
+                  key={item.id || itemIdx} 
+                  className="repeater-item mb-3"
+                  draggable
+                  onDragStart={(e) => handleItemDragStart(e, itemIdx, `custom-items-${section.id}`)}
+                  onDragEnter={(e) => handleItemDragEnter(e, itemIdx, `custom-items-${section.id}`)}
+                  onDragEnd={handleItemDragEnd}
+                  onDragOver={(e) => handleItemDragOver(e, itemIdx, `custom-items-${section.id}`, 
+                    (newItems) => {
+                      const updatedSections = [...(formData.customSections || [])];
+                      updatedSections[sectionIdx] = { ...updatedSections[sectionIdx], items: newItems };
+                      updateCustomSections(updatedSections);
+                    }, 
+                    section.items || []
+                  )}
+                >
+                  <div className="repeater-item-header d-flex align-items-center justify-content-between" onClick={() => toggleItemCollapse(`custom-\$\{section.id\}-\$\{itemIdx\}`)} style={{ cursor: 'pointer', userSelect: 'none' }}>
+                    <span className="fw-medium d-flex align-items-center gap-1" style={{ fontSize: '0.82rem', color: '#94a3b8' }}>
+                      <ItemDragHandle />
                       📌 Entry #{itemIdx + 1}: {item.title || 'New Entry'}
                     </span>
-                    <button
-                      className="btn-repeater-delete"
-                      onClick={() => handleRemoveCustomItem(sectionIdx, itemIdx)}
-                      title="Remove Entry"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-                    </button>
+                    <div className="d-flex align-items-center gap-2">
+                      <span style={{ color: '#94a3b8', transform: expandedItems[`custom-\$\{section.id\}-\$\{itemIdx\}`] ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', display: 'inline-block', fontSize: '0.8rem' }}>▼</span>
+                      <button
+                        className="btn-repeater-delete"
+                        onClick={(e) => { e.stopPropagation(); handleRemoveCustomItem(sectionIdx, itemIdx); }}
+                        title="Remove Entry"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                      </button>
+                    </div>
                   </div>
+                  {expandedItems[item.id || `custom-\$\{section.id\}-${itemIdx}`] && (
                   <div className="repeater-item-body d-flex flex-column gap-3">
                     <div className="row g-3">
                       <div className="field col-md-6 d-flex flex-column gap-1">
@@ -1748,6 +1926,7 @@ export default function BuilderForm({
                       />
                     </div>
                   </div>
+                )}
                 </div>
               ))}
               <button className="btn btn-primary py-2 fw-semibold w-100" onClick={() => handleAddCustomItem(sectionIdx)}>
