@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import BuilderForm from './components/BuilderForm';
 import ResumePreview from './components/ResumePreview';
 import ComplianceScanner from './components/ComplianceScanner';
@@ -36,7 +36,19 @@ const emptyResumeState = {
 export default function App() {
   const [currentView, setCurrentView] = useState('landing'); // 'landing' | 'editor'
   const [user, setUser] = useState(null);
-  const [profileOpen, setProfileOpen] = useState(false); // profile modal
+  
+  // Profile Modal State
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [editProfileForm, setEditProfileForm] = useState({ fullName: '', email: '', phone: '' });
+  const [editProfileLoading, setEditProfileLoading] = useState(false);
+  const [editProfileMessage, setEditProfileMessage] = useState({ type: '', text: '' });
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [passwordMessage, setPasswordMessage] = useState({ type: '', text: '' });
+  
+  const [isInitializing, setIsInitializing] = useState(true); // Prevent flicker on reload
   const [formData, setFormData] = useState(emptyResumeState); // Empty slate by default for public deployment
   const [templateStyle, setTemplateStyle] = useState('modern');
   const [accentColor, setAccentColor] = useState('#1e3a8a'); // Default Classic Blue
@@ -46,6 +58,21 @@ export default function App() {
   const [activeSection, setActiveSection] = useState(null);
   const [focusedFieldTip, setFocusedFieldTip] = useState(null);
   const [mobileTab, setMobileTab] = useState('editor'); // 'editor' | 'preview'
+
+  // Persist session on reload
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser);
+        setCurrentView('editor');
+      } catch (err) {
+        console.error('Failed to parse stored user session');
+      }
+    }
+    setIsInitializing(false);
+  }, []);
 
   /* --- ADVANCED SAAS ATS SCANNER STATE & LOGIC --- */
   const [jobDescription, setJobDescription] = useState("");
@@ -233,8 +260,102 @@ export default function App() {
     localStorage.removeItem('user');
     setUser(null);
     setProfileOpen(false);
+    setIsEditingProfile(false);
+    setShowPasswordForm(false);
+    setPasswordMessage({ type: '', text: '' });
+    setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    setEditProfileMessage({ type: '', text: '' });
     setFormData(emptyResumeState);
     setCurrentView('landing');
+  };
+
+  const openProfileModal = () => {
+    setEditProfileForm({ fullName: user?.fullName || '', email: user?.email || '', phone: user?.phone || '' });
+    setIsEditingProfile(false);
+    setEditProfileMessage({ type: '', text: '' });
+    setProfileOpen(true);
+  };
+
+  const handleProfileUpdate = async (e) => {
+    e.preventDefault();
+    setEditProfileMessage({ type: '', text: '' });
+    setEditProfileLoading(true);
+
+    try {
+      const res = await fetch('/api/auth/update-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          currentEmail: user.email,
+          fullName: editProfileForm.fullName,
+          email: editProfileForm.email,
+          phone: editProfileForm.phone
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to update profile.');
+      }
+
+      // Update local state and local storage
+      setUser(data.user);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      
+      setEditProfileMessage({ type: 'success', text: 'Profile updated successfully!' });
+      setTimeout(() => {
+        setIsEditingProfile(false);
+        setEditProfileMessage({ type: '', text: '' });
+      }, 1500);
+    } catch (err) {
+      setEditProfileMessage({ type: 'danger', text: err.message });
+    } finally {
+      setEditProfileLoading(false);
+    }
+  };
+
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
+    setPasswordMessage({ type: '', text: '' });
+
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setPasswordMessage({ type: 'danger', text: 'New passwords do not match.' });
+      return;
+    }
+
+    if (passwordForm.newPassword.length < 6) {
+      setPasswordMessage({ type: 'danger', text: 'New password must be at least 6 characters.' });
+      return;
+    }
+
+    setPasswordLoading(true);
+
+    try {
+      const res = await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: user.email,
+          currentPassword: passwordForm.currentPassword,
+          newPassword: passwordForm.newPassword,
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to change password.');
+      }
+
+      setPasswordMessage({ type: 'success', text: 'Password changed successfully!' });
+      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      setTimeout(() => setShowPasswordForm(false), 2000);
+    } catch (err) {
+      setPasswordMessage({ type: 'danger', text: err.message });
+    } finally {
+      setPasswordLoading(false);
+    }
   };
 
   // Helper: get initials from name
@@ -246,6 +367,16 @@ export default function App() {
   // Helper: provider badge color
   const providerColor = { google: '#4285F4', github: '#24292e', linkedin: '#0a66c2', passkey: '#6366f1' };
   const providerLabel = { google: 'Google', github: 'GitHub', linkedin: 'LinkedIn', passkey: 'Passkey', email: 'Email & Password' };
+
+  if (isInitializing) {
+    return (
+      <div className="vh-100 d-flex justify-content-center align-items-center bg-dark">
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
+  }
 
   if (currentView === 'landing') {
     return <LandingPage onStartBuilder={() => setCurrentView('login')} />;
@@ -331,58 +462,207 @@ export default function App() {
             {/* Body */}
             <div style={{ padding: '24px 28px' }}>
 
-              {/* Account info rows */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
-                <div style={{
-                  background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)',
-                  borderRadius: '12px', padding: '14px 16px',
-                  display: 'flex', alignItems: 'center', gap: '12px',
-                }}>
-                  <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#6366f1" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                  <div>
-                    <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Full Name</div>
-                    <div style={{ color: '#e2e8f0', fontSize: '14px', marginTop: '2px' }}>{user?.fullName || '—'}</div>
-                  </div>
+              {editProfileMessage.text && (
+                <div style={{ padding: '10px', marginBottom: '16px', borderRadius: '6px', fontSize: '12px', background: editProfileMessage.type === 'success' ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)', color: editProfileMessage.type === 'success' ? '#10b981' : '#f87171', border: `1px solid ${editProfileMessage.type === 'success' ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}` }}>
+                  {editProfileMessage.text}
                 </div>
+              )}
 
-                <div style={{
-                  background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)',
-                  borderRadius: '12px', padding: '14px 16px',
-                  display: 'flex', alignItems: 'center', gap: '12px',
-                }}>
-                  <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#6366f1" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-                  <div>
-                    <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Email</div>
-                    <div style={{ color: '#e2e8f0', fontSize: '14px', marginTop: '2px' }}>{user?.email || '—'}</div>
+              {isEditingProfile ? (
+                /* EDIT PROFILE FORM */
+                <form onSubmit={handleProfileUpdate} style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <label style={{ fontSize: '11px', color: '#a5b4fc', fontWeight: '600', textTransform: 'uppercase' }}>Full Name</label>
+                    <input
+                      type="text"
+                      required
+                      value={editProfileForm.fullName}
+                      onChange={(e) => setEditProfileForm(prev => ({ ...prev, fullName: e.target.value }))}
+                      disabled={editProfileLoading}
+                      style={{ padding: '10px 12px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '14px' }}
+                    />
                   </div>
-                </div>
-
-                <div style={{
-                  background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)',
-                  borderRadius: '12px', padding: '14px 16px',
-                  display: 'flex', alignItems: 'center', gap: '12px',
-                }}>
-                  <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#6366f1" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
-                  <div>
-                    <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Sign-in Method</div>
-                    <div style={{ color: '#e2e8f0', fontSize: '14px', marginTop: '2px' }}>{providerLabel[user?.provider] || 'Email & Password'}</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <label style={{ fontSize: '11px', color: '#a5b4fc', fontWeight: '600', textTransform: 'uppercase' }}>Email Address</label>
+                    <input
+                      type="email"
+                      required
+                      value={editProfileForm.email}
+                      onChange={(e) => setEditProfileForm(prev => ({ ...prev, email: e.target.value }))}
+                      disabled={editProfileLoading}
+                      style={{ padding: '10px 12px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '14px' }}
+                    />
                   </div>
-                </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <label style={{ fontSize: '11px', color: '#a5b4fc', fontWeight: '600', textTransform: 'uppercase' }}>Phone Number (Optional)</label>
+                    <input
+                      type="text"
+                      value={editProfileForm.phone}
+                      onChange={(e) => setEditProfileForm(prev => ({ ...prev, phone: e.target.value }))}
+                      disabled={editProfileLoading}
+                      style={{ padding: '10px 12px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '14px' }}
+                    />
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsEditingProfile(false);
+                        setEditProfileForm({ fullName: user?.fullName || '', email: user?.email || '', phone: user?.phone || '' });
+                        setEditProfileMessage({ type: '', text: '' });
+                      }}
+                      disabled={editProfileLoading}
+                      style={{ flex: 1, padding: '10px', background: 'rgba(255,255,255,0.05)', color: '#e2e8f0', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', fontWeight: '600', fontSize: '13px' }}
+                    >Cancel</button>
+                    <button
+                      type="submit"
+                      disabled={editProfileLoading}
+                      style={{ flex: 2, padding: '10px', background: '#6366f1', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: '600', fontSize: '13px', opacity: editProfileLoading ? 0.7 : 1 }}
+                    >
+                      {editProfileLoading ? 'Saving...' : 'Save Changes'}
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                /* STATIC PROFILE DISPLAY */
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '-8px' }}>
+                    <button
+                      onClick={() => setIsEditingProfile(true)}
+                      style={{ background: 'none', border: 'none', color: '#a5b4fc', fontSize: '12px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', padding: 0 }}
+                    >
+                      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                      Edit Profile
+                    </button>
+                  </div>
 
-                {user?.createdAt && (
-                  <div style={{
-                    background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)',
-                    borderRadius: '12px', padding: '14px 16px',
-                    display: 'flex', alignItems: 'center', gap: '12px',
-                  }}>
-                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#6366f1" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                  <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '12px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#6366f1" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                     <div>
-                      <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Member Since</div>
-                      <div style={{ color: '#e2e8f0', fontSize: '14px', marginTop: '2px' }}>{new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+                      <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Full Name</div>
+                      <div style={{ color: '#e2e8f0', fontSize: '14px', marginTop: '2px' }}>{user?.fullName || '—'}</div>
                     </div>
                   </div>
-                )}
-              </div>
+
+                  <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '12px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#6366f1" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                    <div>
+                      <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Email Address</div>
+                      <div style={{ color: '#e2e8f0', fontSize: '14px', marginTop: '2px' }}>{user?.email || '—'}</div>
+                    </div>
+                  </div>
+
+                  {user?.phone && (
+                    <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '12px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#6366f1" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+                      <div>
+                        <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Phone Number</div>
+                        <div style={{ color: '#e2e8f0', fontSize: '14px', marginTop: '2px' }}>{user.phone}</div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '12px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#6366f1" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                    <div>
+                      <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Sign-in Method</div>
+                      <div style={{ color: '#e2e8f0', fontSize: '14px', marginTop: '2px' }}>{providerLabel[user?.provider] || 'Email & Password'}</div>
+                    </div>
+                  </div>
+
+                  {user?.createdAt && (
+                    <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '12px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#6366f1" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                      <div>
+                        <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Member Since</div>
+                        <div style={{ color: '#e2e8f0', fontSize: '14px', marginTop: '2px' }}>{new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Password Change Section (only for Email users) */}
+              {(!user?.provider || user?.provider === 'email') && (
+                <div style={{ marginBottom: '24px' }}>
+                  <button
+                    onClick={() => setShowPasswordForm(!showPasswordForm)}
+                    style={{
+                      width: '100%', padding: '12px',
+                      background: 'rgba(255,255,255,0.03)',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      borderRadius: '10px',
+                      color: '#e2e8f0', fontSize: '13px', fontWeight: '600',
+                      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                      Change Password
+                    </div>
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" style={{ transform: showPasswordForm ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+
+                  {showPasswordForm && (
+                    <form onSubmit={handlePasswordChange} style={{ marginTop: '12px', padding: '16px', background: 'rgba(0,0,0,0.2)', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                      {passwordMessage.text && (
+                        <div style={{ padding: '10px', marginBottom: '12px', borderRadius: '6px', fontSize: '12px', background: passwordMessage.type === 'success' ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)', color: passwordMessage.type === 'success' ? '#10b981' : '#f87171', border: `1px solid ${passwordMessage.type === 'success' ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}` }}>
+                          {passwordMessage.text}
+                        </div>
+                      )}
+                      
+                      <div style={{ marginBottom: '12px' }}>
+                        <input
+                          type="password"
+                          placeholder="Current Password"
+                          required
+                          value={passwordForm.currentPassword}
+                          onChange={(e) => setPasswordForm(prev => ({ ...prev, currentPassword: e.target.value }))}
+                          disabled={passwordLoading}
+                          style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '13px' }}
+                        />
+                      </div>
+                      <div style={{ marginBottom: '12px' }}>
+                        <input
+                          type="password"
+                          placeholder="New Password"
+                          required
+                          value={passwordForm.newPassword}
+                          onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
+                          disabled={passwordLoading}
+                          style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '13px' }}
+                        />
+                      </div>
+                      <div style={{ marginBottom: '16px' }}>
+                        <input
+                          type="password"
+                          placeholder="Confirm New Password"
+                          required
+                          value={passwordForm.confirmPassword}
+                          onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                          disabled={passwordLoading}
+                          style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '13px' }}
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={passwordLoading}
+                        style={{
+                          width: '100%', padding: '10px',
+                          background: '#6366f1', color: '#fff', border: 'none', borderRadius: '6px',
+                          fontWeight: '600', fontSize: '13px', cursor: passwordLoading ? 'not-allowed' : 'pointer',
+                          opacity: passwordLoading ? 0.7 : 1
+                        }}
+                      >
+                        {passwordLoading ? 'Updating...' : 'Update Password'}
+                      </button>
+                    </form>
+                  )}
+                </div>
+              )}
 
               {/* Logout button */}
               <button
@@ -429,7 +709,7 @@ export default function App() {
             {/* User avatar button */}
             {user && (
               <button
-                onClick={() => setProfileOpen(true)}
+                onClick={openProfileModal}
                 title={`Signed in as ${user.fullName}`}
                 style={{
                   background: 'none', border: 'none', padding: 0, cursor: 'pointer',
