@@ -83,11 +83,11 @@ const MiniResumeMockup = ({ layout, color, name }) => {
   );
 };
 
-export default function LandingPage({ onStartBuilder }) {
+export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut, onGoToDashboard }) {
   const [scrolled, setScrolled] = useState(false);
 
   // Contact Form hook-form setup
-  const { register, handleSubmit: handleHookSubmit, reset, formState: { errors } } = useForm();
+  const { register, handleSubmit: handleHookSubmit, reset, formState: { errors } } = useForm({ mode: 'onChange' });
   const [contactSending, setContactSending] = useState(false);
   const [contactFeedback, setContactFeedback] = useState({ type: '', text: '' });
 
@@ -150,12 +150,25 @@ export default function LandingPage({ onStartBuilder }) {
               <li className="nav-item"><a className="nav-link text-light nav-hover" href="#contact">Contact</a></li>
             </ul>
             <div className="d-flex align-items-center gap-3">
-              <button className="btn nav-signin-btn px-4 py-2 fw-bold text-light text-decoration-none rounded-pill" onClick={onStartBuilder}>
-                Sign In
-              </button>
-              <button className="btn btn-primary px-4 py-2 fw-bold rounded-pill shadow-lg cta-btn" onClick={onStartBuilder}>
-                Build My Resume
-              </button>
+              {isAuthenticated ? (
+                <>
+                  <button className="btn nav-signin-btn px-4 py-2 fw-bold text-light text-decoration-none rounded-pill" onClick={onSignOut}>
+                    Sign Out
+                  </button>
+                  <button className="btn btn-primary px-4 py-2 fw-bold rounded-pill shadow-lg cta-btn" onClick={onGoToDashboard}>
+                    Go to Dashboard
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button className="btn nav-signin-btn px-4 py-2 fw-bold text-light text-decoration-none rounded-pill" onClick={onStartBuilder}>
+                    Sign In
+                  </button>
+                  <button className="btn btn-primary px-4 py-2 fw-bold rounded-pill shadow-lg cta-btn" onClick={onStartBuilder}>
+                    Build My Resume
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -179,8 +192,8 @@ export default function LandingPage({ onStartBuilder }) {
                 Create beautiful, ATS-optimized resumes in minutes. Stand out to recruiters with executive templates, real-time keyword scoring, and high-impact design presets.
               </p>
               <div className="d-flex flex-wrap gap-3">
-                <button className="btn btn-primary btn-lg px-5 py-3 fw-bold rounded-pill shadow-lg cta-btn" onClick={onStartBuilder}>
-                  Create My Resume Now
+                <button className="btn btn-primary btn-lg px-5 py-3 fw-bold rounded-pill shadow-lg cta-btn" onClick={isAuthenticated ? onGoToDashboard : onStartBuilder}>
+                  {isAuthenticated ? 'Go to Dashboard' : 'Create My Resume Now'}
                   <svg className="ms-2" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                 </button>
                 <a href="#templates" className="btn btn-outline-light btn-lg px-4 py-3 fw-bold rounded-pill glass-btn">
@@ -242,38 +255,63 @@ export default function LandingPage({ onStartBuilder }) {
           <div className="row g-4">
             {[
               {
-                icon: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="url(#gradient1)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><defs><linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#6366f1" /><stop offset="100%" stopColor="#a855f7" /></linearGradient></defs><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>,
-                title: "Real-Time ATS Parsing",
-                desc: "Our engine scans your resume exactly like enterprise Applicant Tracking Systems do, ensuring you pass the bots."
+                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#gradient1)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><defs><linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#6366f1" /><stop offset="100%" stopColor="#a855f7" /></linearGradient></defs><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>,
+                title: "ATS Parsing",
+                desc: "Scans your resume exactly like enterprise systems do to pass the bots."
               },
               {
-                icon: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="url(#gradient2)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><defs><linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#ec4899" /><stop offset="100%" stopColor="#8b5cf6" /></linearGradient></defs><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>,
-                title: "Pixel-Perfect Designs",
-                desc: "6 gorgeous layout paradigms mapped to 10 executive color palettes and 4 typographic principles."
+                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#gradient2)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><defs><linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#ec4899" /><stop offset="100%" stopColor="#8b5cf6" /></linearGradient></defs><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>,
+                title: "Pixel-Perfect",
+                desc: "Gorgeous layouts mapped to executive color palettes and typography."
               },
               {
-                icon: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="url(#gradient3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><defs><linearGradient id="gradient3" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#10b981" /><stop offset="100%" stopColor="#3b82f6" /></linearGradient></defs><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>,
-                title: "100% Private",
-                desc: "Your data never leaves your browser. No cloud storage, no account required. Build and export instantly."
+                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#gradient3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><defs><linearGradient id="gradient3" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#10b981" /><stop offset="100%" stopColor="#3b82f6" /></linearGradient></defs><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>,
+                title: "Cloud Synced",
+                desc: "Data is securely synced. Edit from any device, anytime."
+              },
+              {
+                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#gradient1)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>,
+                title: "Instant PDF",
+                desc: "Export your resume to PDF instantly, without any waiting or delays."
+              },
+              {
+                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#gradient2)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>,
+                title: "Data Security",
+                desc: "Your data is secure. We use enterprise-grade encryption and never sell data."
+              },
+              {
+                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#gradient3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>,
+                title: "Secure Sign-In",
+                desc: "Sign in with a secure password or utilize single sign-on."
+              },
+              {
+                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#gradient1)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>,
+                title: "Unlimited",
+                desc: "Create and store as many tailored resumes as you want."
+              },
+              {
+                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#gradient2)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>,
+                title: "100% Free",
+                desc: "Completely free, forever, with no hidden costs."
               }
             ].map((f, i) => (
-              <div className="col-md-4" key={i}>
-                <div className="feature-card h-100 p-5 rounded-4 position-relative overflow-hidden" style={{ 
+              <div className="col-lg-3 col-md-6" key={i}>
+                <div className="feature-card h-100 p-4 rounded-4 position-relative overflow-hidden" style={{ 
                   background: 'linear-gradient(145deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.4) 100%)',
                   border: '1px solid rgba(255, 255, 255, 0.05)',
                   backdropFilter: 'blur(10px)',
                   transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
                 }}>
                   <div className="feature-icon-wrapper mb-4 d-inline-flex align-items-center justify-content-center rounded-3 position-relative z-1" style={{ 
-                    width: '60px', height: '60px', 
+                    width: '50px', height: '50px', 
                     background: 'rgba(255,255,255,0.02)',
                     boxShadow: 'inset 0 0 20px rgba(255,255,255,0.02), 0 8px 16px rgba(0,0,0,0.2)',
                     border: '1px solid rgba(255,255,255,0.05)'
                   }}>
                     {f.icon}
                   </div>
-                  <h4 className="fw-bolder mb-3 text-light position-relative z-1" style={{ fontSize: '1.25rem', letterSpacing: '-0.3px' }}>{f.title}</h4>
-                  <p className="text-secondary mb-0 position-relative z-1" style={{ fontSize: '0.95rem', lineHeight: '1.6' }}>{f.desc}</p>
+                  <h4 className="fw-bolder mb-3 text-light position-relative z-1" style={{ fontSize: '1.1rem', letterSpacing: '-0.3px' }}>{f.title}</h4>
+                  <p className="text-secondary mb-0 position-relative z-1" style={{ fontSize: '0.85rem', lineHeight: '1.6' }}>{f.desc}</p>
                 </div>
               </div>
             ))}
@@ -333,7 +371,7 @@ export default function LandingPage({ onStartBuilder }) {
 
       {/* 5. Contact Section */}
       <section id="contact" className="py-5" style={{ background: 'linear-gradient(to bottom, #0a0d16 0%, #060913 100%)', position: 'relative' }}>
-        <div className="container py-5 position-relative z-1" style={{ maxWidth: '800px' }}>
+        <div className="container py-5 position-relative z-1" style={{ maxWidth: '1000px' }}>
           <div className="text-center mb-5">
             <span className="text-indigo fw-bold text-uppercase" style={{ letterSpacing: '1px' }}>Get in Touch</span>
             <h2 className="display-5 fw-bold mt-2">Have questions? Contact us!</h2>
@@ -341,17 +379,78 @@ export default function LandingPage({ onStartBuilder }) {
           </div>
 
           {contactFeedback.text && (
-            <div className={`alert alert-${contactFeedback.type} py-3 px-4 rounded-3 mb-4 text-center`} style={{ fontSize: '0.9rem', fontWeight: 600 }}>
+            <div className={`alert alert-${contactFeedback.type} py-3 px-4 rounded-3 mb-4 text-center mx-auto`} style={{ maxWidth: '800px', fontSize: '0.9rem', fontWeight: 600 }}>
               {contactFeedback.text}
             </div>
           )}
 
-          <div className="contact-card p-5 rounded-4" style={{ 
-            background: 'linear-gradient(145deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.4) 100%)',
-            border: '1px solid rgba(255, 255, 255, 0.05)',
-            backdropFilter: 'blur(10px)'
-          }}>
-            <form onSubmit={handleHookSubmit(handleContactSubmit)}>
+          <div className="row g-5 align-items-stretch">
+            {/* Contact Information */}
+            <div className="col-lg-5">
+              <div className="contact-card p-4 p-md-5 rounded-4 h-100" style={{ 
+                background: 'linear-gradient(145deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.4) 100%)',
+                border: '1px solid rgba(255, 255, 255, 0.05)',
+                backdropFilter: 'blur(10px)'
+              }}>
+                <h4 className="fw-bold mb-4 text-white">Contact Information</h4>
+                <ul className="list-unstyled d-flex flex-column gap-4 mb-0 mt-4">
+                  <li className="d-flex align-items-start gap-3">
+                    <div style={{ color: '#8b5cf6', marginTop: '2px' }}>
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M2 5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5zm18 2L12 11.5 4 7v12h16V7zM4 5v.4l8 5.6 8-5.6V5H4z"/></svg>
+                    </div>
+                    <div>
+                      <div className="form-label mb-1">Email</div>
+                      <a href="mailto:balathabo96@gmail.com" className="text-secondary text-decoration-none fw-medium" style={{ fontSize: '0.85rem' }}>balathabo96@gmail.com</a>
+                    </div>
+                  </li>
+                  <li className="d-flex align-items-start gap-3">
+                    <div style={{ color: '#8b5cf6', marginTop: '2px' }}>
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                    </div>
+                    <div>
+                      <div className="form-label mb-1">LinkedIn</div>
+                      <a href="https://linkedin.com/in/balachandran-thabotharan-261895131" target="_blank" rel="noreferrer" className="text-secondary text-decoration-none fw-medium" style={{ fontSize: '0.85rem', whiteSpace: 'nowrap' }}>balachandran-thabotharan-261895131</a>
+                    </div>
+                  </li>
+                  <li className="d-flex align-items-start gap-3">
+                    <div style={{ color: '#8b5cf6', marginTop: '2px' }}>
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+                    </div>
+                    <div>
+                      <div className="form-label mb-1">GitHub</div>
+                      <a href="https://github.com/balathabo1996" target="_blank" rel="noreferrer" className="text-secondary text-decoration-none fw-medium" style={{ fontSize: '0.85rem' }}>balathabo1996</a>
+                    </div>
+                  </li>
+                  <li className="d-flex align-items-start gap-3">
+                    <div style={{ color: '#8b5cf6', marginTop: '2px' }}>
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M21.384 17.752a2.108 2.108 0 0 1-.522 3.359 7.526 7.526 0 0 1-5.476 1.48c-3.15-.36-6.42-1.93-9.1-4.6-2.68-2.68-4.24-5.95-4.6-9.1a7.526 7.526 0 0 1 1.48-5.476 2.108 2.108 0 0 1 3.359-.522l2.67 2.67a2.1 2.1 0 0 1 .49 2.58l-1.15 2.3c.63 1.51 1.75 2.94 3.09 4.28 1.34 1.34 2.77 2.46 4.28 3.09l2.3-1.15a2.1 2.1 0 0 1 2.58.49l2.67 2.67z"/></svg>
+                    </div>
+                    <div>
+                      <div className="form-label mb-1">Phone</div>
+                      <a href="tel:+14373831996" className="text-secondary text-decoration-none fw-medium" style={{ fontSize: '0.85rem', whiteSpace: 'nowrap' }}>(437) 383-1996</a>
+                    </div>
+                  </li>
+                  <li className="d-flex align-items-start gap-3">
+                    <div style={{ color: '#8b5cf6', marginTop: '2px' }}>
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>
+                    </div>
+                    <div>
+                      <div className="form-label mb-1">Location</div>
+                      <span className="text-secondary fw-medium" style={{ fontSize: '0.85rem' }}>Scarborough, Ontario, Canada</span>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Contact Form */}
+            <div className="col-lg-7">
+              <div className="contact-card p-4 p-md-5 rounded-4 h-100" style={{ 
+                background: 'linear-gradient(145deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.4) 100%)',
+                border: '1px solid rgba(255, 255, 255, 0.05)',
+                backdropFilter: 'blur(10px)'
+              }}>
+                <form onSubmit={handleHookSubmit(handleContactSubmit)}>
               <div className="row g-4">
                 <div className="col-md-6">
                   <label className="form-label fw-bold text-light mb-2" style={{ fontSize: '0.85rem' }}>Full Name</label>
@@ -416,7 +515,9 @@ export default function LandingPage({ onStartBuilder }) {
                   </button>
                 </div>
               </div>
-            </form>
+                </form>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -425,10 +526,10 @@ export default function LandingPage({ onStartBuilder }) {
       <footer className="footer border-top border-secondary border-opacity-25 py-4" style={{ background: '#04060d' }}>
         <div className="container">
           <div className="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
-            <div className="brand" style={{ transform: 'scale(0.8)' }}>
+            <a href="#" className="brand text-decoration-none" style={{ transform: 'scale(0.8)' }}>
               <span className="brand-jt">JT</span>
               <span className="brand-resume">Resume</span>
-            </div>
+            </a>
             <div className="text-secondary" style={{ fontSize: '0.85rem' }}>
               &copy; {new Date().getFullYear()} JTResume. All rights reserved.
             </div>

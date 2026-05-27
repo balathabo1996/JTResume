@@ -6,7 +6,7 @@ import path from 'path';
 
 export async function POST(request) {
   try {
-    const { fullName, email, password } = await request.json();
+    const { fullName, email, password, phone } = await request.json();
 
     if (!email || !password || !fullName) {
       return NextResponse.json({ error: 'All fields are required.' }, { status: 400 });
@@ -17,6 +17,7 @@ export async function POST(request) {
     const newUser = {
       fullName,
       email: cleanEmail,
+      phone: phone || '',
       password: hashedPassword,
       createdAt: new Date()
     };

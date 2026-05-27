@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import BuilderForm from './components/BuilderForm';
 import ResumePreview from './components/ResumePreview';
 import ComplianceScanner from './components/ComplianceScanner';
@@ -40,13 +41,14 @@ export default function App() {
   // Profile Modal State
   const [profileOpen, setProfileOpen] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
-  const [editProfileForm, setEditProfileForm] = useState({ fullName: '', email: '', phone: '' });
   const [editProfileLoading, setEditProfileLoading] = useState(false);
   const [editProfileMessage, setEditProfileMessage] = useState({ type: '', text: '' });
   const [showPasswordForm, setShowPasswordForm] = useState(false);
-  const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [passwordMessage, setPasswordMessage] = useState({ type: '', text: '' });
+
+  const { register: registerProfile, handleSubmit: handleProfileSubmit, reset: resetProfile, formState: { errors: profileErrors } } = useForm({ mode: 'onChange' });
+  const { register: registerPassword, handleSubmit: handlePasswordSubmit, reset: resetPassword, formState: { errors: passwordErrors } } = useForm({ mode: 'onChange' });
   
   const [isInitializing, setIsInitializing] = useState(true); // Prevent flicker on reload
   const [formData, setFormData] = useState(emptyResumeState); // Empty slate by default for public deployment
@@ -263,21 +265,20 @@ export default function App() {
     setIsEditingProfile(false);
     setShowPasswordForm(false);
     setPasswordMessage({ type: '', text: '' });
-    setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    resetPassword();
     setEditProfileMessage({ type: '', text: '' });
     setFormData(emptyResumeState);
     setCurrentView('landing');
   };
 
   const openProfileModal = () => {
-    setEditProfileForm({ fullName: user?.fullName || '', email: user?.email || '', phone: user?.phone || '' });
+    resetProfile({ fullName: user?.fullName || '', email: user?.email || '', phone: user?.phone || '' });
     setIsEditingProfile(false);
     setEditProfileMessage({ type: '', text: '' });
     setProfileOpen(true);
   };
 
-  const handleProfileUpdate = async (e) => {
-    e.preventDefault();
+  const handleProfileUpdate = async (data) => {
     setEditProfileMessage({ type: '', text: '' });
     setEditProfileLoading(true);
 
@@ -287,9 +288,9 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           currentEmail: user.email,
-          fullName: editProfileForm.fullName,
-          email: editProfileForm.email,
-          phone: editProfileForm.phone
+          fullName: data.fullName,
+          email: data.email,
+          phone: data.phone
         })
       });
 
@@ -315,19 +316,8 @@ export default function App() {
     }
   };
 
-  const handlePasswordChange = async (e) => {
-    e.preventDefault();
+  const handlePasswordChange = async (data) => {
     setPasswordMessage({ type: '', text: '' });
-
-    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      setPasswordMessage({ type: 'danger', text: 'New passwords do not match.' });
-      return;
-    }
-
-    if (passwordForm.newPassword.length < 6) {
-      setPasswordMessage({ type: 'danger', text: 'New password must be at least 6 characters.' });
-      return;
-    }
 
     setPasswordLoading(true);
 
@@ -337,8 +327,8 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: user.email,
-          currentPassword: passwordForm.currentPassword,
-          newPassword: passwordForm.newPassword,
+          currentPassword: data.currentPassword,
+          newPassword: data.newPassword,
         })
       });
 
@@ -349,7 +339,7 @@ export default function App() {
       }
 
       setPasswordMessage({ type: 'success', text: 'Password changed successfully!' });
-      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      resetPassword();
       setTimeout(() => setShowPasswordForm(false), 2000);
     } catch (err) {
       setPasswordMessage({ type: 'danger', text: err.message });
@@ -379,7 +369,14 @@ export default function App() {
   }
 
   if (currentView === 'landing') {
-    return <LandingPage onStartBuilder={() => setCurrentView('login')} />;
+    return (
+      <LandingPage 
+        onStartBuilder={() => setCurrentView('login')} 
+        isAuthenticated={!!user}
+        onSignOut={handleLogout}
+        onGoToDashboard={() => setCurrentView('builder')}
+      />
+    );
   }
 
   if (currentView === 'login') {
@@ -469,46 +466,54 @@ export default function App() {
               )}
 
               {isEditingProfile ? (
-                /* EDIT PROFILE FORM */
-                <form onSubmit={handleProfileUpdate} style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
+                <form onSubmit={handleProfileSubmit(handleProfileUpdate)} style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <label style={{ fontSize: '11px', color: '#a5b4fc', fontWeight: '600', textTransform: 'uppercase' }}>Full Name</label>
+                    <label style={{ fontSize: '11px', color: '#ffffff', fontWeight: '600', textTransform: 'uppercase' }}>Full Name</label>
                     <input
                       type="text"
-                      required
-                      value={editProfileForm.fullName}
-                      onChange={(e) => setEditProfileForm(prev => ({ ...prev, fullName: e.target.value }))}
+                      {...registerProfile('fullName', { required: 'Full Name is required' })}
                       disabled={editProfileLoading}
-                      style={{ padding: '10px 12px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '14px' }}
+                      style={{ padding: '10px 12px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: `1px solid ${profileErrors.fullName ? '#ef4444' : 'rgba(255,255,255,0.1)'}`, color: '#fff', fontSize: '14px' }}
                     />
+                    {profileErrors.fullName && <span style={{ color: '#ef4444', fontSize: '11px', marginTop: '2px' }}>{profileErrors.fullName.message}</span>}
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <label style={{ fontSize: '11px', color: '#a5b4fc', fontWeight: '600', textTransform: 'uppercase' }}>Email Address</label>
+                    <label style={{ fontSize: '11px', color: '#ffffff', fontWeight: '600', textTransform: 'uppercase' }}>Email Address</label>
                     <input
                       type="email"
-                      required
-                      value={editProfileForm.email}
-                      onChange={(e) => setEditProfileForm(prev => ({ ...prev, email: e.target.value }))}
+                      {...registerProfile('email', { 
+                        required: 'Email address is required',
+                        pattern: {
+                          value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                          message: 'Invalid email address'
+                        }
+                      })}
                       disabled={editProfileLoading}
-                      style={{ padding: '10px 12px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '14px' }}
+                      style={{ padding: '10px 12px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: `1px solid ${profileErrors.email ? '#ef4444' : 'rgba(255,255,255,0.1)'}`, color: '#fff', fontSize: '14px' }}
                     />
+                    {profileErrors.email && <span style={{ color: '#ef4444', fontSize: '11px', marginTop: '2px' }}>{profileErrors.email.message}</span>}
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <label style={{ fontSize: '11px', color: '#a5b4fc', fontWeight: '600', textTransform: 'uppercase' }}>Phone Number (Optional)</label>
+                    <label style={{ fontSize: '11px', color: '#ffffff', fontWeight: '600', textTransform: 'uppercase' }}>Phone Number (Optional)</label>
                     <input
                       type="text"
-                      value={editProfileForm.phone}
-                      onChange={(e) => setEditProfileForm(prev => ({ ...prev, phone: e.target.value }))}
+                      {...registerProfile('phone', {
+                        pattern: {
+                          value: /^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/im,
+                          message: 'Invalid phone number format'
+                        }
+                      })}
                       disabled={editProfileLoading}
-                      style={{ padding: '10px 12px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '14px' }}
+                      style={{ padding: '10px 12px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: `1px solid ${profileErrors.phone ? '#ef4444' : 'rgba(255,255,255,0.1)'}`, color: '#fff', fontSize: '14px' }}
                     />
+                    {profileErrors.phone && <span style={{ color: '#ef4444', fontSize: '11px', marginTop: '2px' }}>{profileErrors.phone.message}</span>}
                   </div>
                   <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
                     <button
                       type="button"
                       onClick={() => {
                         setIsEditingProfile(false);
-                        setEditProfileForm({ fullName: user?.fullName || '', email: user?.email || '', phone: user?.phone || '' });
+                        resetProfile({ fullName: user?.fullName || '', email: user?.email || '', phone: user?.phone || '' });
                         setEditProfileMessage({ type: '', text: '' });
                       }}
                       disabled={editProfileLoading}
@@ -607,7 +612,7 @@ export default function App() {
                   </button>
 
                   {showPasswordForm && (
-                    <form onSubmit={handlePasswordChange} style={{ marginTop: '12px', padding: '16px', background: 'rgba(0,0,0,0.2)', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                    <form onSubmit={handlePasswordSubmit(handlePasswordChange)} style={{ marginTop: '12px', padding: '16px', background: 'rgba(0,0,0,0.2)', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.05)' }}>
                       {passwordMessage.text && (
                         <div style={{ padding: '10px', marginBottom: '12px', borderRadius: '6px', fontSize: '12px', background: passwordMessage.type === 'success' ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)', color: passwordMessage.type === 'success' ? '#10b981' : '#f87171', border: `1px solid ${passwordMessage.type === 'success' ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}` }}>
                           {passwordMessage.text}
@@ -618,34 +623,41 @@ export default function App() {
                         <input
                           type="password"
                           placeholder="Current Password"
-                          required
-                          value={passwordForm.currentPassword}
-                          onChange={(e) => setPasswordForm(prev => ({ ...prev, currentPassword: e.target.value }))}
+                          {...registerPassword('currentPassword', { required: 'Current password is required' })}
                           disabled={passwordLoading}
-                          style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '13px' }}
+                          style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', background: 'rgba(255,255,255,0.05)', border: `1px solid ${passwordErrors.currentPassword ? '#ef4444' : 'rgba(255,255,255,0.1)'}`, color: '#fff', fontSize: '13px' }}
                         />
+                        {passwordErrors.currentPassword && <span style={{ color: '#ef4444', fontSize: '11px', marginTop: '2px', display: 'block' }}>{passwordErrors.currentPassword.message}</span>}
                       </div>
                       <div style={{ marginBottom: '12px' }}>
                         <input
                           type="password"
                           placeholder="New Password"
-                          required
-                          value={passwordForm.newPassword}
-                          onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
+                          {...registerPassword('newPassword', { 
+                            required: 'New password is required',
+                            minLength: { value: 8, message: 'Password must be at least 8 characters' },
+                            pattern: {
+                              value: /^(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z\d]).{8,}$/,
+                              message: 'Must contain an uppercase letter, a number, and a special character'
+                            }
+                          })}
                           disabled={passwordLoading}
-                          style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '13px' }}
+                          style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', background: 'rgba(255,255,255,0.05)', border: `1px solid ${passwordErrors.newPassword ? '#ef4444' : 'rgba(255,255,255,0.1)'}`, color: '#fff', fontSize: '13px' }}
                         />
+                        {passwordErrors.newPassword && <span style={{ color: '#ef4444', fontSize: '11px', marginTop: '2px', display: 'block' }}>{passwordErrors.newPassword.message}</span>}
                       </div>
                       <div style={{ marginBottom: '16px' }}>
                         <input
                           type="password"
                           placeholder="Confirm New Password"
-                          required
-                          value={passwordForm.confirmPassword}
-                          onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                          {...registerPassword('confirmPassword', { 
+                            required: 'Please confirm your new password',
+                            validate: (val, formValues) => val === formValues.newPassword || 'Passwords do not match'
+                          })}
                           disabled={passwordLoading}
-                          style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '13px' }}
+                          style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', background: 'rgba(255,255,255,0.05)', border: `1px solid ${passwordErrors.confirmPassword ? '#ef4444' : 'rgba(255,255,255,0.1)'}`, color: '#fff', fontSize: '13px' }}
                         />
+                        {passwordErrors.confirmPassword && <span style={{ color: '#ef4444', fontSize: '11px', marginTop: '2px', display: 'block' }}>{passwordErrors.confirmPassword.message}</span>}
                       </div>
                       <button
                         type="submit"

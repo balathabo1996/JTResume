@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import clientPromise from '../../../../utils/mongodb';
+import nodemailer from 'nodemailer';
 import fs from 'fs';
 import path from 'path';
 
@@ -62,11 +63,45 @@ export async function POST(request) {
       }
     }
 
-    // Return the code directly in the response for security and ease of use, keeping Nodemailer reserved for Contact Page.
+    // Send email using Nodemailer
+    const gmailUser = process.env.GMAIL_USER;
+    const gmailPass = process.env.GMAIL_APP_PASSWORD;
+
+    if (gmailUser && gmailPass) {
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: gmailUser,
+          pass: gmailPass
+        }
+      });
+
+      const emailHtml = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e8ed; border-radius: 10px;">
+          <h2 style="color: #4f46e5; text-align: center;">JTResume Password Reset</h2>
+          <p>You requested a password reset. Use the verification code below to reset your password:</p>
+          <div style="background-color: #f3f4f6; padding: 15px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 5px; border-radius: 5px; margin: 20px 0;">
+            ${verificationCode}
+          </div>
+          <p style="color: #6b7280; font-size: 12px; text-align: center;">This code will expire in 10 minutes.</p>
+        </div>
+      `;
+
+      await transporter.sendMail({
+        from: `"JTResume Security" <${gmailUser}>`,
+        to: cleanEmail,
+        subject: `Your JTResume Password Reset Code: ${verificationCode}`,
+        html: emailHtml
+      });
+    } else {
+      console.warn('⚠️ GMAIL_USER or GMAIL_APP_PASSWORD is not configured. Email not sent.');
+      // For local development without env vars, you might still want to log the code
+      console.log('Verification Code (Development Mode):', verificationCode);
+    }
+
     return NextResponse.json({ 
       success: true, 
-      message: 'Verification code generated successfully!',
-      code: verificationCode
+      message: 'Verification code sent to your email address!'
     });
 
   } catch (error) {

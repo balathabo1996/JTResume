@@ -8,7 +8,7 @@ export default function AuthPage({ onLogin, onBackToHome }) {
   const [resetStep, setResetStep] = useState('email'); // 'email' | 'code'
 
   // react-hook-form initialization
-  const { register, handleSubmit: handleHookSubmit, reset, formState: { errors } } = useForm();
+  const { register, handleSubmit: handleHookSubmit, reset, formState: { errors } } = useForm({ mode: 'onChange' });
 
   const handleSendCode = async (formData) => {
     setLoading(true);
@@ -182,7 +182,7 @@ export default function AuthPage({ onLogin, onBackToHome }) {
 
           {/* Brand Logo Header */}
           <div className="text-center mb-4">
-            <div className="brand d-inline-block mb-3" style={{ userSelect: 'none', transform: 'scale(1.1)' }}>
+            <div className="brand d-inline-block mb-3" style={{ userSelect: 'none', transform: 'scale(1.1)', cursor: 'pointer' }} onClick={onBackToHome}>
               <span className="brand-jt">JT</span>
               <span className="brand-resume">Resume</span>
             </div>
@@ -242,7 +242,10 @@ export default function AuthPage({ onLogin, onBackToHome }) {
                     type="email"
                     className={`form-control auth-input py-2 ${errors.email ? 'is-invalid' : ''}`}
                     placeholder="john.doe@example.com"
-                    {...register('email', { required: 'Email address is required' })}
+                    {...register('email', { 
+                      required: 'Email address is required',
+                      pattern: { value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i, message: 'Invalid email address' }
+                    })}
                     disabled={loading}
                   />
                   {errors.email && <div className="invalid-feedback">{errors.email.message}</div>}
@@ -275,7 +278,14 @@ export default function AuthPage({ onLogin, onBackToHome }) {
                     type="password"
                     className={`form-control auth-input py-2 ${errors.newPassword ? 'is-invalid' : ''}`}
                     placeholder="••••••••"
-                    {...register('newPassword', { required: 'New password is required' })}
+                    {...register('newPassword', { 
+                      required: 'New password is required',
+                      minLength: { value: 8, message: 'Password must be at least 8 characters' },
+                      pattern: {
+                        value: /^(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z\d]).{8,}$/,
+                        message: 'Must contain an uppercase letter, a number, and a special character'
+                      }
+                    })}
                     disabled={loading}
                   />
                   {errors.newPassword && <div className="invalid-feedback">{errors.newPassword.message}</div>}
@@ -286,7 +296,10 @@ export default function AuthPage({ onLogin, onBackToHome }) {
                     type="password"
                     className={`form-control auth-input py-2 ${errors.confirmNewPassword ? 'is-invalid' : ''}`}
                     placeholder="••••••••"
-                    {...register('confirmNewPassword', { required: 'Confirm new password is required' })}
+                    {...register('confirmNewPassword', { 
+                      required: 'Confirm new password is required',
+                      validate: (val, formValues) => val === formValues.newPassword || 'Passwords do not match'
+                    })}
                     disabled={loading}
                   />
                   {errors.confirmNewPassword && <div className="invalid-feedback">{errors.confirmNewPassword.message}</div>}
@@ -320,13 +333,34 @@ export default function AuthPage({ onLogin, onBackToHome }) {
                   {errors.fullName && <div className="invalid-feedback">{errors.fullName.message}</div>}
                 </div>
               )}
+              {authMode === 'register' && (
+                <div className="mb-3">
+                  <label className="form-label fw-bold text-light" style={{ fontSize: '0.85rem' }}>Phone Number (Optional)</label>
+                  <input
+                    type="text"
+                    className={`form-control auth-input py-2 ${errors.phone ? 'is-invalid' : ''}`}
+                    placeholder="+1 (555) 123-4567"
+                    {...register('phone', {
+                      pattern: {
+                        value: /^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/im,
+                        message: 'Invalid phone number format'
+                      }
+                    })}
+                    disabled={loading}
+                  />
+                  {errors.phone && <div className="invalid-feedback">{errors.phone.message}</div>}
+                </div>
+              )}
               <div className="mb-3">
                 <label className="form-label fw-bold text-light" style={{ fontSize: '0.85rem' }}>Email Address</label>
                 <input
                   type="email"
                   className={`form-control auth-input py-2 ${errors.email ? 'is-invalid' : ''}`}
                   placeholder="john.doe@example.com"
-                  {...register('email', { required: 'Email address is required' })}
+                  {...register('email', { 
+                    required: 'Email address is required',
+                    pattern: { value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i, message: 'Invalid email address' }
+                  })}
                   disabled={loading}
                 />
                 {errors.email && <div className="invalid-feedback">{errors.email.message}</div>}
@@ -344,7 +378,14 @@ export default function AuthPage({ onLogin, onBackToHome }) {
                   type="password"
                   className={`form-control auth-input py-2 ${errors.password ? 'is-invalid' : ''}`}
                   placeholder="••••••••"
-                  {...register('password', { required: 'Password is required' })}
+                  {...register('password', { 
+                    required: 'Password is required',
+                    minLength: authMode === 'register' ? { value: 8, message: 'Password must be at least 8 characters' } : undefined,
+                    pattern: authMode === 'register' ? {
+                      value: /^(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z\d]).{8,}$/,
+                      message: 'Must contain an uppercase letter, a number, and a special character'
+                    } : undefined
+                  })}
                   disabled={loading}
                 />
                 {errors.password && <div className="invalid-feedback">{errors.password.message}</div>}
@@ -356,7 +397,10 @@ export default function AuthPage({ onLogin, onBackToHome }) {
                     type="password"
                     className={`form-control auth-input py-2 ${errors.confirmPassword ? 'is-invalid' : ''}`}
                     placeholder="••••••••"
-                    {...register('confirmPassword', { required: authMode === 'register' ? 'Confirm password is required' : false })}
+                    {...register('confirmPassword', { 
+                      required: authMode === 'register' ? 'Confirm password is required' : false,
+                      validate: authMode === 'register' ? ((val, formValues) => val === formValues.password || 'Passwords do not match') : undefined
+                    })}
                     disabled={loading}
                   />
                   {errors.confirmPassword && <div className="invalid-feedback">{errors.confirmPassword.message}</div>}
