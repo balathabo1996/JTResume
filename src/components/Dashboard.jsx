@@ -1,0 +1,303 @@
+import React, { useState, useEffect } from 'react';
+
+export default function Dashboard({ user, onSelectResume, onLogout }) {
+  const [resumes, setResumes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
+  // Modal states
+  const [showRename, setShowRename] = useState(false);
+  const [editingResume, setEditingResume] = useState(null);
+  const [newTitle, setNewTitle] = useState('');
+  const [actionLoading, setActionLoading] = useState(false);
+
+  useEffect(() => {
+    fetchResumes();
+  }, [user]);
+
+  const fetchResumes = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/resumes?userId=${user.email || user._id}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setResumes(data.resumes || []);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateNew = async () => {
+    const title = prompt("Enter a title for your new resume:", "Software Engineer Resume");
+    if (!title) return;
+
+    setActionLoading(true);
+    try {
+      const res = await fetch('/api/resumes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.email || user._id, title })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      onSelectResume(data.resumeId);
+    } catch (err) {
+      alert("Error creating resume: " + err.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDelete = async (e, id) => {
+    e.stopPropagation();
+    if (!window.confirm("Are you sure you want to delete this resume? This cannot be undone.")) return;
+
+    setActionLoading(true);
+    try {
+      const res = await fetch(`/api/resumes/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error("Failed to delete");
+      await fetchResumes();
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDuplicate = async (e, id) => {
+    e.stopPropagation();
+    setActionLoading(true);
+    try {
+      const res = await fetch(`/api/resumes/${id}/duplicate`, { method: 'POST' });
+      if (!res.ok) throw new Error("Failed to duplicate");
+      await fetchResumes();
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const openRenameModal = (e, resume) => {
+    e.stopPropagation();
+    setEditingResume(resume);
+    setNewTitle(resume.title);
+    setShowRename(true);
+  };
+
+  const handleRename = async (e) => {
+    e.preventDefault();
+    if (!newTitle.trim()) return;
+
+    setActionLoading(true);
+    try {
+      const res = await fetch(`/api/resumes/${editingResume._id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: newTitle })
+      });
+      if (!res.ok) throw new Error("Failed to rename");
+      setShowRename(false);
+      await fetchResumes();
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-vh-100 text-light p-4" style={{ background: 'radial-gradient(ellipse at top left, #1e1b4b 0%, #0f172a 100%)', position: 'relative', overflow: 'hidden' }}>
+      
+      {/* Background glowing orbs */}
+      <div style={{ position: 'absolute', top: '-10%', left: '-10%', width: '50%', height: '50%', background: 'radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%)', filter: 'blur(80px)', pointerEvents: 'none' }}></div>
+      <div style={{ position: 'absolute', bottom: '-10%', right: '-10%', width: '50%', height: '50%', background: 'radial-gradient(circle, rgba(168,85,247,0.1) 0%, transparent 70%)', filter: 'blur(80px)', pointerEvents: 'none' }}></div>
+
+      <div className="container position-relative" style={{ maxWidth: '1000px', zIndex: 1 }}>
+        
+        {/* Header */}
+        <div className="d-flex justify-content-between align-items-center mb-5 pb-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+          <div>
+            <h1 className="fw-bolder mb-1" style={{ background: 'linear-gradient(to right, #fff, #a5b4fc)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Your Resumes</h1>
+            <p className="mb-0" style={{ color: '#94a3b8' }}>Manage and tailor your resumes for different applications.</p>
+          </div>
+          <div className="d-flex align-items-center gap-3">
+            <span className="d-none d-sm-inline" style={{ color: '#94a3b8', fontSize: '0.9rem' }}>Logged in as <span className="fw-medium text-light">{user.fullName}</span></span>
+            <button 
+              className="btn btn-sm px-3 py-2 fw-medium" 
+              onClick={onLogout}
+              style={{ background: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', transition: 'all 0.2s' }}
+              onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)' }}
+              onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)' }}
+            >
+              Sign Out
+            </button>
+          </div>
+        </div>
+
+        {error && <div className="alert alert-danger">{error}</div>}
+
+        {loading ? (
+          <div className="text-center py-5">
+            <div className="spinner-border text-primary" role="status"></div>
+            <p className="mt-3 text-secondary">Loading your resumes...</p>
+          </div>
+        ) : (
+          <div className="row g-4">
+            
+            {/* Create New Card */}
+            <div className="col-md-4 col-sm-6">
+              <div 
+                className="card h-100 d-flex flex-column align-items-center justify-content-center p-4 text-center cursor-pointer"
+                style={{ 
+                  minHeight: '220px', cursor: 'pointer', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', 
+                  background: 'rgba(255,255,255,0.02)',
+                  border: '2px dashed rgba(99,102,241,0.3)',
+                  borderRadius: '16px',
+                  backdropFilter: 'blur(10px)'
+                }}
+                onClick={handleCreateNew}
+                onMouseOver={(e) => { 
+                  e.currentTarget.style.background = 'rgba(99,102,241,0.05)'; 
+                  e.currentTarget.style.borderColor = 'rgba(99,102,241,0.8)';
+                  e.currentTarget.style.transform = 'translateY(-4px)';
+                  e.currentTarget.style.boxShadow = '0 12px 24px rgba(99,102,241,0.15)';
+                }}
+                onMouseOut={(e) => { 
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.02)';
+                  e.currentTarget.style.borderColor = 'rgba(99,102,241,0.3)';
+                  e.currentTarget.style.transform = 'none';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              >
+                <div className="rounded-circle d-flex align-items-center justify-content-center mb-3" style={{ width: '60px', height: '60px', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: '#fff', boxShadow: '0 8px 16px rgba(99,102,241,0.3)' }}>
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                </div>
+                <h5 className="fw-bolder mb-1 text-light" style={{ letterSpacing: '0.5px' }}>Create New</h5>
+                <span style={{ color: '#94a3b8', fontSize: '0.85rem' }}>Start a blank resume</span>
+              </div>
+            </div>
+
+            {/* Resume Cards */}
+            {resumes.map(resume => (
+              <div className="col-md-4 col-sm-6" key={resume._id}>
+                <div 
+                  className="card h-100 position-relative"
+                  style={{ 
+                    minHeight: '220px', cursor: 'pointer', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    background: 'rgba(30, 41, 59, 0.5)',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    borderRadius: '16px',
+                    backdropFilter: 'blur(12px)',
+                    overflow: 'hidden'
+                  }}
+                  onClick={() => onSelectResume(resume._id)}
+                  onMouseOver={(e) => { 
+                    e.currentTarget.style.transform = 'translateY(-6px)'; 
+                    e.currentTarget.style.boxShadow = '0 20px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(99,102,241,0.3)'; 
+                    e.currentTarget.querySelector('.card-gradient-overlay').style.opacity = '1';
+                  }}
+                  onMouseOut={(e) => { 
+                    e.currentTarget.style.transform = 'none'; 
+                    e.currentTarget.style.boxShadow = 'none'; 
+                    e.currentTarget.querySelector('.card-gradient-overlay').style.opacity = '0';
+                  }}
+                >
+                  {/* Subtle top gradient line */}
+                  <div className="card-gradient-overlay" style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, #6366f1, #a855f7)', opacity: 0, transition: 'opacity 0.3s' }}></div>
+
+                  <div className="card-body d-flex flex-column p-4">
+                    
+                    {/* Resume Icon & Title */}
+                    <div className="d-flex align-items-start gap-3 mb-3">
+                      <div className="rounded-3 p-2" style={{ background: 'rgba(99,102,241,0.1)', color: '#818cf8', border: '1px solid rgba(99,102,241,0.2)' }}>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <h5 className="fw-bolder mb-1 text-truncate text-light" style={{ maxWidth: '170px' }} title={resume.title}>{resume.title}</h5>
+                        <p className="mb-0" style={{ color: '#94a3b8', fontSize: '0.75rem', fontWeight: 500 }}>
+                          Updated {new Date(resume.updatedAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-auto d-flex justify-content-between align-items-center pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                      <button 
+                        className="btn btn-sm px-2 py-1 action-btn"
+                        onClick={(e) => openRenameModal(e, resume)}
+                        disabled={actionLoading}
+                        title="Rename"
+                        style={{ color: '#cbd5e1', background: 'transparent', border: 'none', transition: 'all 0.2s', borderRadius: '6px' }}
+                        onMouseOver={(e) => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; }}
+                        onMouseOut={(e) => { e.currentTarget.style.color = '#cbd5e1'; e.currentTarget.style.background = 'transparent'; }}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+                      </button>
+                      <button 
+                        className="btn btn-sm px-2 py-1 action-btn"
+                        onClick={(e) => handleDuplicate(e, resume._id)}
+                        disabled={actionLoading}
+                        title="Duplicate"
+                        style={{ color: '#38bdf8', background: 'transparent', border: 'none', transition: 'all 0.2s', borderRadius: '6px' }}
+                        onMouseOver={(e) => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.background = 'rgba(56,189,248,0.2)'; }}
+                        onMouseOut={(e) => { e.currentTarget.style.color = '#38bdf8'; e.currentTarget.style.background = 'transparent'; }}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                      </button>
+                      <button 
+                        className="btn btn-sm px-2 py-1 action-btn"
+                        onClick={(e) => handleDelete(e, resume._id)}
+                        disabled={actionLoading}
+                        title="Delete"
+                        style={{ color: '#f87171', background: 'transparent', border: 'none', transition: 'all 0.2s', borderRadius: '6px' }}
+                        onMouseOver={(e) => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.background = 'rgba(248,113,113,0.2)'; }}
+                        onMouseOut={(e) => { e.currentTarget.style.color = '#f87171'; e.currentTarget.style.background = 'transparent'; }}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+
+          </div>
+        )}
+      </div>
+
+      {/* Rename Modal */}
+      {showRename && (
+        <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(5px)' }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content text-light" style={{ background: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}>
+              <div className="modal-header border-bottom-0 pb-0">
+                <h5 className="modal-title fw-bold">Rename Resume</h5>
+                <button type="button" className="btn-close btn-close-white" onClick={() => setShowRename(false)}></button>
+              </div>
+              <form onSubmit={handleRename}>
+                <div className="modal-body pt-3 pb-4">
+                  <input 
+                    type="text" 
+                    className="form-control bg-dark text-light" 
+                    value={newTitle} 
+                    onChange={e => setNewTitle(e.target.value)}
+                    style={{ border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '12px' }}
+                    autoFocus
+                  />
+                </div>
+                <div className="modal-footer border-top-0 pt-0">
+                  <button type="button" className="btn btn-link text-secondary text-decoration-none" onClick={() => setShowRename(false)}>Cancel</button>
+                  <button type="submit" className="btn btn-primary px-4 rounded-3" disabled={actionLoading || !newTitle.trim()} style={{ background: '#6366f1', border: 'none' }}>
+                    {actionLoading ? 'Saving...' : 'Save'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

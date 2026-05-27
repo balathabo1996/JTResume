@@ -24,6 +24,49 @@ export default function BuilderForm({
     onSectionChange(activeSection === section ? null : section);
   };
 
+  const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
+  const [enhancingExpIdx, setEnhancingExpIdx] = useState(null);
+
+  const handleGenerateSummary = async () => {
+    setIsGeneratingSummary(true);
+    try {
+      const res = await fetch('/api/ai/generate-summary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.personalInfo.fullName,
+          jobTitle: formData.personalInfo.jobTitle,
+          keywords: [] // we can pass targetKeywords here if we want, but keeping it simple
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      if (data.summary) {
+        updatePersonalInfo('summary', data.summary);
+      }
+    } catch (err) {
+      alert("AI Summary Error: " + err.message);
+    } finally {
+      setIsGeneratingSummary(false);
+    }
+  };
+
+  const handleEnhanceBullet = async (content, role, company) => {
+    try {
+      const res = await fetch('/api/ai/enhance-bullet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content, role, company })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      return data.enhancedContent;
+    } catch (err) {
+      alert("AI Enhance Error: " + err.message);
+      return content;
+    }
+  };
+
   // ── Section reorder state ──────────────────────────────
   const [sectionOrder, setSectionOrder] = useState([
     'personal', 'experience', 'projects',
@@ -687,7 +730,22 @@ export default function BuilderForm({
             </div>
 
             <div className="field d-flex flex-column gap-1">
-              <label className="form-label">Professional Profile Summary</label>
+              <div className="d-flex justify-content-between align-items-center">
+                <label className="form-label mb-0">Professional Profile Summary</label>
+                <button 
+                  type="button" 
+                  onClick={handleGenerateSummary} 
+                  disabled={isGeneratingSummary}
+                  className="btn btn-sm btn-outline-primary border-0 d-flex align-items-center gap-1"
+                  style={{ fontSize: '0.8rem', padding: '2px 8px' }}
+                >
+                  {isGeneratingSummary ? (
+                    <><span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Generating...</>
+                  ) : (
+                    <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '4px' }}><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg> Generate with AI</>
+                  )}
+                </button>
+              </div>
               <textarea
                 className="input-control"
                 value={formData.personalInfo.summary || ""}
@@ -699,66 +757,6 @@ export default function BuilderForm({
               />
             </div>
 
-            {/* --- COMPLIANCE TOY-BOX TRIGGERS (TO ALLOW DEMOING COMPLIANCE SCANNER WARNS) --- */}
-            <div className="pt-3 mt-2 border-top border-secondary border-opacity-10">
-              <p
-                className="help-prompt text-warning fw-bold mb-2"
-                style={{ fontSize: "0.76rem" }}
-              >
-                Compliance Test Fields (Anti-Pattern Triggers):
-              </p>
-
-              <div className="row g-3">
-                <div className="field col-md-6 d-flex flex-column gap-1">
-                  <label className="form-label">
-                    Date of Birth (Optional Trigger)
-                  </label>
-                  <input
-                    type="text"
-                    className="input-control"
-                    value={formData.personalInfo.birthDate || ""}
-                    onChange={(e) =>
-                      updatePersonalInfo("birthDate", e.target.value)
-                    }
-                    onFocus={() => onFieldFocus("sensitive")}
-                    onBlur={onFieldBlur}
-                    placeholder="e.g. Oct 12, 1989"
-                  />
-                </div>
-                <div className="field col-md-6 d-flex flex-column gap-1">
-                  <label className="form-label">
-                    Marital Status (Optional Trigger)
-                  </label>
-                  <input
-                    type="text"
-                    className="input-control"
-                    value={formData.personalInfo.maritalStatus || ""}
-                    onChange={(e) =>
-                      updatePersonalInfo("maritalStatus", e.target.value)
-                    }
-                    onFocus={() => onFieldFocus("sensitive")}
-                    onBlur={onFieldBlur}
-                    placeholder="e.g. Married / Single"
-                  />
-                </div>
-              </div>
-              <div className="field col-12 d-flex flex-column gap-1 mt-2">
-                <label className="form-label">
-                  Photo URL (Optional Trigger)
-                </label>
-                <input
-                  type="text"
-                  className="input-control"
-                  value={formData.personalInfo.photoUrl || ""}
-                  onChange={(e) =>
-                    updatePersonalInfo("photoUrl", e.target.value)
-                  }
-                  onFocus={() => onFieldFocus("sensitive")}
-                  onBlur={onFieldBlur}
-                  placeholder="e.g. https://domain.com/photo.jpg"
-                />
-              </div>
-            </div>
           </div>
         )}
       </div>
@@ -819,10 +817,10 @@ export default function BuilderForm({
               <div key={exp.id || expIdx} className="repeater-item mb-3">
                 <div className="repeater-item-header d-flex align-items-center justify-content-between">
                   <span
-                    className="fw-medium text-secondary"
+                    className="fw-medium text-secondary d-flex align-items-center"
                     style={{ fontSize: "0.88rem" }}
                   >
-                    💼 Role #{expIdx + 1}: {exp.role || "New Position"}
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg> Role #{expIdx + 1}: {exp.role || "New Position"}
                   </span>
                   <button
                     className="btn-repeater-delete"
@@ -929,9 +927,32 @@ export default function BuilderForm({
 
                   {/* Full WYSIWYG Editor for Achievements */}
                   <div className="field d-flex flex-column gap-1">
-                    <label className="form-label">
-                      Achievements & Key Duties
-                    </label>
+                    <div className="d-flex justify-content-between align-items-center">
+                      <label className="form-label mb-0">
+                        Achievements & Key Duties
+                      </label>
+                      <button 
+                        type="button" 
+                        onClick={async () => {
+                          setEnhancingExpIdx(expIdx);
+                          const currentContent = Array.isArray(exp.description)
+                            ? `<ul><li>${exp.description.join("</li><li>")}</li></ul>`
+                            : exp.description || "";
+                          const enhanced = await handleEnhanceBullet(currentContent, exp.role, exp.company);
+                          handleUpdateDescriptionHtml(expIdx, enhanced);
+                          setEnhancingExpIdx(null);
+                        }} 
+                        disabled={enhancingExpIdx === expIdx}
+                        className="btn btn-sm btn-outline-info border-0 d-flex align-items-center gap-1"
+                        style={{ fontSize: '0.8rem', padding: '2px 8px' }}
+                      >
+                        {enhancingExpIdx === expIdx ? (
+                          <><span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Enhancing...</>
+                        ) : (
+                          <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '4px' }}><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg> Enhance with AI</>
+                        )}
+                      </button>
+                    </div>
                     <RichTextEditor
                       value={
                         Array.isArray(exp.description)
@@ -1001,7 +1022,7 @@ export default function BuilderForm({
             {(formData.projects || []).map((proj, projIdx) => (
               <div key={proj.id || projIdx} className="repeater-item mb-3">
                 <div className="repeater-item-header d-flex align-items-center justify-content-between">
-                  <span className="fw-medium" style={{ fontSize: '0.82rem', color: '#94a3b8' }}>🖥️ Project #{projIdx + 1}: {proj.name || 'New Project'}</span>
+                  <span className="fw-medium d-flex align-items-center" style={{ fontSize: '0.82rem', color: '#94a3b8' }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg> Project #{projIdx + 1}: {proj.name || 'New Project'}</span>
                   <button
                     className="btn-repeater-delete"
                     onClick={() => handleRemoveProject(projIdx)}
@@ -1118,10 +1139,10 @@ export default function BuilderForm({
               <div key={edu.id || eduIdx} className="repeater-item mb-3">
                 <div className="repeater-item-header d-flex align-items-center justify-content-between">
                   <span
-                    className="fw-medium text-secondary"
+                    className="fw-medium text-secondary d-flex align-items-center"
                     style={{ fontSize: "0.88rem" }}
                   >
-                    🎓 Education #{eduIdx + 1}: {edu.degree || "New Degree"}
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}><path d="M21.42 10.922a2 2 0 0 0-.019-3.838L12.83 4.336a2 2 0 0 0-1.66 0L2.6 7.08a2 2 0 0 0 0 3.838l9.36 4.336a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg> Education #{eduIdx + 1}: {edu.degree || "New Degree"}
                   </span>
                   <button
                     className="btn-repeater-delete"
@@ -1309,10 +1330,10 @@ export default function BuilderForm({
               <div key={skill.id || skIdx} className="repeater-item mb-3">
                 <div className="repeater-item-header d-flex align-items-center justify-content-between">
                   <span
-                    className="fw-medium text-secondary"
+                    className="fw-medium text-secondary d-flex align-items-center"
                     style={{ fontSize: "0.88rem" }}
                   >
-                    ⚡ Skill Category: {skill.category || "New Category"}
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Skill Category: {skill.category || "New Category"}
                   </span>
                   <button
                     className="btn-repeater-delete"
@@ -1432,10 +1453,10 @@ export default function BuilderForm({
               <div key={cert.id || certIdx} className="repeater-item mb-3">
                 <div className="repeater-item-header d-flex align-items-center justify-content-between">
                   <span
-                    className="fw-medium text-secondary"
+                    className="fw-medium text-secondary d-flex align-items-center"
                     style={{ fontSize: "0.88rem" }}
                   >
-                    🎖️ Cert: {cert.name || "New Certification"}
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg> Cert: {cert.name || "New Certification"}
                   </span>
                   <button
                     className="btn-repeater-delete"
@@ -1568,10 +1589,10 @@ export default function BuilderForm({
               <div key={ref.id || refIdx} className="repeater-item mb-3">
                 <div className="repeater-item-header d-flex align-items-center justify-content-between">
                   <span
-                    className="fw-medium text-secondary"
+                    className="fw-medium text-secondary d-flex align-items-center"
                     style={{ fontSize: "0.88rem" }}
                   >
-                    👤 Reference #{refIdx + 1}: {ref.name || "New Reference"}
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Reference #{refIdx + 1}: {ref.name || "New Reference"}
                   </span>
                   <button
                     className="btn-repeater-delete"

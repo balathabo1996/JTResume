@@ -7,6 +7,7 @@ import ComplianceScanner from './components/ComplianceScanner';
 import ImportModal from './components/ImportModal';
 import LandingPage from './components/LandingPage';
 import AuthPage from './components/AuthPage';
+import Dashboard from './components/Dashboard';
 import { mockResumeData } from './data/mockResumeData';
 
 // Baseline Empty Resume state schema
@@ -60,6 +61,29 @@ export default function App() {
   const [activeSection, setActiveSection] = useState(null);
   const [focusedFieldTip, setFocusedFieldTip] = useState(null);
   const [mobileTab, setMobileTab] = useState('editor'); // 'editor' | 'preview'
+  const [currentResumeId, setCurrentResumeId] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Auto-save logic
+  useEffect(() => {
+    if (currentView === 'editor' && currentResumeId && !isInitializing) {
+      const timer = setTimeout(async () => {
+        setIsSaving(true);
+        try {
+          await fetch(`/api/resumes/${currentResumeId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ data: formData })
+          });
+        } catch (e) {
+          console.error("Auto-save failed", e);
+        } finally {
+          setIsSaving(false);
+        }
+      }, 1500); // 1.5s debounce
+      return () => clearTimeout(timer);
+    }
+  }, [formData, currentResumeId, currentView, isInitializing]);
 
   // Persist session on reload
   useEffect(() => {
@@ -68,7 +92,7 @@ export default function App() {
       try {
         const parsedUser = JSON.parse(storedUser);
         setUser(parsedUser);
-        setCurrentView('editor');
+        setCurrentView('dashboard');
       } catch (err) {
         console.error('Failed to parse stored user session');
       }
@@ -255,7 +279,7 @@ export default function App() {
 
   const handleLoginSuccess = (userData) => {
     setUser(userData);
-    setCurrentView('editor');
+    setCurrentView('dashboard');
   };
 
   const handleLogout = () => {
@@ -374,13 +398,33 @@ export default function App() {
         onStartBuilder={() => setCurrentView('login')} 
         isAuthenticated={!!user}
         onSignOut={handleLogout}
-        onGoToDashboard={() => setCurrentView('builder')}
+        onGoToDashboard={() => setCurrentView('dashboard')}
       />
     );
   }
 
   if (currentView === 'login') {
     return <AuthPage onLogin={handleLoginSuccess} onBackToHome={() => setCurrentView('landing')} />;
+  }
+
+  if (currentView === 'dashboard') {
+    return (
+      <Dashboard 
+        user={user} 
+        onLogout={handleLogout}
+        onSelectResume={(id) => {
+          setCurrentResumeId(id);
+          setCurrentView('editor');
+          fetch(`/api/resumes/${id}`)
+            .then(res => res.json())
+            .then(data => {
+              if (data.success && data.resume) {
+                setFormData(data.resume.data || emptyResumeState);
+              }
+            });
+        }} 
+      />
+    );
   }
 
   return (
@@ -392,15 +436,16 @@ export default function App() {
           onClick={() => setProfileOpen(false)}
           style={{
             position: 'fixed', inset: 0, zIndex: 9999,
-            background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)',
+            background: 'rgba(15,23,42,0.85)', backdropFilter: 'blur(12px)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px',
           }}
         >
           <div
             onClick={(e) => e.stopPropagation()}
             style={{
-              background: 'linear-gradient(145deg, #0f172a 0%, #1e1b4b 100%)',
-              border: '1px solid rgba(99,102,241,0.2)',
+              background: 'rgba(30, 41, 59, 0.7)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255,255,255,0.1)',
               borderRadius: '24px',
               padding: '0',
               width: '100%',
@@ -411,8 +456,9 @@ export default function App() {
           >
             {/* Header banner */}
             <div style={{
-              background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
-              padding: '32px 28px 20px 28px',
+              background: 'linear-gradient(135deg, rgba(99,102,241,0.15) 0%, rgba(124,58,237,0.05) 100%)',
+              borderBottom: '1px solid rgba(255,255,255,0.05)',
+              padding: '32px 28px 24px 28px',
               position: 'relative',
             }}>
               <button
@@ -468,17 +514,17 @@ export default function App() {
               {isEditingProfile ? (
                 <form onSubmit={handleProfileSubmit(handleProfileUpdate)} style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <label style={{ fontSize: '11px', color: '#ffffff', fontWeight: '600', textTransform: 'uppercase' }}>Full Name</label>
+                    <label style={{ fontSize: '11px', color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase' }}>Full Name</label>
                     <input
                       type="text"
                       {...registerProfile('fullName', { required: 'Full Name is required' })}
                       disabled={editProfileLoading}
-                      style={{ padding: '10px 12px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: `1px solid ${profileErrors.fullName ? '#ef4444' : 'rgba(255,255,255,0.1)'}`, color: '#fff', fontSize: '14px' }}
+                      style={{ padding: '10px 12px', borderRadius: '8px', background: 'rgba(0,0,0,0.2)', border: `1px solid ${profileErrors.fullName ? '#ef4444' : 'rgba(255,255,255,0.1)'}`, color: '#fff', fontSize: '14px' }}
                     />
                     {profileErrors.fullName && <span style={{ color: '#ef4444', fontSize: '11px', marginTop: '2px' }}>{profileErrors.fullName.message}</span>}
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <label style={{ fontSize: '11px', color: '#ffffff', fontWeight: '600', textTransform: 'uppercase' }}>Email Address</label>
+                    <label style={{ fontSize: '11px', color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase' }}>Email Address</label>
                     <input
                       type="email"
                       {...registerProfile('email', { 
@@ -489,12 +535,12 @@ export default function App() {
                         }
                       })}
                       disabled={editProfileLoading}
-                      style={{ padding: '10px 12px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: `1px solid ${profileErrors.email ? '#ef4444' : 'rgba(255,255,255,0.1)'}`, color: '#fff', fontSize: '14px' }}
+                      style={{ padding: '10px 12px', borderRadius: '8px', background: 'rgba(0,0,0,0.2)', border: `1px solid ${profileErrors.email ? '#ef4444' : 'rgba(255,255,255,0.1)'}`, color: '#fff', fontSize: '14px' }}
                     />
                     {profileErrors.email && <span style={{ color: '#ef4444', fontSize: '11px', marginTop: '2px' }}>{profileErrors.email.message}</span>}
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <label style={{ fontSize: '11px', color: '#ffffff', fontWeight: '600', textTransform: 'uppercase' }}>Phone Number (Optional)</label>
+                    <label style={{ fontSize: '11px', color: '#94a3b8', fontWeight: '600', textTransform: 'uppercase' }}>Phone Number (Optional)</label>
                     <input
                       type="text"
                       {...registerProfile('phone', {
@@ -504,7 +550,7 @@ export default function App() {
                         }
                       })}
                       disabled={editProfileLoading}
-                      style={{ padding: '10px 12px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: `1px solid ${profileErrors.phone ? '#ef4444' : 'rgba(255,255,255,0.1)'}`, color: '#fff', fontSize: '14px' }}
+                      style={{ padding: '10px 12px', borderRadius: '8px', background: 'rgba(0,0,0,0.2)', border: `1px solid ${profileErrors.phone ? '#ef4444' : 'rgba(255,255,255,0.1)'}`, color: '#fff', fontSize: '14px' }}
                     />
                     {profileErrors.phone && <span style={{ color: '#ef4444', fontSize: '11px', marginTop: '2px' }}>{profileErrors.phone.message}</span>}
                   </div>
@@ -534,23 +580,23 @@ export default function App() {
                   <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '-8px' }}>
                     <button
                       onClick={() => setIsEditingProfile(true)}
-                      style={{ background: 'none', border: 'none', color: '#a5b4fc', fontSize: '12px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', padding: 0 }}
+                      style={{ background: 'none', border: 'none', color: '#818cf8', fontSize: '12px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', padding: 0 }}
                     >
                       <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                       Edit Profile
                     </button>
                   </div>
 
-                  <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '12px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#6366f1" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                  <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#818cf8" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                     <div>
                       <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Full Name</div>
                       <div style={{ color: '#e2e8f0', fontSize: '14px', marginTop: '2px' }}>{user?.fullName || '—'}</div>
                     </div>
                   </div>
 
-                  <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '12px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#6366f1" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                  <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#818cf8" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                     <div>
                       <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Email Address</div>
                       <div style={{ color: '#e2e8f0', fontSize: '14px', marginTop: '2px' }}>{user?.email || '—'}</div>
@@ -558,8 +604,8 @@ export default function App() {
                   </div>
 
                   {user?.phone && (
-                    <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '12px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#6366f1" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+                    <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#818cf8" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
                       <div>
                         <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Phone Number</div>
                         <div style={{ color: '#e2e8f0', fontSize: '14px', marginTop: '2px' }}>{user.phone}</div>
@@ -567,8 +613,8 @@ export default function App() {
                     </div>
                   )}
 
-                  <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '12px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#6366f1" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                  <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#818cf8" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
                     <div>
                       <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Sign-in Method</div>
                       <div style={{ color: '#e2e8f0', fontSize: '14px', marginTop: '2px' }}>{providerLabel[user?.provider] || 'Email & Password'}</div>
@@ -576,8 +622,8 @@ export default function App() {
                   </div>
 
                   {user?.createdAt && (
-                    <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '12px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#6366f1" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                    <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#818cf8" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                       <div>
                         <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Member Since</div>
                         <div style={{ color: '#e2e8f0', fontSize: '14px', marginTop: '2px' }}>{new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
@@ -625,7 +671,7 @@ export default function App() {
                           placeholder="Current Password"
                           {...registerPassword('currentPassword', { required: 'Current password is required' })}
                           disabled={passwordLoading}
-                          style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', background: 'rgba(255,255,255,0.05)', border: `1px solid ${passwordErrors.currentPassword ? '#ef4444' : 'rgba(255,255,255,0.1)'}`, color: '#fff', fontSize: '13px' }}
+                          style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', background: 'rgba(0,0,0,0.2)', border: `1px solid ${passwordErrors.currentPassword ? '#ef4444' : 'rgba(255,255,255,0.1)'}`, color: '#fff', fontSize: '13px' }}
                         />
                         {passwordErrors.currentPassword && <span style={{ color: '#ef4444', fontSize: '11px', marginTop: '2px', display: 'block' }}>{passwordErrors.currentPassword.message}</span>}
                       </div>
@@ -642,7 +688,7 @@ export default function App() {
                             }
                           })}
                           disabled={passwordLoading}
-                          style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', background: 'rgba(255,255,255,0.05)', border: `1px solid ${passwordErrors.newPassword ? '#ef4444' : 'rgba(255,255,255,0.1)'}`, color: '#fff', fontSize: '13px' }}
+                          style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', background: 'rgba(0,0,0,0.2)', border: `1px solid ${passwordErrors.newPassword ? '#ef4444' : 'rgba(255,255,255,0.1)'}`, color: '#fff', fontSize: '13px' }}
                         />
                         {passwordErrors.newPassword && <span style={{ color: '#ef4444', fontSize: '11px', marginTop: '2px', display: 'block' }}>{passwordErrors.newPassword.message}</span>}
                       </div>
@@ -655,7 +701,7 @@ export default function App() {
                             validate: (val, formValues) => val === formValues.newPassword || 'Passwords do not match'
                           })}
                           disabled={passwordLoading}
-                          style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', background: 'rgba(255,255,255,0.05)', border: `1px solid ${passwordErrors.confirmPassword ? '#ef4444' : 'rgba(255,255,255,0.1)'}`, color: '#fff', fontSize: '13px' }}
+                          style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', background: 'rgba(0,0,0,0.2)', border: `1px solid ${passwordErrors.confirmPassword ? '#ef4444' : 'rgba(255,255,255,0.1)'}`, color: '#fff', fontSize: '13px' }}
                         />
                         {passwordErrors.confirmPassword && <span style={{ color: '#ef4444', fontSize: '11px', marginTop: '2px', display: 'block' }}>{passwordErrors.confirmPassword.message}</span>}
                       </div>
@@ -710,24 +756,28 @@ export default function App() {
           <div className="sidebar-header d-flex align-items-center justify-content-between px-3 py-3">
             <div 
               className="brand" 
-              style={{ userSelect: 'none', cursor: 'pointer' }} 
-              onClick={() => setCurrentView('landing')}
-              title="Return to Home"
+              style={{ userSelect: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }} 
+              onClick={() => setCurrentView('dashboard')}
+              title="Return to Dashboard"
             >
-              <span className="brand-jt">JT</span>
-              <span className="brand-resume">Resume</span>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+              <div>
+                <span className="brand-jt">JT</span><span className="brand-resume">Resume</span>
+              </div>
             </div>
 
-            {/* User avatar button */}
-            {user && (
-              <button
-                onClick={openProfileModal}
-                title={`Signed in as ${user.fullName}`}
-                style={{
-                  background: 'none', border: 'none', padding: 0, cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', gap: '8px',
-                }}
-              >
+            {/* User avatar button & Saving state */}
+            <div className="d-flex align-items-center gap-2">
+              {isSaving && <span style={{ fontSize: '0.75rem', color: '#a5b4fc', fontStyle: 'italic' }}>Saving...</span>}
+              {user && (
+                <button
+                  onClick={openProfileModal}
+                  title={`Signed in as ${user.fullName}`}
+                  style={{
+                    background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', gap: '8px',
+                  }}
+                >
                 {user.avatar ? (
                   <img
                     src={user.avatar}
@@ -747,6 +797,7 @@ export default function App() {
                 )}
               </button>
             )}
+            </div>
           </div>
 
           {/* Step Progress Indicator Stepper */}
