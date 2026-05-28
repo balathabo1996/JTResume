@@ -3,17 +3,22 @@ import "./globals.css";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata = {
-  title: "JTResume | Premium Multi-Country ATS Resume Builder",
+  title: "JTResume | Resume Builder",
   description:
     "JTResume is a premium, developer-grade React web application designed to build ATS-compliant professional resumes tailored for US, Canadian, and Australian formats.",
   keywords:
     "Resume Builder, USA Resume Format, Canada Resume Format, Australia CV Template, ATS Compliant Resume, Developer Resume Maker",
   authors: [{ name: "JTResume Team" }],
+  icons: {
+    icon: '/icon.svg',
+    shortcut: '/icon.svg',
+    apple: '/icon.svg'
+  }
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" style={{ backgroundColor: "#090d16" }}>
+    <html lang="en" style={{ backgroundColor: "#090d16" }} suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
@@ -26,7 +31,7 @@ export default function RootLayout({ children }) {
           rel="stylesheet"
         />
       </head>
-      <body>
+      <body suppressHydrationWarning>
         {children}
         <SpeedInsights />
       </body>

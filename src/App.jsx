@@ -109,6 +109,49 @@ export default function App() {
     setIsInitializing(false);
   }, []);
 
+  // Dynamic Favicon per page
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    let color1 = "#f59e0b"; // Default Yellow
+    let color2 = "#d97706";
+    
+    if (currentView === 'dashboard') {
+      color1 = "#10b981"; // Emerald Green
+      color2 = "#059669";
+    } else if (currentView === 'editor') {
+      color1 = "#3b82f6"; // Blue
+      color2 = "#2563eb";
+    } else if (currentView === 'landing') {
+      color1 = "#f59e0b"; // Yellow
+      color2 = "#d97706";
+    } else if (currentView === 'auth') {
+      color1 = "#ec4899"; // Pink
+      color2 = "#db2777";
+    }
+
+    const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+      <defs>
+        <linearGradient id="jt-grad-dyn" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="${color1}" />
+          <stop offset="100%" stop-color="${color2}" />
+        </linearGradient>
+      </defs>
+      <rect width="256" height="256" rx="64" fill="url(#jt-grad-dyn)" />
+      <text x="128" y="176" font-family="system-ui, -apple-system, sans-serif" font-size="130" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="-5">JT</text>
+    </svg>`;
+
+    const dataUrl = `data:image/svg+xml;base64,${btoa(svgIcon)}`;
+    
+    let link = document.querySelector("link[rel~='icon']");
+    if (!link) {
+      link = document.createElement('link');
+      link.rel = 'icon';
+      document.head.appendChild(link);
+    }
+    link.href = dataUrl;
+  }, [currentView]);
+
   /* --- ADVANCED SAAS ATS SCANNER STATE & LOGIC --- */
   const [jobDescription, setJobDescription] = useState("");
   const [targetKeywords, setTargetKeywords] = useState([]);
@@ -397,8 +440,8 @@ export default function App() {
   };
 
   // Helper: provider badge color
-  const providerColor = { google: '#4285F4', github: '#24292e', linkedin: '#0a66c2', passkey: '#6366f1' };
-  const providerLabel = { google: 'Google', github: 'GitHub', linkedin: 'LinkedIn', passkey: 'Passkey', email: 'Email & Password' };
+  const providerColor = { google: '#4285F4', github: '#24292e', linkedin: '#0a66c2' };
+  const providerLabel = { google: 'Google', github: 'GitHub', linkedin: 'LinkedIn', email: 'Email & Password' };
 
   if (isInitializing) {
     return (
@@ -827,7 +870,7 @@ export default function App() {
                       
                       <button 
                         className="d-flex align-items-center gap-3 rounded-3"
-                        onClick={openProfileModal}
+                        onMouseDown={(e) => { e.preventDefault(); openProfileModal(); }}
                         style={{ padding: '10px 14px', color: '#e2e8f0', background: 'transparent', border: 'none', width: '100%', textAlign: 'left', transition: 'all 0.2s', fontSize: '0.9rem' }}
                         onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#fff' }}
                         onMouseOut={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#e2e8f0' }}
@@ -840,7 +883,7 @@ export default function App() {
                       
                       <button 
                         className="d-flex align-items-center gap-3 rounded-3"
-                        onClick={handleLogout}
+                        onMouseDown={(e) => { e.preventDefault(); handleLogout(); }}
                         style={{ padding: '10px 14px', color: '#f87171', background: 'transparent', border: 'none', width: '100%', textAlign: 'left', transition: 'all 0.2s', fontSize: '0.9rem' }}
                         onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(248,113,113,0.1)'; e.currentTarget.style.color = '#fca5a5' }}
                         onMouseOut={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#f87171' }}

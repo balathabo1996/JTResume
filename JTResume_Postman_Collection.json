@@ -1,0 +1,180 @@
+{
+  "info": {
+    "name": "JTResume API",
+    "description": "A Postman collection containing all backend API endpoints for the JTResume Next.js application.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "AI Engine",
+      "item": [
+        {
+          "name": "Enhance Bullet Point",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Fixed bugs in the app.\",\n  \"role\": \"Software Engineer\",\n  \"company\": \"Tech Innovations\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/ai/enhance-bullet", "host": ["{{baseUrl}}"], "path": ["api", "ai", "enhance-bullet"] }
+          }
+        },
+        {
+          "name": "Generate Summary",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"jobTitle\": \"Full Stack Developer\",\n  \"keywords\": [\"React\", \"Node.js\", \"Leadership\"]\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/ai/generate-summary", "host": ["{{baseUrl}}"], "path": ["api", "ai", "generate-summary"] }
+          }
+        },
+        {
+          "name": "Generate Cover Letter",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resumeData\": {},\n  \"jobDescription\": \"Looking for a developer...\",\n  \"hiringManager\": \"Jane Smith\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/ai/generate-cover-letter", "host": ["{{baseUrl}}"], "path": ["api", "ai", "generate-cover-letter"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"securepassword123\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api", "auth", "register"] }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"securepassword123\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] }
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"currentPassword\": \"oldpass\",\n  \"newPassword\": \"newpass\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/auth/change-password", "host": ["{{baseUrl}}"], "path": ["api", "auth", "change-password"] }
+          }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Johnathan Doe\",\n  \"email\": \"john.doe@example.com\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/auth/update-profile", "host": ["{{baseUrl}}"], "path": ["api", "auth", "update-profile"] }
+          }
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"john@example.com\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/auth/forgot-password", "host": ["{{baseUrl}}"], "path": ["api", "auth", "forgot-password"] }
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"token\": \"abc123xyz\",\n  \"newPassword\": \"mynewpassword\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/auth/reset-password", "host": ["{{baseUrl}}"], "path": ["api", "auth", "reset-password"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Contact",
+      "item": [
+        {
+          "name": "Submit Contact Form",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Jane Doe\",\n  \"email\": \"jane@example.com\",\n  \"subject\": \"Support Request\",\n  \"message\": \"Need help with my resume export.\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/contact", "host": ["{{baseUrl}}"], "path": ["api", "contact"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Resumes",
+      "item": [
+        {
+          "name": "Get All Resumes",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/resumes", "host": ["{{baseUrl}}"], "path": ["api", "resumes"] }
+          }
+        },
+        {
+          "name": "Create Resume",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"personalInfo\": { \"fullName\": \"New User\" }\n}" },
+            "url": { "raw": "{{baseUrl}}/api/resumes", "host": ["{{baseUrl}}"], "path": ["api", "resumes"] }
+          }
+        },
+        {
+          "name": "Get Resume by ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/resumes/:id", "host": ["{{baseUrl}}"], "path": ["api", "resumes", ":id"], "variable": [ { "key": "id", "value": "123" } ] }
+          }
+        },
+        {
+          "name": "Update Resume by ID",
+          "request": {
+            "method": "PUT",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"personalInfo\": { \"fullName\": \"Updated User\" }\n}" },
+            "url": { "raw": "{{baseUrl}}/api/resumes/:id", "host": ["{{baseUrl}}"], "path": ["api", "resumes", ":id"], "variable": [ { "key": "id", "value": "123" } ] }
+          }
+        },
+        {
+          "name": "Delete Resume by ID",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/api/resumes/:id", "host": ["{{baseUrl}}"], "path": ["api", "resumes", ":id"], "variable": [ { "key": "id", "value": "123" } ] }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    }
+  ]
+}

@@ -326,6 +326,12 @@ h1, h2, h3, h4, h5, h6 {
   width: 100%;
 }
 
+.form-select option,
+.input-control option {
+  background-color: #0f1524 !important;
+  color: #f1f5f9 !important;
+}
+
 .form-control:hover,
 .input-control:hover {
   background: rgba(255, 255, 255, 0.05) !important;
@@ -1971,7 +1977,7 @@ body, input, select, textarea, button, div, span, label {
 /* --- LANDING PAGE PRO CSS --- */
 
 .glass-nav {
-  background: rgba(6, 9, 19, 0.7) !important;
+  background: rgba(4, 6, 12, 0.95) !important;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
@@ -2289,7 +2295,7 @@ body, input, select, textarea, button, div, span, label {
   transform: translateY(-1px);
 }
 
-.oauth-passkey { background-color: #262626 !important; }
+
 .oauth-google { 
   background-color: rgba(255, 255, 255, 0.04) !important; 
   border: 1px solid rgba(255, 255, 255, 0.08) !important; 

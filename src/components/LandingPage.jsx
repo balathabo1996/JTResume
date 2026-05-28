@@ -200,12 +200,7 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
                   View Templates
                 </a>
               </div>
-              <div className="mt-4 d-flex align-items-center gap-3 text-secondary" style={{ fontSize: '0.85rem' }}>
-                <div className="d-flex gap-1">
-                  {[1,2,3,4,5].map(i => <svg key={i} width="16" height="16" fill="#f59e0b" viewBox="0 0 16 16"><path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/></svg>)}
-                </div>
-                <span>Trusted by 10,000+ professionals worldwide</span>
-              </div>
+
             </div>
             
             {/* Visual Mockup Right Side */}
@@ -247,7 +242,7 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
 
       {/* 3. Features Grid */}
       <section id="features" className="py-5" style={{ background: 'linear-gradient(to bottom, #060913 0%, #0d1221 100%)' }}>
-        <div className="container py-5">
+        <div className="container">
           <div className="text-center mb-5">
             <span className="text-indigo fw-bold text-uppercase" style={{ letterSpacing: '1px' }}>Why JTResume?</span>
             <h2 className="display-5 fw-bold mt-2">The only tool you need to get hired.</h2>
@@ -256,43 +251,63 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
             {[
               {
                 icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#gradient1)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><defs><linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#6366f1" /><stop offset="100%" stopColor="#a855f7" /></linearGradient></defs><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>,
-                title: "ATS Parsing",
-                desc: "Scans your resume exactly like enterprise systems do to pass the bots."
+                title: "ATS Match Scanner",
+                desc: "Paste any job description to automatically extract keywords and monitor your ATS match score."
               },
               {
-                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#gradient2)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><defs><linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#ec4899" /><stop offset="100%" stopColor="#8b5cf6" /></linearGradient></defs><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>,
-                title: "Pixel-Perfect",
-                desc: "Gorgeous layouts mapped to executive color palettes and typography."
+                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#gradient2)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><defs><linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#ec4899" /><stop offset="100%" stopColor="#8b5cf6" /></linearGradient></defs><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"></path></svg>,
+                title: "Gemini AI Enhancer",
+                desc: "Harness Google Gemini AI to instantly generate professional summaries, write cover letters, and enhance experience bullets."
               },
               {
-                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#gradient1)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></svg>,
-                title: "Drag & Drop",
-                desc: "Smoothly reorder your jobs, skills, and education with our buttery FLIP animation engine."
+                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#gradient3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><defs><linearGradient id="gradient3" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#10b981" /><stop offset="100%" stopColor="#3b82f6" /></linearGradient></defs><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>,
+                title: "Developer API Console",
+                desc: "Explore our fully documented REST API via an interactive Swagger UI dashboard and exportable Postman collections."
               },
               {
                 icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#gradient1)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>,
                 title: "PDF & DOCX Export",
-                desc: "Export instantly to PDF or an ATS-friendly Microsoft Word Document."
+                desc: "Export instantly to perfectly scaled vector PDFs or ATS-friendly Microsoft Word documents."
               },
               {
-                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#gradient3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><defs><linearGradient id="gradient3" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#10b981" /><stop offset="100%" stopColor="#3b82f6" /></linearGradient></defs><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>,
-                title: "Public Share Links",
-                desc: "Generate a stunning, responsive web version of your resume to share with recruiters."
+                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#gradient1)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></svg>,
+                title: "Fluid Drag & Drop",
+                desc: "Smoothly reorder your jobs, skills, and education with our buttery FLIP animation engine."
               },
               {
                 icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#gradient3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>,
-                title: "Cloud Synced",
-                desc: "Data is securely synced. Edit from any device, anytime."
+                title: "Hybrid Cloud Sync",
+                desc: "Save profiles securely to MongoDB for cross-device access, or keep data 100% private in browser storage."
+              },
+              {
+                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#gradient2)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>,
+                title: "Compliance Auditor",
+                desc: "Scan for hiring bias and anti-patterns to ensure compliance with EEOC standards in the US, CA, and AU."
               },
               {
                 icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#gradient2)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>,
-                title: "Secure Authentication",
-                desc: "Sign in with a secure password or utilize Passkey single sign-on."
+                title: "Premium Security",
+                desc: "Industry-standard bcrypt password hashing and isomorphic DOM purifying for XSS protection."
               },
               {
-                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#gradient2)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>,
-                title: "100% Free",
-                desc: "Completely free, forever, with no hidden costs or paywalls."
+                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#gradient1)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>,
+                title: "Multi-Profile Management",
+                desc: "Create and manage multiple distinct resumes tailored for completely different roles from a single dashboard."
+              },
+              {
+                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#gradient3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12C2 12 5 5 12 5C19 5 22 12 22 12C22 12 19 19 12 19C5 19 2 12 2 12Z"></path><circle cx="12" cy="12" r="3"></circle></svg>,
+                title: "Live Preview Engine",
+                desc: "Experience instant, side-by-side rendering. See how your resume looks in real-time as you type."
+              },
+              {
+                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#gradient2)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="13.5" cy="6.5" r="2.5"></circle><path d="M13.5 9c-3.04 0-5.5 2.46-5.5 5.5s2.46 5.5 5.5 5.5 5.5-2.46 5.5-5.5S16.54 9 13.5 9z"></path><path d="M6.5 17.5c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"></path></svg>,
+                title: "Dynamic Color Palettes",
+                desc: "Customize the aesthetics with predefined accent colors and typography pairings to match your personal brand."
+              },
+              {
+                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#gradient1)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>,
+                title: "Smart Auto-Save",
+                desc: "Never lose your progress. Our intelligent debounce system automatically saves your data as you edit."
               }
             ].map((f, i) => (
               <div className="col-lg-3 col-md-6" key={i}>
@@ -321,7 +336,7 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
 
       {/* 4. Templates Showcase */}
       <section id="templates" className="py-5 overflow-hidden" style={{ background: '#0a0d16', position: 'relative' }}>
-        <div className="container py-5 position-relative z-1">
+        <div className="container position-relative z-1">
           <div className="row align-items-center mb-0">
             <div className="col-lg-7">
               <h2 className="display-5 fw-bolder mb-3 text-light" style={{ letterSpacing: '-1px' }}>Templates</h2>
@@ -332,46 +347,82 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
           </div>
         </div>
         
-        {/* Tilted Marquee Wrapper */}
-        <div className="templates-perspective-wrapper" style={{ perspective: '1200px', transformStyle: 'preserve-3d', paddingBottom: '0px', marginTop: '-140px', overflow: 'hidden' }}>
-          <div className="templates-marquee-container d-flex flex-column gap-4" style={{ 
-            transform: 'rotateY(-8deg) rotateX(2deg) rotateZ(-1deg)',
-            width: 'max-content',
-            paddingLeft: '50px'
-          }}>
-             {/* Row 1 */}
-             <div className="d-flex gap-4 px-3 marquee-track-1">
-               {[...Array(4)].flatMap((_, arrayIndex) => [
-                 { layout: 'sidebar', color: '#10b981', name: 'Kunhao Du' },
-                 { layout: 'classic', color: '#0ea5e9', name: 'John Doe' },
-                 { layout: 'centered', color: '#ec4899', name: 'Sarah Martinez' },
-                 { layout: 'sidebar', color: '#8b5cf6', name: 'Alex Kowalski' },
-                 { layout: 'classic', color: '#f59e0b', name: 'Marcus Chen' },
-                 { layout: 'centered', color: '#14b8a6', name: 'Emma Wilson' },
-               ].map((tpl, i) => (
-                 <MiniResumeMockup key={`r1-${arrayIndex}-${i}`} layout={tpl.layout} color={tpl.color} name={tpl.name} />
-               )))}
-             </div>
-             {/* Row 2 Offset */}
-             <div className="d-flex gap-4 px-3 marquee-track-2" style={{ marginLeft: '-200px' }}>
-               {[...Array(4)].flatMap((_, arrayIndex) => [
-                 { layout: 'centered', color: '#14b8a6', name: 'Emma Wilson' },
-                 { layout: 'sidebar', color: '#8b5cf6', name: 'Alex Kowalski' },
-                 { layout: 'classic', color: '#f59e0b', name: 'Marcus Chen' },
-                 { layout: 'sidebar', color: '#10b981', name: 'Kunhao Du' },
-                 { layout: 'classic', color: '#0ea5e9', name: 'John Doe' },
-                 { layout: 'centered', color: '#ec4899', name: 'Sarah Martinez' },
-               ].map((tpl, i) => (
-                 <MiniResumeMockup key={`r2-${arrayIndex}-${i}`} layout={tpl.layout} color={tpl.color} name={tpl.name} />
-               )))}
-             </div>
+        {/* Animated Premium Grid */}
+        <div className="container position-relative z-1 mt-5">
+          <div className="row g-5 justify-content-center">
+            {[
+              { layout: 'sidebar', color: '#10b981', name: 'Kunhao Du', label: 'Executive Green' },
+              { layout: 'classic', color: '#0ea5e9', name: 'John Doe', label: 'Classic Blue' },
+              { layout: 'centered', color: '#ec4899', name: 'Sarah Martinez', label: 'Creative Pink' },
+              { layout: 'sidebar', color: '#8b5cf6', name: 'Alex Kowalski', label: 'Tech Purple' },
+              { layout: 'classic', color: '#f59e0b', name: 'Marcus Chen', label: 'Modern Amber' },
+              { layout: 'centered', color: '#14b8a6', name: 'Emma Wilson', label: 'Minimal Teal' },
+            ].map((tpl, i) => (
+              <div className="col-lg-4 col-md-6 d-flex justify-content-center" key={i}>
+                <div 
+                  className="template-card-wrapper position-relative" 
+                  style={{ 
+                    transition: 'all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1)', 
+                    cursor: 'pointer' 
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-15px) scale(1.03)';
+                    e.currentTarget.querySelector('.template-glow').style.opacity = '1';
+                    e.currentTarget.querySelector('.template-overlay').style.opacity = '1';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                    e.currentTarget.querySelector('.template-glow').style.opacity = '0';
+                    e.currentTarget.querySelector('.template-overlay').style.opacity = '0';
+                  }}
+                >
+                  <div 
+                    className="template-glow position-absolute w-100 h-100 rounded" 
+                    style={{ 
+                      background: `radial-gradient(circle at center, ${tpl.color}80 0%, transparent 70%)`,
+                      filter: 'blur(35px)',
+                      opacity: 0,
+                      transition: 'opacity 0.5s',
+                      top: 0, left: 0, zIndex: 0
+                    }} 
+                  ></div>
+                  
+                  <div className="position-relative z-1 rounded-4 overflow-hidden shadow-lg" style={{ border: `1px solid rgba(255,255,255,0.08)` }}>
+                    <MiniResumeMockup layout={tpl.layout} color={tpl.color} name={tpl.name} />
+                    
+                    {/* Hover Overlay */}
+                    <div 
+                      className="template-overlay position-absolute w-100 h-100 top-0 start-0 d-flex flex-column align-items-center justify-content-center"
+                      style={{
+                        background: 'rgba(10, 13, 22, 0.85)',
+                        backdropFilter: 'blur(4px)',
+                        opacity: 0,
+                        transition: 'opacity 0.4s ease',
+                        zIndex: 10
+                      }}
+                    >
+                      <span className="badge mb-3 px-3 py-2 fs-6 rounded-pill border" style={{ backgroundColor: `${tpl.color}30`, color: tpl.color, borderColor: `${tpl.color}50` }}>
+                        {tpl.label}
+                      </span>
+                      <button 
+                        className="btn fw-bold rounded-pill px-4 py-2" 
+                        style={{ background: tpl.color, color: '#fff', border: 'none', boxShadow: `0 4px 15px ${tpl.color}60` }}
+                        onClick={isAuthenticated ? onGoToDashboard : onStartBuilder}
+                      >
+                        Use Template
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* 5. Contact Section */}
       <section id="contact" className="py-5" style={{ background: 'linear-gradient(to bottom, #0a0d16 0%, #060913 100%)', position: 'relative' }}>
-        <div className="container py-5 position-relative z-1" style={{ maxWidth: '1000px' }}>
+        <div className="container position-relative z-1" style={{ maxWidth: '1000px' }}>
           <div className="text-center mb-5">
             <span className="text-indigo fw-bold text-uppercase" style={{ letterSpacing: '1px' }}>Get in Touch</span>
             <h2 className="display-5 fw-bold mt-2">Have questions? Contact us!</h2>
