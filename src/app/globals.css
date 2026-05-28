@@ -1941,20 +1941,22 @@ body, input, select, textarea, button, div, span, label {
 }
 
 .brand-jt {
-  font-family: "'Outfit', sans-serif" !important;
-  font-weight: 900 !important;
-  font-size: 2.25rem !important; /* Commanding elegant size */
+  font-family: '"Playfair Display", Georgia, serif' !important;
+  font-style: italic !important;
+  font-weight: 600 !important;
+  font-size: 2.5rem !important; /* Commanding elegant size */
   letter-spacing: -1.5px !important;
-  /* Premium Sunset Gold & Aurora Gradient: Diamond White to Canary Gold to Orange Copper to Electric Cyan */
-  background: linear-gradient(135deg, #ffffff 0%, #fde047 30%, #f97316 65%, #00f5ff 100%) !important;
+  /* Premium Gold Gradient to match the logo image */
+  background: linear-gradient(135deg, #bf953f 0%, #fcf6ba 25%, #b38728 50%, #fbf5b7 75%, #aa771c 100%) !important;
   background-size: 200% auto !important;
   -webkit-background-clip: text !important;
   -webkit-text-fill-color: transparent !important;
-  animation: shineGradient 3.5s linear infinite !important; /* Smooth ambient gradient shimmer */
+  animation: shineGradient 4s linear infinite !important; /* Smooth ambient gradient shimmer */
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  padding-right: 8px;
 }
 
-/* JT Underline Draw - Canary Gold to Electric Cyan gradient */
+/* JT Underline Draw - Elegant Gold */
 .brand::after {
   content: "";
   position: absolute;
@@ -1962,7 +1964,7 @@ body, input, select, textarea, button, div, span, label {
   left: 0;
   width: 0;
   height: 2px;
-  background: linear-gradient(90deg, #fde047, #00f5ff);
+  background: linear-gradient(90deg, #bf953f, #fcf6ba);
   transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   border-radius: 1px;
 }
@@ -1984,16 +1986,16 @@ body, input, select, textarea, button, div, span, label {
 }
 
 .brand-resume {
-  font-family: "'Outfit', sans-serif" !important;
-  font-weight: 300 !important;
+  font-family: '"Playfair Display", Georgia, serif' !important;
+  font-weight: 400 !important;
   font-size: 1.45rem !important;
   letter-spacing: 0.5px !important;
-  /* Synchronized Liquid Gradient: shares same background, size, clip, and speed as JT initials! */
-  background: linear-gradient(135deg, #ffffff 0%, #fde047 30%, #f97316 65%, #00f5ff 100%) !important;
+  /* Synchronized Liquid Gradient: Gold to White */
+  background: linear-gradient(135deg, #fcf6ba 0%, #ffffff 50%, #fcf6ba 100%) !important;
   background-size: 200% auto !important;
   -webkit-background-clip: text !important;
   -webkit-text-fill-color: transparent !important;
-  animation: shineGradient 3.5s linear infinite !important; /* Synced moving shimmer wave */
+  animation: shineGradient 4s linear infinite !important; /* Synced moving shimmer wave */
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
   position: relative;
   display: inline-block;
