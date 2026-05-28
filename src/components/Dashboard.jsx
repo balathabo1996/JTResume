@@ -196,7 +196,7 @@ export default function Dashboard({ user, onSelectResume, onLogout, onOpenProfil
                 
                 <button 
                   className="d-flex align-items-center gap-3 rounded-3"
-                  onClick={onOpenProfile}
+                  onMouseDown={(e) => { e.preventDefault(); onOpenProfile(); }}
                   style={{ padding: '10px 14px', color: '#e2e8f0', background: 'transparent', border: 'none', width: '100%', textAlign: 'left', transition: 'all 0.2s', fontSize: '0.9rem' }}
                   onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#fff' }}
                   onMouseOut={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#e2e8f0' }}
@@ -209,7 +209,7 @@ export default function Dashboard({ user, onSelectResume, onLogout, onOpenProfil
                 
                 <button 
                   className="d-flex align-items-center gap-3 rounded-3"
-                  onClick={onLogout}
+                  onMouseDown={(e) => { e.preventDefault(); onLogout(); }}
                   style={{ padding: '10px 14px', color: '#f87171', background: 'transparent', border: 'none', width: '100%', textAlign: 'left', transition: 'all 0.2s', fontSize: '0.9rem' }}
                   onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(248,113,113,0.1)'; e.currentTarget.style.color = '#fca5a5' }}
                   onMouseOut={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#f87171' }}

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useLayoutEffect, useEffect } from "react";
 import RichTextEditor from "./RichTextEditor";
+import MonthYearPicker from "./MonthYearPicker";
 
 export default function BuilderForm({
   formData,
@@ -186,10 +187,12 @@ export default function BuilderForm({
   // ── Array Items Reorder state ──────────────────────────────
   const [expandedItems, setExpandedItems] = useState({});
   const toggleItemCollapse = (itemKey) => {
-    setExpandedItems(prev => ({
-      ...prev,
-      [itemKey]: !prev[itemKey]
-    }));
+    setExpandedItems(prev => {
+      if (prev[itemKey]) {
+        return { ...prev, [itemKey]: false };
+      }
+      return { [itemKey]: true };
+    });
   };
 
   const dragItemIdx = useRef(null);
@@ -946,7 +949,7 @@ export default function BuilderForm({
                   </div>
 
                   <div className="row g-3">
-                    <div className="field col-md-6 d-flex flex-column gap-1">
+                    <div className="field col-md-12 d-flex flex-column gap-1">
                       <label className="form-label">
                         Location (City, State/Prov)
                       </label>
@@ -964,41 +967,25 @@ export default function BuilderForm({
                         placeholder="e.g. Austin, TX"
                       />
                     </div>
-                    <div className="field col-md-6">
-                      <div className="row g-2">
-                        <div className="field col-6 d-flex flex-column gap-1">
-                          <label className="form-label">Start Date</label>
-                          <input
-                            type="text"
-                            className="input-control"
-                            value={exp.startDate || ""}
-                            onChange={(e) =>
-                              handleUpdateExperienceItem(
-                                expIdx,
-                                "startDate",
-                                e.target.value,
-                              )
-                            }
-                            placeholder="e.g. 2021-06"
-                          />
-                        </div>
-                        <div className="field col-6 d-flex flex-column gap-1">
-                          <label className="form-label">End Date</label>
-                          <input
-                            type="text"
-                            className="input-control"
-                            value={exp.endDate || ""}
-                            onChange={(e) =>
-                              handleUpdateExperienceItem(
-                                expIdx,
-                                "endDate",
-                                e.target.value,
-                              )
-                            }
-                            placeholder="e.g. Present or 2023-05"
-                          />
-                        </div>
-                      </div>
+                  </div>
+
+                  <div className="row g-3">
+                    <div className="field col-md-6 d-flex flex-column gap-1">
+                      <label className="form-label">Start Date</label>
+                      <MonthYearPicker
+                        value={exp.startDate || ""}
+                        onChange={(val) => handleUpdateExperienceItem(expIdx, "startDate", val)}
+                        isEndDate={false}
+                      />
+                    </div>
+                    <div className="field col-md-6 d-flex flex-column gap-1">
+                      <label className="form-label">End Date</label>
+                      <MonthYearPicker
+                        value={exp.endDate || ""}
+                        onChange={(val) => handleUpdateExperienceItem(expIdx, "endDate", val)}
+                        isEndDate={true}
+                        presentLabel="I currently work here"
+                      />
                     </div>
                   </div>
 
@@ -1123,25 +1110,23 @@ export default function BuilderForm({
                 {expandedItems[proj.id || `proj-${projIdx}`] && (
                   <div className="repeater-item-body d-flex flex-column gap-3">
                   <div className="row g-3">
-                    <div className="field col-md-8 d-flex flex-column gap-1">
+                    <div className="field col-md-6 d-flex flex-column gap-1">
                       <label className="form-label">Project Name</label>
                       <input type="text" className="input-control" value={proj.name || ''} onChange={(e) => handleUpdateProject(projIdx, 'name', e.target.value)} placeholder="e.g. E-Commerce Platform" />
                     </div>
-                    <div className="field col-md-4 d-flex flex-column gap-1" style={{ display: 'flex', gap: '8px' }}>
-                      <div className="d-flex flex-column gap-1" style={{ flex: 1 }}>
-                        <label className="form-label">Start</label>
-                        <input type="text" className="input-control" value={proj.startDate || ''} onChange={(e) => handleUpdateProject(projIdx, 'startDate', e.target.value)} placeholder="2023-01" />
-                      </div>
-                    </div>
-                  </div>
-                  <div className="row g-3">
                     <div className="field col-md-6 d-flex flex-column gap-1">
                       <label className="form-label">Tech Stack</label>
                       <input type="text" className="input-control" value={proj.techStack || ''} onChange={(e) => handleUpdateProject(projIdx, 'techStack', e.target.value)} placeholder="e.g. React, Node.js, PostgreSQL" />
                     </div>
+                  </div>
+                  <div className="row g-3">
+                    <div className="field col-md-6 d-flex flex-column gap-1">
+                      <label className="form-label">Start Date</label>
+                      <MonthYearPicker value={proj.startDate || ''} onChange={(val) => handleUpdateProject(projIdx, 'startDate', val)} isEndDate={false} />
+                    </div>
                     <div className="field col-md-6 d-flex flex-column gap-1">
                       <label className="form-label">End Date</label>
-                      <input type="text" className="input-control" value={proj.endDate || ''} onChange={(e) => handleUpdateProject(projIdx, 'endDate', e.target.value)} placeholder="e.g. Present" />
+                      <MonthYearPicker value={proj.endDate || ''} onChange={(val) => handleUpdateProject(projIdx, 'endDate', val)} isEndDate={true} presentLabel="Ongoing project" />
                     </div>
                   </div>
                   <div className="row g-3">
@@ -1334,34 +1319,19 @@ export default function BuilderForm({
                   <div className="row g-3">
                     <div className="field col-md-6 d-flex flex-column gap-1">
                       <label className="form-label">Start Date</label>
-                      <input
-                        type="text"
-                        className="input-control"
+                      <MonthYearPicker
                         value={edu.startDate || ""}
-                        onChange={(e) =>
-                          handleUpdateEducationItem(
-                            eduIdx,
-                            "startDate",
-                            e.target.value,
-                          )
-                        }
-                        placeholder="e.g. 2012-09"
+                        onChange={(val) => handleUpdateEducationItem(eduIdx, "startDate", val)}
+                        isEndDate={false}
                       />
                     </div>
                     <div className="field col-md-6 d-flex flex-column gap-1">
                       <label className="form-label">End Date</label>
-                      <input
-                        type="text"
-                        className="input-control"
+                      <MonthYearPicker
                         value={edu.endDate || ""}
-                        onChange={(e) =>
-                          handleUpdateEducationItem(
-                            eduIdx,
-                            "endDate",
-                            e.target.value,
-                          )
-                        }
-                        placeholder="e.g. 2016-05"
+                        onChange={(val) => handleUpdateEducationItem(eduIdx, "endDate", val)}
+                        isEndDate={true}
+                        presentLabel="Currently enrolled"
                       />
                     </div>
                   </div>
@@ -1904,17 +1874,19 @@ export default function BuilderForm({
                       </div>
                     </div>
                     <div className="row g-3">
-                      <div className="field col-md-4 d-flex flex-column gap-1">
+                      <div className="field col-md-12 d-flex flex-column gap-1">
                         <label className="form-label">Location</label>
                         <input type="text" className="input-control" value={item.location || ''} onChange={(e) => handleUpdateCustomItem(sectionIdx, itemIdx, 'location', e.target.value)} placeholder="e.g. Remote / Austin, TX" />
                       </div>
-                      <div className="field col-md-4 d-flex flex-column gap-1">
+                    </div>
+                    <div className="row g-3">
+                      <div className="field col-md-6 d-flex flex-column gap-1">
                         <label className="form-label">Start Date</label>
-                        <input type="text" className="input-control" value={item.startDate || ''} onChange={(e) => handleUpdateCustomItem(sectionIdx, itemIdx, 'startDate', e.target.value)} placeholder="e.g. 2022-01" />
+                        <MonthYearPicker value={item.startDate || ''} onChange={(val) => handleUpdateCustomItem(sectionIdx, itemIdx, 'startDate', val)} isEndDate={false} />
                       </div>
-                      <div className="field col-md-4 d-flex flex-column gap-1">
+                      <div className="field col-md-6 d-flex flex-column gap-1">
                         <label className="form-label">End Date</label>
-                        <input type="text" className="input-control" value={item.endDate || ''} onChange={(e) => handleUpdateCustomItem(sectionIdx, itemIdx, 'endDate', e.target.value)} placeholder="e.g. Present" />
+                        <MonthYearPicker value={item.endDate || ''} onChange={(val) => handleUpdateCustomItem(sectionIdx, itemIdx, 'endDate', val)} isEndDate={true} />
                       </div>
                     </div>
                     <div className="field d-flex flex-column gap-1">
