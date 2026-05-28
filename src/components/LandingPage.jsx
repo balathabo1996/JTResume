@@ -607,7 +607,7 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
       </section>
 
       {/* 5. Contact Section */}
-      <section id="contact" className="pt-2 pb-5" style={{ background: 'linear-gradient(to bottom, #0a0d16 0%, #060913 100%)', position: 'relative' }}>
+      <section id="contact" className="py-5" style={{ background: 'linear-gradient(to bottom, #0a0d16 0%, #060913 100%)', position: 'relative' }}>
         <div className="container position-relative z-1" style={{ maxWidth: '1000px' }}>
           <div className="text-center mb-5">
             <span className="text-indigo fw-bold text-uppercase" style={{ letterSpacing: '1px' }}>Get in Touch</span>

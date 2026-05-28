@@ -30,6 +30,14 @@
   padding: 0;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
+section[id] {
+  scroll-margin-top: 65px;
+}
+
 body {
   background-color: var(--ui-bg);
   color: var(--ui-text-primary);
