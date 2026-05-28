@@ -1,4 +1,9 @@
-import React, { useState, useEffect } from 'react';
+/**
+ * @file CoverLetterGenerator.jsx
+ * @description React component rendering the CoverLetterGenerator UI element.
+ * @author Jonathan T. Miller
+ */
+import { useState, useEffect } from 'react';
 import DOMPurify from 'isomorphic-dompurify';
 import { generateCoverLetterDocx } from '../utils/coverLetterDocxExport';
 
@@ -100,21 +105,21 @@ export default function CoverLetterGenerator({ resumeId, onBack, onGoHome }) {
   return (
     <div className="app-container container-fluid p-0 bg-dark text-light vh-100 w-100 d-flex flex-column overflow-hidden">
       {/* Header */}
-      <div className="sidebar-sticky-header sticky-top shadow-sm px-4 py-3 d-flex align-items-center justify-content-between" style={{ background: '#0d1117', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+      <div className="sidebar-sticky-header sticky-top shadow-sm px-3 py-2 px-md-4 py-md-3 d-flex flex-wrap align-items-center justify-content-between gap-2" style={{ background: '#0d1117', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
         
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
           <button 
             onClick={onBack} 
             className="btn btn-link text-light text-decoration-none d-flex align-items-center p-0"
-            style={{ color: '#a5b4fc' }}
+            style={{ color: '#a5b4fc', alignSelf: 'center' }}
             title="Return to Dashboard"
           >
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
           </button>
           
           <div 
-            className="brand" 
-            style={{ userSelect: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }} 
+            className="brand d-flex flex-shrink-0" 
+            style={{ userSelect: 'none', cursor: 'pointer', alignItems: 'baseline', width: '150px' }} 
             onClick={onGoHome}
             title="Return to Home"
           >
@@ -123,16 +128,16 @@ export default function CoverLetterGenerator({ resumeId, onBack, onGoHome }) {
             </div>
           </div>
           
-          <div style={{ width: '1px', height: '24px', background: 'rgba(255,255,255,0.15)', margin: '0 8px' }}></div>
+          <div className="d-none d-sm-block" style={{ width: '1px', height: '24px', background: 'rgba(255,255,255,0.15)', margin: '0 4px', alignSelf: 'center' }}></div>
           
-          <h5 className="m-0 fw-bold d-flex align-items-center gap-2" style={{ background: 'linear-gradient(to right, #a855f7, #3b82f6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-            ✨ AI Cover Letter Generator
+          <h5 className="m-0 fw-bold" style={{ fontSize: '1.1rem', background: 'linear-gradient(to right, #a855f7, #3b82f6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', whiteSpace: 'nowrap' }}>
+            <span style={{ marginRight: '8px' }}>✨</span>AI Cover Letter
           </h5>
         </div>
 
         {resumeData && (
-          <span className="text-secondary fw-semibold bg-dark border border-secondary rounded px-3 py-1" style={{ fontSize: '0.85rem' }}>
-            Using Resume: <span className="text-light">{resumeData.title}</span>
+          <span className="text-secondary fw-semibold bg-dark border border-secondary rounded px-2 py-1 text-truncate ms-auto" style={{ fontSize: '0.8rem', maxWidth: '140px' }}>
+            Resume: <span className="text-light">{resumeData.title}</span>
           </span>
         )}
       </div>

@@ -1,16 +1,46 @@
+/**
+ * @file route.js
+ * @description Next.js API route for handling backend logic related to route.js.
+ * @author Jonathan T. Miller
+ */
 import { NextResponse } from 'next/server';
 import clientPromise from '../../../../utils/mongodb';
 import bcrypt from 'bcryptjs';
 import fs from 'fs';
 import path from 'path';
+import { registerSchema } from '../../../../utils/validators';
+import { rateLimit } from '../../../../utils/rate-limit';
+
+const limiter = rateLimit({
+  uniqueTokenPerInterval: 500,
+  interval: 60000 * 15, // 15 minutes
+});
 
 export async function POST(request) {
   try {
-    const { fullName, email, password, phone } = await request.json();
+    // Rate limit based on IP (using generic header fallback if x-forwarded-for is missing)
+    const ip = request.headers.get('x-forwarded-for') || '127.0.0.1';
+    const res = new NextResponse();
+    await limiter.check(res, 5, ip); // Max 5 registrations per 15 minutes
+    
+    const body = await request.json();
+    
+    // Zod validation
+    const validation = registerSchema.safeParse({
+      name: body.fullName,
+      email: body.email,
+      password: body.password,
+    });
 
-    if (!email || !password || !fullName) {
-      return NextResponse.json({ error: 'All fields are required.' }, { status: 400 });
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: validation.error.errors[0].message },
+        { status: 400 }
+      );
     }
+
+    const { name: fullName, email, password } = validation.data;
+    const phone = body.phone || '';
 
     const cleanEmail = email.toLowerCase().trim();
     const hashedPassword = await bcrypt.hash(password, 10);

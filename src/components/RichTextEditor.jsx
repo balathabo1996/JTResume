@@ -1,4 +1,9 @@
-import React, { useRef, useEffect } from 'react';
+/**
+ * @file RichTextEditor.jsx
+ * @description React component rendering the RichTextEditor UI element.
+ * @author Jonathan T. Miller
+ */
+import { useRef, useEffect } from 'react';
 
 export default function RichTextEditor({ value, onChange, placeholder, onFocus, onBlur }) {
   const editorRef = useRef(null);

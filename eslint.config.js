@@ -18,4 +18,14 @@ export default defineConfig([
       parserOptions: { ecmaFeatures: { jsx: true } },
     },
   },
+  // Server-side files (API routes, utils that run in Node)
+  {
+    files: ['src/utils/mongodb.js', 'src/app/api/**/*.js', 'src/app/api/**/*.jsx'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        ...globals.browser,
+      },
+    },
+  },
 ])

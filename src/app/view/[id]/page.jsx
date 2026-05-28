@@ -1,5 +1,10 @@
 "use client";
-import React, { useEffect, useState, use } from 'react';
+/**
+ * @file page.jsx
+ * @description Source file for page.jsx.
+ * @author Jonathan T. Miller
+ */
+import { useEffect, useState, use } from 'react';
 import ResumePreview from '../../../components/ResumePreview';
 
 export default function ViewResumePage({ params }) {
@@ -21,7 +26,7 @@ export default function ViewResumePage({ params }) {
           setError(data.error || 'Resume not found');
         }
       })
-      .catch(err => {
+      .catch(() => {
         setError('Failed to load resume');
       })
       .finally(() => {

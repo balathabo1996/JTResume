@@ -6,8 +6,9 @@ JTResume is a modern, full-stack Next.js web application designed to help job se
 
 ## ✨ Key Features
 
-* **🧠 AI-Powered Content Enhancement**: Integrates Google Gemini AI to automatically generate professional summaries, enhance experience bullet points, and optimize your resume for target roles.
-* **☁️ Cloud Sync & Local Storage**: Save your resume profiles to a MongoDB database for access across devices, or keep everything strictly private within your browser's local storage.
+* **🧠 AI-Powered Content Enhancement**: Integrates Google Gemini AI to automatically generate professional summaries, enhance experience bullet points, write cover letters, and conduct mock interviews.
+* **📥 Universal Import System**: Extract and parse highly structured data directly from an exported LinkedIn PDF using AI, or import via plain text and standard JSON profiles.
+* **🔒 Bank-Grade Security**: Features zero-trust local AES encryption for sensitive data, JWT session validation, strict Zod schema validation, API rate limiting, and an intelligent idle auto-logout system.
 * **🎨 Deluxe Design Customizer**: Fine-tune themes instantly:
   * **6 Custom Layout Styles**: Classic Formal, Modern Minimalist, Creative Executive (2-column sidebar), Executive Prestige, Tech Minimalist, and Academic Editorial.
   * **10 Curated Accent Palettes**: Professionally balanced color presets.
@@ -30,7 +31,8 @@ JTResume is a modern, full-stack Next.js web application designed to help job se
 * **API**: Next.js Route Handlers
 * **Database**: MongoDB
 * **AI Integration**: Google GenAI (`@google/genai`) for Gemini
-* **Authentication**: `bcryptjs`
+* **Authentication**: `bcryptjs`, JWT Tokens, SSO/OAuth capabilities
+* **Security**: `zod` (Input Validation), `crypto-js` (Client-side AES Encryption), Upstash Redis (API Rate Limiting)
 * **Utilities**: `docx` for Word exports, `nodemailer` for communications, `isomorphic-dompurify` for XSS protection
 
 ---

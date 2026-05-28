@@ -1,8 +1,60 @@
-import React from 'react';
+/**
+ * @file ResumePreview.jsx
+ * @description React component rendering the ResumePreview UI element.
+ * @author Jonathan T. Miller
+ */
+import { useState, useEffect, useRef } from 'react';
 import DOMPurify from 'isomorphic-dompurify';
 
 export default function ResumePreview({ formData, country = 'usa', templateStyle, accentColor, spacingTuning = 'normal', fontPairing = 'modern' }) {
   const { personalInfo, workExperience, education, skills, certifications, references } = formData;
+  const containerRef = useRef(null);
+  const [scale, setScale] = useState(1);
+
+  useEffect(() => {
+    const updateScale = () => {
+      if (containerRef.current) {
+        // Measure parent container to scale down the exact fixed-size paper wrapper
+        const parentWidth = containerRef.current.parentElement?.offsetWidth || window.innerWidth;
+        const baseWidth = country === 'a4' ? 794 : 816;
+        const padding = 32; // 16px padding on sides for breathing room on mobile
+        
+        if (parentWidth === 0) return; // Ignore when hidden (display: none)
+        
+        if (parentWidth < baseWidth + padding) {
+          setScale(Math.max(0.1, (parentWidth - padding) / baseWidth));
+        } else {
+          setScale(1);
+        }
+      }
+    };
+
+    updateScale();
+    
+    // Use ResizeObserver to detect when the container becomes visible (display: none -> flex)
+    const observer = new ResizeObserver(() => {
+      updateScale();
+    });
+    
+    if (containerRef.current && containerRef.current.parentElement) {
+      observer.observe(containerRef.current.parentElement);
+    }
+
+    window.addEventListener('resize', updateScale);
+    return () => {
+      window.removeEventListener('resize', updateScale);
+      observer.disconnect();
+    };
+  }, [country]);
+
+  const [autoFitMultiplier, setAutoFitMultiplier] = useState(1);
+  const [isAutoFitting, setIsAutoFitting] = useState(false);
+
+  // Reset auto-fit when content significantly changes
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setAutoFitMultiplier(1);
+  }, [formData, templateStyle, spacingTuning, fontPairing]);
 
   const isEmpty = !personalInfo.fullName && workExperience.length === 0 && education.length === 0;
 
@@ -114,43 +166,62 @@ export default function ResumePreview({ formData, country = 'usa', templateStyle
     );
   }
 
-  // Calculate dynamic spacing values based on layout spacing tuner state (Letter standard is globally standard for resumes)
+  const handleAutoFit = async () => {
+    const paper = document.getElementById('resume-print-target');
+    if (!paper) return;
+
+    setIsAutoFitting(true);
+    setAutoFitMultiplier(1); // Reset
+    await new Promise(resolve => setTimeout(resolve, 50)); // Wait for DOM render
+
+    const currentHeight = paper.scrollHeight;
+    const singlePage = country === 'a4' ? 1122 : 1056; 
+    let target = singlePage;
+    
+    // If it's more than 30% onto the second page, target 2 pages instead
+    if (currentHeight > singlePage * 1.3) {
+      target = singlePage * 2;
+    }
+
+    if (currentHeight <= target) {
+      setIsAutoFitting(false);
+      return; // Already fits perfectly
+    }
+
+    let multiplier = 1.0;
+    while (paper.scrollHeight > target && multiplier > 0.75) {
+      multiplier -= 0.02;
+      // Inject directly for rapid iteration speed
+      paper.style.setProperty('--resume-font-size-body', `${0.86 * multiplier}rem`);
+      paper.style.setProperty('--resume-line-height', `${1.5 * multiplier}`);
+      paper.style.setProperty('--resume-section-margin', `${20 * multiplier}px`);
+      paper.style.setProperty('--resume-block-margin', `${14 * multiplier}px`);
+      await new Promise(resolve => setTimeout(resolve, 5));
+    }
+
+    setAutoFitMultiplier(multiplier);
+    setIsAutoFitting(false);
+  };
+
   const getSpacingVariables = () => {
+    let padding = 48, section = 20, block = 14, lh = 1.5, fs = 0.86, hm = 24, hp = 16;
     if (spacingTuning === 'compact') {
-      return {
-        '--resume-padding': '32px',
-        '--resume-section-margin': '12px',
-        '--resume-block-margin': '8px',
-        '--resume-line-height': '1.3',
-        '--resume-font-size-body': '0.8rem',
-        '--resume-header-margin': '12px',
-        '--resume-header-padding': '8px'
-      };
+      padding = 32; section = 12; block = 8; lh = 1.3; fs = 0.8; hm = 12; hp = 8;
+    } else if (spacingTuning === 'relaxed') {
+      padding = 60; section = 28; block = 18; lh = 1.65; fs = 0.92; hm = 32; hp = 20;
     }
-    if (spacingTuning === 'spacious') {
-      return {
-        '--resume-padding': '60px',
-        '--resume-section-margin': '28px',
-        '--resume-block-margin': '18px',
-        '--resume-line-height': '1.65',
-        '--resume-font-size-body': '0.92rem',
-        '--resume-header-margin': '32px',
-        '--resume-header-padding': '20px'
-      };
-    }
-    // Default / Normal
+    
     return {
-      '--resume-padding': '48px',
-      '--resume-section-margin': '20px',
-      '--resume-block-margin': '14px',
-      '--resume-line-height': '1.5',
-      '--resume-font-size-body': '0.86rem',
-      '--resume-header-margin': '24px',
-      '--resume-header-padding': '16px'
+      '--resume-padding': `${padding * autoFitMultiplier}px`,
+      '--resume-section-margin': `${section * autoFitMultiplier}px`,
+      '--resume-block-margin': `${block * autoFitMultiplier}px`,
+      '--resume-line-height': `${lh * autoFitMultiplier}`,
+      '--resume-font-size-body': `${fs * autoFitMultiplier}rem`,
+      '--resume-header-margin': `${hm * autoFitMultiplier}px`,
+      '--resume-header-padding': `${hp * autoFitMultiplier}px`
     };
   };
 
-  // Dynamic typography pairings to maximize professional presentation
   const getFontVariables = () => {
     if (fontPairing === 'editorial') {
       return {
@@ -160,14 +231,20 @@ export default function ResumePreview({ formData, country = 'usa', templateStyle
     }
     if (fontPairing === 'tech') {
       return {
-        '--resume-font-heading': "'Outfit', sans-serif",
-        '--resume-font-body': "'Roboto Mono', monospace",
+        '--resume-font-heading': "'Roboto Mono', monospace",
+        '--resume-font-body': "'Inter', sans-serif",
       };
     }
-    if (fontPairing === 'corporate') {
+    if (fontPairing === 'classic') {
+      return {
+        '--resume-font-heading': "'Roboto', sans-serif",
+        '--resume-font-body': "'Merriweather', serif",
+      };
+    }
+    if (fontPairing === 'elegant') {
       return {
         '--resume-font-heading': "'Inter', sans-serif",
-        '--resume-font-body': "'Inter', sans-serif",
+        '--resume-font-body': "'Lora', serif",
       };
     }
     // Default / Modern
@@ -1031,5 +1108,43 @@ export default function ResumePreview({ formData, country = 'usa', templateStyle
     );
   }
 
-  return paperContent;
+  return (
+    <div ref={containerRef} style={{ width: '100%', display: 'flex', justifyContent: 'center', position: 'relative' }}>
+      <div style={{ 
+        transform: `scale(${scale})`, 
+        transformOrigin: 'top center', 
+        transition: 'transform 0.15s ease-out',
+        marginBottom: scale < 1 ? `calc(-100% * (1 - ${scale}))` : '0', // approximate margin fix to prevent huge gaps at bottom on mobile
+        position: 'relative'
+      }}>
+        <button 
+          onClick={handleAutoFit}
+          disabled={isAutoFitting}
+          className="btn btn-primary shadow-sm"
+          style={{ 
+            position: 'absolute', 
+            top: '-20px', 
+            right: '-20px', 
+            zIndex: 100, 
+            borderRadius: '20px',
+            padding: '6px 16px',
+            fontSize: '0.85rem',
+            fontWeight: 600,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px'
+          }}
+          title="Intelligently compress layout to fit perfectly on the page"
+        >
+          {isAutoFitting ? (
+            <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+          ) : (
+            <span>✨</span>
+          )}
+          {isAutoFitting ? 'Fitting...' : 'Auto-Fit'}
+        </button>
+        {paperContent}
+      </div>
+    </div>
+  );
 }

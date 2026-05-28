@@ -1,5 +1,12 @@
+/* global process */
+/* eslint-disable react-hooks/set-state-in-effect */
 'use client';
 
+/**
+ * @file page.js
+ * @description Source file for page.js.
+ * @author Jonathan T. Miller
+ */
 import { useEffect, useState } from 'react';
 
 export default function SSOPage() {

@@ -33,9 +33,9 @@ export function parsePlainResumeText(text) {
 
   // 1. REGEX SCANNING FOR CONTACT DETAILS
   const emailRegex = /[\w.-]+@[\w.-]+\.\w+/i;
-  const phoneRegex = /\+?\d[\d-\s\(\)\.]{8,14}\d/;
-  const linkedinRegex = /(linkedin\.com\/in\/[\w\-]+)/i;
-  const githubRegex = /(github\.com\/[\w\-]+)/i;
+  const phoneRegex = /\+?\d[\d-\s().]{8,14}\d/;
+  const linkedinRegex = /(linkedin\.com\/in\/[\w-]+)/i;
+  const githubRegex = /(github\.com\/[\w-]+)/i;
   const urlRegex = /(https?:\/\/[\w.-]+\.\w+[^\s]*)/i;
 
   let nameFound = false;
@@ -101,7 +101,7 @@ export function parsePlainResumeText(text) {
 
     // Section specific line parsing
     switch (currentSection) {
-      case 'personal':
+      case 'personal': {
         // The first 1-2 lines usually contain Name and Title if they are not contact details
         const containsContact = emailRegex.test(line) || phoneRegex.test(line) || linkedinRegex.test(line) || githubRegex.test(line) || urlRegex.test(line);
         
@@ -116,12 +116,13 @@ export function parsePlainResumeText(text) {
           summaryBuffer.push(line);
         }
         break;
+      }
 
       case 'summary_section':
         summaryBuffer.push(line);
         break;
 
-      case 'experience':
+      case 'experience': {
         // Detect dates e.g. "2020 - Present", "Jun 2019 - May 2021", "2018 - 2020"
         const datePattern = /(19|20)\d{2}\s*[-–—]\s*(Present|(19|20)\d{2})|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec/i;
         const lineHasDate = datePattern.test(line);
@@ -138,8 +139,8 @@ export function parsePlainResumeText(text) {
           
           // Create new experience block
           // Let's heuristically extract title & company e.g. "Software Engineer - Google" or "Lead Dev at ByteWave"
-          let role = "Role";
-          let company = "Company";
+          let role;
+          let company;
           let location = "";
 
           const parts = line.split(/[-–—|at@]/);
@@ -160,7 +161,7 @@ export function parsePlainResumeText(text) {
           const dateMatch = line.match(/(Present|(19|20)\d{2}.*)/i) || line.match(datePattern);
           if (dateMatch) {
             dateStr = dateMatch[0].trim();
-            role = role.replace(dateStr, '').trim();
+            role = (role || "").replace(dateStr, '').trim();
           }
 
           activeExp = {
@@ -175,7 +176,7 @@ export function parsePlainResumeText(text) {
         } else if (activeExp) {
           if (isBullet) {
             // strip bullet symbol
-            const bulletText = line.replace(/^[•\-\*\s]+/, '').trim();
+            const bulletText = line.replace(/^[•\-*\s]+/, '').trim();
             if (bulletText) activeExp.description.push(bulletText);
           } else {
             // Append as bullet anyway or append to last bullet
@@ -187,8 +188,9 @@ export function parsePlainResumeText(text) {
           }
         }
         break;
+      }
 
-      case 'education':
+      case 'education': {
         // Education dates & degrees scanner
         const eduDatePattern = /(19|20)\d{2}/;
         const isEduBullet = line.startsWith('•') || line.startsWith('-') || line.startsWith('*');
@@ -198,8 +200,8 @@ export function parsePlainResumeText(text) {
             parsedData.education.push(activeEdu);
           }
 
-          let degree = "Degree";
-          let school = "Institution";
+          let degree;
+          let school;
           
           const parts = line.split(/,|-|at|from/i);
           if (parts.length >= 2) {
@@ -218,8 +220,8 @@ export function parsePlainResumeText(text) {
 
           activeEdu = {
             id: `edu-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
-            degree: degree,
-            school: school,
+            degree: degree || "Degree",
+            school: school || "Institution",
             location: "Location",
             startDate: dateStr,
             endDate: dateStr,
@@ -229,12 +231,13 @@ export function parsePlainResumeText(text) {
           activeEdu.details += (activeEdu.details ? " " : "") + line;
         }
         break;
+      }
 
-      case 'skills':
+      case 'skills': {
         // Split comma-separated items
         // Let's assume categories are either defined as "Languages: JavaScript, Go" or just lists
-        let category = "Core Competencies";
-        let itemsList = [];
+        let category;
+        let itemsList;
 
         if (line.includes(':')) {
           const parts = line.split(':');
@@ -248,13 +251,14 @@ export function parsePlainResumeText(text) {
         if (itemsList.length > 0) {
           parsedData.skills.push({
             id: `sk-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
-            category: category,
+            category: category || "Skills Listing",
             items: itemsList
           });
         }
         break;
+      }
 
-      case 'certifications':
+      case 'certifications': {
         if (activeCert) {
           parsedData.certifications.push(activeCert);
         }
@@ -275,8 +279,9 @@ export function parsePlainResumeText(text) {
           date: ""
         };
         break;
+      }
 
-      case 'references':
+      case 'references': {
         if (activeRef) {
           parsedData.references.push(activeRef);
         }
@@ -298,6 +303,7 @@ export function parsePlainResumeText(text) {
           contact: refContact
         };
         break;
+      }
     }
   }
 

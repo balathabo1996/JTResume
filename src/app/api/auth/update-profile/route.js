@@ -1,3 +1,8 @@
+/**
+ * @file route.js
+ * @description Next.js API route for handling backend logic related to route.js.
+ * @author Jonathan T. Miller
+ */
 import { NextResponse } from 'next/server';
 import clientPromise from '../../../../utils/mongodb';
 
@@ -50,7 +55,8 @@ export async function POST(request) {
 
     // Return the updated user without the password
     const updatedUser = await usersCollection.findOne({ email: cleanNewEmail });
-    const { password: _, ...userWithoutPassword } = updatedUser;
+    const userWithoutPassword = { ...updatedUser };
+    delete userWithoutPassword.password;
 
     return NextResponse.json({ 
       success: true, 

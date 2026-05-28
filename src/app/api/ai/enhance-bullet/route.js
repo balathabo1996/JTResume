@@ -1,8 +1,23 @@
+/**
+ * @file route.js
+ * @description Next.js API route for handling backend logic related to route.js.
+ * @author Jonathan T. Miller
+ */
 import { NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
+import { rateLimit } from '../../../../utils/rate-limit';
+
+const limiter = rateLimit({
+  uniqueTokenPerInterval: 500,
+  interval: 60000, // 1 minute
+});
 
 export async function POST(request) {
   try {
+    const ip = request.headers.get('x-forwarded-for') || '127.0.0.1';
+    const res = new NextResponse();
+    await limiter.check(res, 10, ip); // Max 10 AI generations per minute
+
     const { content, role, company } = await request.json();
 
     const apiKey = process.env.GEMINI_API_KEY;

@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "JTResume API",
-    "description": "A Postman collection containing all backend API endpoints for the JTResume Next.js application.",
+    "name": "JTResume API v2.0",
+    "description": "A Postman collection containing all backend API endpoints for the JTResume Next.js application, including new AI Engine features, SSO, and Universal Import.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -12,9 +12,7 @@
           "name": "Enhance Bullet Point",
           "request": {
             "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"content\": \"Fixed bugs in the app.\",\n  \"role\": \"Software Engineer\",\n  \"company\": \"Tech Innovations\"\n}"
@@ -26,9 +24,7 @@
           "name": "Generate Summary",
           "request": {
             "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"name\": \"John Doe\",\n  \"jobTitle\": \"Full Stack Developer\",\n  \"keywords\": [\"React\", \"Node.js\", \"Leadership\"]\n}"
@@ -40,14 +36,36 @@
           "name": "Generate Cover Letter",
           "request": {
             "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"resumeData\": {},\n  \"jobDescription\": \"Looking for a developer...\",\n  \"hiringManager\": \"Jane Smith\"\n}"
             },
             "url": { "raw": "{{baseUrl}}/api/ai/generate-cover-letter", "host": ["{{baseUrl}}"], "path": ["api", "ai", "generate-cover-letter"] }
+          }
+        },
+        {
+          "name": "Parse LinkedIn PDF",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pdfText\": \"Raw extracted text from LinkedIn PDF...\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/ai/parse-linkedin", "host": ["{{baseUrl}}"], "path": ["api", "ai", "parse-linkedin"] }
+          }
+        },
+        {
+          "name": "Mock Interview AI",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"history\": [{\"role\": \"user\", \"parts\": [{\"text\": \"Hello\"}]}],\n  \"resumeContext\": {},\n  \"jobDescription\": \"Senior Dev\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/ai/interview", "host": ["{{baseUrl}}"], "path": ["api", "ai", "interview"] }
           }
         }
       ]
@@ -74,6 +92,24 @@
           }
         },
         {
+          "name": "Initiate SSO",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"john@company.com\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/auth/sso", "host": ["{{baseUrl}}"], "path": ["api", "auth", "sso"] }
+          }
+        },
+        {
+          "name": "OAuth Token Exchange",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\n  \"token\": \"oauth_token_here\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/auth/oauth-exchange", "host": ["{{baseUrl}}"], "path": ["api", "auth", "oauth-exchange"] }
+          }
+        },
+        {
           "name": "Change Password",
           "request": {
             "method": "POST",
@@ -92,35 +128,11 @@
           }
         },
         {
-          "name": "Forgot Password",
+          "name": "Delete User Account",
           "request": {
             "method": "POST",
             "header": [ { "key": "Content-Type", "value": "application/json" } ],
-            "body": { "mode": "raw", "raw": "{\n  \"email\": \"john@example.com\"\n}" },
-            "url": { "raw": "{{baseUrl}}/api/auth/forgot-password", "host": ["{{baseUrl}}"], "path": ["api", "auth", "forgot-password"] }
-          }
-        },
-        {
-          "name": "Reset Password",
-          "request": {
-            "method": "POST",
-            "header": [ { "key": "Content-Type", "value": "application/json" } ],
-            "body": { "mode": "raw", "raw": "{\n  \"token\": \"abc123xyz\",\n  \"newPassword\": \"mynewpassword\"\n}" },
-            "url": { "raw": "{{baseUrl}}/api/auth/reset-password", "host": ["{{baseUrl}}"], "path": ["api", "auth", "reset-password"] }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Contact",
-      "item": [
-        {
-          "name": "Submit Contact Form",
-          "request": {
-            "method": "POST",
-            "header": [ { "key": "Content-Type", "value": "application/json" } ],
-            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Jane Doe\",\n  \"email\": \"jane@example.com\",\n  \"subject\": \"Support Request\",\n  \"message\": \"Need help with my resume export.\"\n}" },
-            "url": { "raw": "{{baseUrl}}/api/contact", "host": ["{{baseUrl}}"], "path": ["api", "contact"] }
+            "url": { "raw": "{{baseUrl}}/api/user/delete", "host": ["{{baseUrl}}"], "path": ["api", "user", "delete"] }
           }
         }
       ]
@@ -158,6 +170,20 @@
             "header": [ { "key": "Content-Type", "value": "application/json" } ],
             "body": { "mode": "raw", "raw": "{\n  \"personalInfo\": { \"fullName\": \"Updated User\" }\n}" },
             "url": { "raw": "{{baseUrl}}/api/resumes/:id", "host": ["{{baseUrl}}"], "path": ["api", "resumes", ":id"], "variable": [ { "key": "id", "value": "123" } ] }
+          }
+        },
+        {
+          "name": "Duplicate Resume",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/api/resumes/:id/duplicate", "host": ["{{baseUrl}}"], "path": ["api", "resumes", ":id", "duplicate"], "variable": [ { "key": "id", "value": "123" } ] }
+          }
+        },
+        {
+          "name": "Fetch Shared Public Resume",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/resumes/share/:slug", "host": ["{{baseUrl}}"], "path": ["api", "resumes", "share", ":slug"], "variable": [ { "key": "slug", "value": "john-doe" } ] }
           }
         },
         {

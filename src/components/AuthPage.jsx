@@ -1,4 +1,9 @@
-import React, { useState } from 'react';
+/**
+ * @file AuthPage.jsx
+ * @description React component rendering the AuthPage UI element.
+ * @author Jonathan T. Miller
+ */
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 export default function AuthPage({ onLogin, onBackToHome }) {
@@ -90,7 +95,7 @@ export default function AuthPage({ onLogin, onBackToHome }) {
         if (!res.ok) throw new Error(data.error || 'Sign in failed.');
         localStorage.setItem('user', JSON.stringify(data.user));
         setMessage({ type: 'success', text: 'Sign in successful! Entering workspace...' });
-        setTimeout(() => { onLogin(data.user); }, 800);
+        setTimeout(() => { onLogin(data.user, formData.password); }, 800);
       }
     } catch (err) {
       setMessage({ type: 'danger', text: err.message });
@@ -165,17 +170,7 @@ export default function AuthPage({ onLogin, onBackToHome }) {
   return (
     <div className="auth-page bg-dark min-vh-100 d-flex flex-column align-items-center justify-content-center p-4">
 
-      {/* Return to Home */}
-      <button
-        onClick={onBackToHome}
-        className="btn btn-link text-secondary position-absolute top-0 start-0 m-4 text-decoration-none d-flex align-items-center gap-2"
-        disabled={loading}
-      >
-        <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
-          <path fillRule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
-        </svg>
-        Back to Home
-      </button>
+
 
       <div className="auth-container w-100" style={{ maxWidth: '460px' }}>
         <div className="auth-card shadow-2xl">
@@ -190,7 +185,7 @@ export default function AuthPage({ onLogin, onBackToHome }) {
             {authMode === 'login' && (
               <>
                 <h2 className="fw-bolder text-light mb-2" style={{ letterSpacing: '-0.5px' }}>Sign in to your account</h2>
-                <div className="text-secondary d-flex justify-content-center align-items-center gap-1" style={{ fontSize: '0.9rem' }}>
+                <div className="text-secondary d-flex flex-wrap justify-content-center align-items-center gap-1 text-center" style={{ fontSize: '0.9rem' }}>
                   <span>Don't have an account?</span>
                   <span onClick={() => { if (!loading) { setAuthMode('register'); setMessage({ type: '', text: '' }); } }} className="text-light fw-medium text-decoration-none auth-toggle-link d-inline-flex align-items-center" style={{ cursor: 'pointer' }}>
                     Create one now <svg className="auth-arrow ms-1" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
@@ -202,7 +197,7 @@ export default function AuthPage({ onLogin, onBackToHome }) {
             {authMode === 'register' && (
               <>
                 <h2 className="fw-bolder text-light mb-2" style={{ letterSpacing: '-0.5px' }}>Create your account</h2>
-                <div className="text-secondary d-flex justify-content-center align-items-center gap-1" style={{ fontSize: '0.9rem' }}>
+                <div className="text-secondary d-flex flex-wrap justify-content-center align-items-center gap-1 text-center" style={{ fontSize: '0.9rem' }}>
                   <span>Already have an account?</span>
                   <span onClick={() => { if (!loading) { setAuthMode('login'); setMessage({ type: '', text: '' }); } }} className="text-light fw-medium text-decoration-none auth-toggle-link d-inline-flex align-items-center" style={{ cursor: 'pointer' }}>
                     Sign in <svg className="auth-arrow ms-1" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
@@ -214,7 +209,7 @@ export default function AuthPage({ onLogin, onBackToHome }) {
             {authMode === 'forgot' && (
               <>
                 <h2 className="fw-bolder text-light mb-2" style={{ letterSpacing: '-0.5px' }}>Reset your password</h2>
-                <div className="text-secondary d-flex justify-content-center align-items-center gap-1" style={{ fontSize: '0.9rem' }}>
+                <div className="text-secondary d-flex flex-wrap justify-content-center align-items-center gap-1 text-center" style={{ fontSize: '0.9rem' }}>
                   <span>Remember your password?</span>
                   <span onClick={() => { if (!loading) { setAuthMode('login'); setMessage({ type: '', text: '' }); } }} className="text-light fw-medium text-decoration-none auth-toggle-link d-inline-flex align-items-center" style={{ cursor: 'pointer' }}>
                     <svg className="auth-arrow auth-arrow-left me-1" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
@@ -429,8 +424,8 @@ export default function AuthPage({ onLogin, onBackToHome }) {
               </div>
 
               {/* OAuth Buttons — Google, GitHub, LinkedIn */}
-              <div className="row g-3">
-                <div className="col-4">
+              <div className="row g-2 g-sm-3">
+                <div className="col-12 col-sm-4">
                   <button
                     type="button"
                     id="oauth-google-btn"
@@ -448,7 +443,7 @@ export default function AuthPage({ onLogin, onBackToHome }) {
                     <span className="fw-bold" style={{ fontSize: '0.85rem' }}>Google</span>
                   </button>
                 </div>
-                <div className="col-4">
+                <div className="col-12 col-sm-4">
                   <button
                     type="button"
                     id="oauth-github-btn"
@@ -463,7 +458,7 @@ export default function AuthPage({ onLogin, onBackToHome }) {
                     <span className="fw-bold" style={{ fontSize: '0.85rem' }}>GitHub</span>
                   </button>
                 </div>
-                <div className="col-4">
+                <div className="col-12 col-sm-4">
                   <button
                     type="button"
                     id="oauth-linkedin-btn"

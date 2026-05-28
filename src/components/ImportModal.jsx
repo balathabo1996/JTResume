@@ -1,4 +1,9 @@
-import React, { useState } from 'react';
+/**
+ * @file ImportModal.jsx
+ * @description React component rendering the ImportModal UI element.
+ * @author Jonathan T. Miller
+ */
+import { useState } from 'react';
 import { parsePlainResumeText } from '../utils/resumeParser';
 
 export default function ImportModal({ isOpen, onClose, onImportData }) {
@@ -12,6 +17,10 @@ export default function ImportModal({ isOpen, onClose, onImportData }) {
   const [parseStep, setParseStep] = useState(0);
   const [jsonError, setJsonError] = useState('');
   const [parsedDocPreview, setParsedDocPreview] = useState(null);
+  
+  // LinkedIn states
+  const [linkedinFile, setLinkedinFile] = useState(null);
+  const [isLinkedinParsing, setIsLinkedinParsing] = useState(false);
 
   if (!isOpen) return null;
 
@@ -139,6 +148,40 @@ export default function ImportModal({ isOpen, onClose, onImportData }) {
     }, 600);
   };
 
+  const handleLinkedinUpload = async (e) => {
+    setJsonError('');
+    setParsedDocPreview(null);
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.name.toLowerCase().endsWith('.pdf')) {
+      setJsonError('⚠️ Please upload a PDF file exported directly from LinkedIn.');
+      return;
+    }
+
+    setLinkedinFile(file);
+    setIsLinkedinParsing(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const res = await fetch('/api/ai/parse-linkedin', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      
+      if (!res.ok) throw new Error(data.error || 'Failed to parse LinkedIn PDF');
+      
+      setParsedDocPreview(data.parsedData);
+    } catch (err) {
+      setJsonError('❌ AI Parsing Error: ' + err.message);
+    } finally {
+      setIsLinkedinParsing(false);
+    }
+  };
+
   const handleCommitDoc = () => {
     if (parsedDocPreview) {
       onImportData(parsedDocPreview);
@@ -157,14 +200,23 @@ export default function ImportModal({ isOpen, onClose, onImportData }) {
         </div>
 
         {/* Tab Selection */}
-        <ul className="nav nav-tabs nav-fill bg-black bg-opacity-25 border-bottom border-secondary border-opacity-10">
+        <ul className="nav nav-tabs nav-fill bg-black bg-opacity-25 border-bottom border-secondary border-opacity-10" style={{ fontSize: '0.9rem' }}>
           <li className="nav-item">
             <button 
               className={`nav-link border-0 text-light fw-bold py-3 ${activeTab === 'text' ? 'active bg-primary bg-opacity-10 text-primary border-bottom border-primary' : 'opacity-75'}`}
               onClick={() => { setActiveTab('text'); setParsedPreview(null); }}
               style={{ borderRadius: 0 }}
             >
-              Smart Plain-Text Parser
+              Plain Text
+            </button>
+          </li>
+          <li className="nav-item">
+            <button 
+              className={`nav-link border-0 text-light fw-bold py-3 ${activeTab === 'linkedin' ? 'active bg-primary bg-opacity-10 text-primary border-bottom border-primary' : 'opacity-75'}`}
+              onClick={() => { setActiveTab('linkedin'); setJsonError(''); setParsedDocPreview(null); setLinkedinFile(null); }}
+              style={{ borderRadius: 0 }}
+            >
+              LinkedIn PDF
             </button>
           </li>
           <li className="nav-item">
@@ -173,7 +225,7 @@ export default function ImportModal({ isOpen, onClose, onImportData }) {
               onClick={() => { setActiveTab('doc'); setJsonError(''); setParsedDocPreview(null); setDocFile(null); }}
               style={{ borderRadius: 0 }}
             >
-              Upload PDF or Word File
+              Standard Resume
             </button>
           </li>
         </ul>
@@ -253,7 +305,78 @@ Software Engineer at Google | 2021-Present
             </div>
           )}
 
-          {/* TAB 2: PDF/WORD DOCUMENT LOADER */}
+          {/* TAB 2: LINKEDIN PDF LOADER */}
+          {activeTab === 'linkedin' && (
+            <div className="tab-pane" style={{ textAlign: 'center' }}>
+              <p className="modal-help text-secondary lh-base mb-4" style={{ textAlign: 'left', fontSize: '0.84rem' }}>
+                Upload your **LinkedIn Profile PDF** (Exported via "Save to PDF" on LinkedIn). Our AI will instantly map it into a professional resume layout.
+              </p>
+
+              {!isLinkedinParsing && !parsedDocPreview ? (
+                <div className="file-drop-zone card bg-dark bg-opacity-50 border-dashed border-2 border-secondary border-opacity-50 rounded p-4 text-center cursor-pointer mb-3">
+                  <input 
+                    type="file" 
+                    id="linkedin-file-input" 
+                    accept=".pdf"
+                    className="file-hidden-input" 
+                    onChange={handleLinkedinUpload}
+                    style={{ display: 'none' }}
+                  />
+                  <label htmlFor="linkedin-file-input" className="file-drop-label d-flex flex-column align-items-center justify-content-center cursor-pointer m-0" style={{ cursor: 'pointer' }}>
+                    <div className="file-icon fs-1 mb-2">
+                      <svg width="40" height="40" viewBox="0 0 448 512" fill="#0077b5"><path d="M100.28 448H7.4V148.9h92.88zM53.79 108.1C24.09 108.1 0 83.5 0 53.8a53.79 53.79 0 0 1 107.58 0c0 29.7-24.1 54.3-53.79 54.3zM447.9 448h-92.68V302.4c0-34.7-.7-79.2-48.29-79.2-48.29 0-55.69 37.7-55.69 76.7V448h-92.78V148.9h89.08v40.8h1.3c12.4-23.5 42.69-48.3 87.88-48.3 94 0 111.28 61.9 111.28 142.3V448z"></path></svg>
+                    </div>
+                    <div className="file-label-title fw-bold text-white mb-1" style={{ fontSize: '0.95rem' }}>Click to Upload LinkedIn PDF</div>
+                    <div className="file-label-desc text-secondary" style={{ fontSize: '0.78rem' }}>AI Parsing powered by Gemini ⚡</div>
+                  </label>
+                </div>
+              ) : isLinkedinParsing ? (
+                <div className="card bg-black bg-opacity-25 border border-secondary border-opacity-25 rounded p-4 d-flex flex-column align-items-center justify-content-center gap-3">
+                  <div className="spinner-border text-primary" role="status" style={{ width: '3rem', height: '3rem' }}>
+                    <span className="visually-hidden">Loading...</span>
+                  </div>
+                  <div className="fw-bold text-white mt-2" style={{ fontSize: '0.95rem' }}>
+                    🤖 AI is analyzing your LinkedIn profile...
+                  </div>
+                  <span className="text-secondary" style={{ fontSize: '0.76rem' }}>File: {linkedinFile?.name}</span>
+                </div>
+              ) : (
+                <div className="parse-preview-container card bg-black bg-opacity-25 border border-secondary border-opacity-25 rounded p-3 text-start">
+                  <div className="json-success-banner alert alert-success border-success border-opacity-25 text-success py-2 px-3 mb-3 d-flex align-items-center justify-content-between" style={{ fontSize: '0.84rem', fontWeight: 600 }}>
+                    <span>✓ LinkedIn Extracted ({linkedinFile?.name})</span>
+                    <span className="badge bg-success bg-opacity-10 text-success border border-success border-opacity-20" style={{ fontSize: '0.7rem' }}>AI Parsed</span>
+                  </div>
+
+                  <div className="preview-list d-flex flex-column gap-2 mb-3">
+                    <div className="preview-item d-flex align-items-center gap-2" style={{ fontSize: '0.85rem', color: '#cbd5e1' }}>
+                      <span className="text-success fw-bold">✓</span> Candidate Name: <strong>{parsedDocPreview.personalInfo?.fullName || 'N/A'}</strong>
+                    </div>
+                    <div className="preview-item d-flex align-items-center gap-2" style={{ fontSize: '0.85rem', color: '#cbd5e1' }}>
+                      <span className="text-success fw-bold">✓</span> Work Positions: <strong>{parsedDocPreview.workExperience?.length || 0} positions</strong>
+                    </div>
+                    <div className="preview-item d-flex align-items-center gap-2" style={{ fontSize: '0.85rem', color: '#cbd5e1' }}>
+                      <span className="text-success fw-bold">✓</span> Academic Degrees: <strong>{parsedDocPreview.education?.length || 0} block</strong>
+                    </div>
+                  </div>
+
+                  <div className="d-flex gap-2">
+                    <button className="btn btn-outline-secondary text-light flex-grow-1 py-2 fw-medium" onClick={() => setParsedDocPreview(null)}>
+                      ⬅ Reset File
+                    </button>
+                    <button className="btn btn-success flex-grow-1 py-2 fw-bold" onClick={handleCommitDoc}>
+                      ⚡ Load Profile Data
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {jsonError && (
+                <div className="json-error-banner alert alert-danger border-danger border-opacity-25 text-danger mt-3 mb-0" style={{ fontSize: '0.8rem' }}>{jsonError}</div>
+              )}
+            </div>
+          )}
+
+          {/* TAB 3: PDF/WORD DOCUMENT LOADER */}
           {activeTab === 'doc' && (
             <div className="tab-pane" style={{ textAlign: 'center' }}>
               <p className="modal-help text-secondary lh-base mb-4" style={{ textAlign: 'left', fontSize: '0.84rem' }}>

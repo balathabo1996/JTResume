@@ -1,6 +1,25 @@
-import React, { useState, useEffect } from 'react';
+/**
+ * @file Dashboard.jsx
+ * @description The user dashboard view. Lists the user's saved resumes, provides actions to create, 
+ * import, delete, or rename resumes. Communicates heavily with the Next.js API routes (`/api/resumes`).
+ */
+import { useState, useEffect } from 'react';
+import { encryptData } from '../utils/crypto';
+import ImportModal from './ImportModal';
 
-export default function Dashboard({ user, onSelectResume, onLogout, onOpenProfile, onGoHome, onGenerateCoverLetter }) {
+/**
+ * @function Dashboard
+ * @description Renders the authenticated user's workspace, allowing them to manage their resumes.
+ * @param {Object} props - The component props.
+ * @param {Object} props.user - The current authenticated user session data.
+ * @param {Function} props.onGoHome - Navigation callback to return to the landing page.
+ * @param {Function} props.onLogout - Callback to terminate the user session.
+ * @param {Function} props.onOpenProfile - Callback to open the user profile editing modal.
+ * @param {Function} props.onSelectResume - Navigation callback to open a specific resume in the editor.
+ * @param {Function} props.onGenerateCoverLetter - Navigation callback to trigger AI cover letter generation for a resume.
+ * @param {Function} props.onStartInterview - Navigation callback to launch the AI mock interview mode for a resume.
+ */
+export default function Dashboard({ user, onSelectResume, onLogout, onOpenProfile, onGoHome, onGenerateCoverLetter, onStartInterview }) {
   const getInitials = (name) => {
     if (!name) return '?';
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
@@ -8,6 +27,7 @@ export default function Dashboard({ user, onSelectResume, onLogout, onOpenProfil
   const [resumes, setResumes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   
   // Modal states
   const [showRename, setShowRename] = useState(false);
@@ -22,9 +42,6 @@ export default function Dashboard({ user, onSelectResume, onLogout, onOpenProfil
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
 
   const [actionLoading, setActionLoading] = useState(false);
-  useEffect(() => {
-    fetchResumes();
-  }, [user]);
 
   const fetchResumes = async () => {
     setLoading(true);
@@ -39,6 +56,12 @@ export default function Dashboard({ user, onSelectResume, onLogout, onOpenProfil
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchResumes();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   const handleCreateNew = () => {
     setCreateTitle("");
@@ -64,6 +87,36 @@ export default function Dashboard({ user, onSelectResume, onLogout, onOpenProfil
       alert("Error creating resume: " + err.message);
     } finally {
       setActionLoading(false);
+    }
+  };
+
+  const handleImportData = async (parsedResumeData) => {
+    setActionLoading(true);
+    try {
+      const createRes = await fetch('/api/resumes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.email || user._id, title: 'Imported Resume' })
+      });
+      const createData = await createRes.json();
+      if (!createRes.ok) throw new Error(createData.error);
+      
+      const resumeId = createData.resumeId;
+      const e2eeKey = sessionStorage.getItem('e2ee_key');
+      const payloadData = e2eeKey ? encryptData(parsedResumeData, e2eeKey) : parsedResumeData;
+      
+      await fetch(`/api/resumes/${resumeId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data: payloadData, isEncrypted: !!e2eeKey })
+      });
+      
+      onSelectResume(resumeId);
+    } catch (err) {
+      alert("Import failed: " + err.message);
+    } finally {
+      setActionLoading(false);
+      setIsImportModalOpen(false);
     }
   };
 
@@ -271,7 +324,40 @@ export default function Dashboard({ user, onSelectResume, onLogout, onOpenProfil
               </div>
             </div>
 
-            {/* Resume Cards */}
+            {/* Import Resume / Profile Card */}
+            <div className="col-md-4 col-sm-6">
+              <div 
+                className="card h-100 d-flex flex-column align-items-center justify-content-center p-4 text-center cursor-pointer"
+                style={{ 
+                  minHeight: '220px', cursor: 'pointer', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', 
+                  background: 'rgba(255,255,255,0.02)',
+                  border: '2px dashed rgba(245, 158, 11, 0.5)',
+                  borderRadius: '16px',
+                  backdropFilter: 'blur(10px)'
+                }}
+                onClick={() => setIsImportModalOpen(true)}
+                onMouseOver={(e) => { 
+                  e.currentTarget.style.background = 'rgba(245, 158, 11, 0.05)'; 
+                  e.currentTarget.style.borderColor = 'rgba(245, 158, 11, 0.8)';
+                  e.currentTarget.style.transform = 'translateY(-4px)';
+                  e.currentTarget.style.boxShadow = '0 12px 24px rgba(245, 158, 11, 0.15)';
+                }}
+                onMouseOut={(e) => { 
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.02)';
+                  e.currentTarget.style.borderColor = 'rgba(245, 158, 11, 0.5)';
+                  e.currentTarget.style.transform = 'none';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              >
+                <div className="rounded-circle d-flex align-items-center justify-content-center mb-3" style={{ width: '60px', height: '60px', background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#fff', boxShadow: '0 8px 16px rgba(245, 158, 11, 0.3)' }}>
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                </div>
+                <h5 className="fw-bolder mb-1 text-light" style={{ letterSpacing: '0.5px' }}>Import Data</h5>
+                <span style={{ color: '#94a3b8', fontSize: '0.85rem' }}>LinkedIn PDF, Word, or Paste</span>
+              </div>
+            </div>
+
+            {/* Resume Listing */}
             {resumes.map(resume => (
               <div className="col-md-4 col-sm-6" key={resume._id}>
                 <div 
@@ -350,6 +436,20 @@ export default function Dashboard({ user, onSelectResume, onLogout, onOpenProfil
                         onMouseOut={(e) => { e.currentTarget.style.color = '#a855f7'; e.currentTarget.style.background = 'transparent'; }}
                       >
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                      </button>
+                      <button 
+                        className="btn btn-sm px-2 py-1 action-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (onStartInterview) onStartInterview(resume._id);
+                        }}
+                        disabled={actionLoading}
+                        title="Live Interview Prep"
+                        style={{ color: '#2dd4bf', background: 'transparent', border: 'none', transition: 'all 0.2s', borderRadius: '6px' }}
+                        onMouseOver={(e) => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.background = 'rgba(45,212,191,0.2)'; }}
+                        onMouseOut={(e) => { e.currentTarget.style.color = '#2dd4bf'; e.currentTarget.style.background = 'transparent'; }}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                       </button>
                       <button 
                         className="btn btn-sm px-2 py-1 action-btn"
@@ -460,6 +560,13 @@ export default function Dashboard({ user, onSelectResume, onLogout, onOpenProfil
           </div>
         </div>
       )}
+
+      {/* Import Modal */}
+      <ImportModal 
+        isOpen={isImportModalOpen} 
+        onClose={() => setIsImportModalOpen(false)} 
+        onImportData={handleImportData}
+      />
     </div>
   );
 }

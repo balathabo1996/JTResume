@@ -1,3 +1,8 @@
+/**
+ * @file route.js
+ * @description Next.js API route for handling backend logic related to route.js.
+ * @author Jonathan T. Miller
+ */
 import { NextResponse } from 'next/server';
 import clientPromise from '../../../../utils/mongodb';
 import fs from 'fs';

@@ -1,15 +1,25 @@
+/**
+ * @file App.jsx
+ * @description The root entry point and main state container for the JTResume application.
+ * Handles top-level routing between the landing page, dashboard, auth flows, and the resume builder.
+ * Also manages global user authentication state, end-to-end encryption key storage, and idle auto-logout logic.
+ *
+ * @author Jonathan T. Miller
+ */
 "use client";
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import BuilderForm from './components/BuilderForm';
 import ResumePreview from './components/ResumePreview';
 import ComplianceScanner from './components/ComplianceScanner';
-import ImportModal from './components/ImportModal';
 import LandingPage from './components/LandingPage';
 import AuthPage from './components/AuthPage';
 import Dashboard from './components/Dashboard';
 import CoverLetterGenerator from './components/CoverLetterGenerator';
+import InterviewPrep from './components/InterviewPrep';
+import ShareModal from './components/ShareModal';
 import { generateDocx } from './utils/docxExport';
+import { deriveKey, encryptData, decryptData } from './utils/crypto';
 
 // Baseline Empty Resume state schema
 const emptyResumeState = {
@@ -36,6 +46,11 @@ const emptyResumeState = {
   customSections: []
 };
 
+/**
+ * @function App
+ * @description The core application component.
+ * @returns {JSX.Element} The rendered application view based on current routing state.
+ */
 export default function App() {
   const [currentView, setCurrentView] = useState('landing'); // 'landing' | 'editor'
   const [user, setUser] = useState(null);
@@ -58,14 +73,16 @@ export default function App() {
   const [accentColor, setAccentColor] = useState('#1e3a8a'); // Default Classic Blue
   const [spacingTuning, setSpacingTuning] = useState('normal'); // 'compact' | 'normal' | 'spacious'
   const [fontPairing, setFontPairing] = useState('modern'); // 'modern' | 'editorial' | 'tech' | 'corporate'
-  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [activeSection, setActiveSection] = useState(null);
   const [focusedFieldTip, setFocusedFieldTip] = useState(null);
   const [mobileTab, setMobileTab] = useState('editor'); // 'editor' | 'preview'
   const [currentResumeId, setCurrentResumeId] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
-  const [copySuccess, setCopySuccess] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Auto-save logic
   useEffect(() => {
@@ -73,12 +90,17 @@ export default function App() {
       const timer = setTimeout(async () => {
         setIsSaving(true);
         try {
-          await fetch(`/api/resumes/${currentResumeId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              data: formData,
-              templateStyle,
+            const e2eeKey = sessionStorage.getItem('e2ee_key');
+            // If we have an E2EE key, encrypt the formData before saving
+            const payloadData = e2eeKey ? encryptData(formData, e2eeKey) : formData;
+            
+            await fetch(`/api/resumes/${currentResumeId}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                data: payloadData,
+                isEncrypted: !!e2eeKey,
+                templateStyle,
               accentColor,
               spacingTuning,
               fontPairing
@@ -100,10 +122,11 @@ export default function App() {
     if (storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser);
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setUser(parsedUser);
         setCurrentView('dashboard');
       } catch (err) {
-        console.error('Failed to parse stored user session');
+        console.error('Failed to parse stored user session', err);
       }
     }
     setIsInitializing(false);
@@ -179,7 +202,7 @@ export default function App() {
     
     // 1. Dictionary matching (case-insensitive)
     COMMON_PROFESSIONAL_KEYWORDS.forEach(kw => {
-      const escaped = kw.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+      const escaped = kw.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
       const regex = new RegExp(`\\b${escaped}\\b`, 'i');
       if (regex.test(text)) {
         matched.push(kw);
@@ -232,7 +255,7 @@ export default function App() {
     });
 
     return targetKeywords.filter(kw => {
-      const escaped = kw.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+      const escaped = kw.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
       const regex = new RegExp(`\\b${escaped}\\b`, 'i');
       return regex.test(searchString);
     });
@@ -319,32 +342,30 @@ export default function App() {
     window.print();
   };
 
-  const handleCopyPublicLink = async () => {
-    if (!currentResumeId) return;
-    const url = `${window.location.origin}/view/${currentResumeId}`;
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopySuccess(true);
-      setTimeout(() => setCopySuccess(false), 2000);
-    } catch (err) {
-      console.error('Failed to copy link', err);
-    }
-  };
 
 
-
-  const handleImportData = (newData) => {
-    setFormData(newData);
-    setActiveSection(null);
-  };
-
-  const handleLoginSuccess = (userData) => {
+  /**
+   * @function handleLoginSuccess
+   * @description Callback fired upon successful login to initialize the user session and derive the encryption key.
+   * @param {Object} userData - The authenticated user object from the server.
+   * @param {string} rawPassword - The plaintext password used to derive the local encryption key.
+   */
+  const handleLoginSuccess = (userData, rawPassword) => {
     setUser(userData);
+    if (rawPassword) {
+      const derivedKey = deriveKey(rawPassword, userData.email);
+      sessionStorage.setItem('e2ee_key', derivedKey);
+    }
     setCurrentView('dashboard');
   };
 
+  /**
+   * @function handleLogout
+   * @description Clears all local storage, session storage, and application state to securely log the user out.
+   */
   const handleLogout = () => {
     localStorage.removeItem('user');
+    sessionStorage.removeItem('e2ee_key');
     setUser(null);
     setProfileOpen(false);
     setIsEditingProfile(false);
@@ -355,6 +376,34 @@ export default function App() {
     setFormData(emptyResumeState);
     setCurrentView('landing');
   };
+
+  // Auto-logout after 30 minutes of idle
+  useEffect(() => {
+    let timeout;
+    
+    const resetTimer = () => {
+      if (timeout) clearTimeout(timeout);
+      if (user) {
+        timeout = setTimeout(() => {
+          handleLogout();
+          alert("Your session has expired due to 30 minutes of inactivity. Please sign in again.");
+        }, 30 * 60 * 1000); // 30 minutes
+      }
+    };
+
+    if (user) {
+      resetTimer();
+      const events = ['mousemove', 'mousedown', 'keypress', 'scroll', 'touchstart'];
+      
+      events.forEach(event => window.addEventListener(event, resetTimer));
+      
+      return () => {
+        if (timeout) clearTimeout(timeout);
+        events.forEach(event => window.removeEventListener(event, resetTimer));
+      };
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   const openProfileModal = () => {
     resetProfile({ fullName: user?.fullName || '', email: user?.email || '', phone: user?.phone || '' });
@@ -379,15 +428,15 @@ export default function App() {
         })
       });
 
-      const data = await res.json();
+      const responseData = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || 'Failed to update profile.');
+        throw new Error(responseData.error || 'Failed to update profile.');
       }
 
       // Update local state and local storage
-      setUser(data.user);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      setUser(responseData.user);
+      localStorage.setItem('user', JSON.stringify(responseData.user));
       
       setEditProfileMessage({ type: 'success', text: 'Profile updated successfully!' });
       setTimeout(() => {
@@ -417,19 +466,68 @@ export default function App() {
         })
       });
 
-      const data = await res.json();
+      const responseData = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || 'Failed to change password.');
+        throw new Error(responseData.error || 'Failed to change password.');
       }
 
-      setPasswordMessage({ type: 'success', text: 'Password changed successfully!' });
+      setPasswordMessage({ type: 'success', text: responseData.message || 'Password updated!' });
       resetPassword();
       setTimeout(() => setShowPasswordForm(false), 2000);
     } catch (err) {
       setPasswordMessage({ type: 'danger', text: err.message });
     } finally {
       setPasswordLoading(false);
+    }
+  };
+
+  const handleExportData = async () => {
+    setIsExporting(true);
+    try {
+      const res = await fetch(`/api/resumes?userId=${user.email || user._id}`);
+      const data = await res.json();
+      if (!data.success) throw new Error("Failed to fetch resumes");
+      
+      const e2eeKey = sessionStorage.getItem('e2ee_key');
+      const exportedResumes = data.resumes.map(r => {
+        if (r.isEncrypted && e2eeKey) {
+          const decrypted = decryptData(r.data, e2eeKey);
+          if (decrypted) return { ...r, data: decrypted, isEncrypted: false };
+        }
+        return r;
+      });
+      
+      const exportBlob = new Blob([JSON.stringify({ user, resumes: exportedResumes }, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(exportBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `jtresume_export_${user.email}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (e) {
+      alert("Export failed: " + e.message);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!confirm("Are you absolutely sure you want to delete your account? This action is permanent and cannot be undone.")) return;
+    setIsDeleting(true);
+    try {
+      const res = await fetch('/api/user/delete', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: user.email }) });
+      if (res.ok) {
+        alert("Your account and all associated data have been permanently deleted.");
+        handleLogout();
+      } else {
+        const err = await res.json();
+        throw new Error(err.error || "Deletion failed");
+      }
+    } catch (e) {
+      alert(e.message);
+      setIsDeleting(false);
     }
   };
 
@@ -469,7 +567,7 @@ export default function App() {
   }
 
   return (
-    <div className="app-root" style={{ width: '100vw', height: '100vh', position: 'relative', overflow: 'hidden' }}>
+    <div className="app-root" style={{ width: '100vw', height: '100dvh', position: 'relative', overflow: 'hidden' }}>
 
       {currentView === 'dashboard' && (
         <div style={{ position: 'absolute', inset: 0, zIndex: 10, overflowY: 'auto', backgroundColor: '#0f172a' }}>
@@ -482,6 +580,10 @@ export default function App() {
               setCurrentResumeId(id);
               setCurrentView('coverLetter');
             }}
+            onStartInterview={(id) => {
+              setCurrentResumeId(id);
+              setCurrentView('interview');
+            }}
             onSelectResume={(id) => {
               setCurrentResumeId(id);
               setCurrentView('editor');
@@ -489,7 +591,17 @@ export default function App() {
                 .then(res => res.json())
                 .then(data => {
                   if (data.success && data.resume) {
-                    setFormData(data.resume.data || emptyResumeState);
+                    let resumeData = data.resume.data;
+                    if (data.resume.isEncrypted) {
+                      const e2eeKey = sessionStorage.getItem('e2ee_key');
+                      if (e2eeKey) {
+                        const decrypted = decryptData(resumeData, e2eeKey);
+                        if (decrypted) resumeData = decrypted;
+                      } else {
+                        console.warn("Missing E2EE key for encrypted resume");
+                      }
+                    }
+                    setFormData(resumeData || emptyResumeState);
                     if (data.resume.templateStyle) setTemplateStyle(data.resume.templateStyle);
                     if (data.resume.accentColor) setAccentColor(data.resume.accentColor);
                     if (data.resume.spacingTuning) setSpacingTuning(data.resume.spacingTuning);
@@ -770,6 +882,39 @@ export default function App() {
                       )}
                     </div>
                   )}
+                  
+                  {/* Data Privacy & Export Section */}
+                  <div style={{ marginTop: '32px', paddingTop: '20px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                    <h3 style={{ color: '#f1f5f9', fontSize: '15px', fontWeight: '700', marginBottom: '16px' }}>Data & Privacy</h3>
+                    
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      <button
+                        onClick={handleExportData}
+                        disabled={isExporting}
+                        style={{
+                          width: '100%', padding: '12px 16px', background: 'rgba(56, 189, 248, 0.1)', border: '1px solid rgba(56, 189, 248, 0.2)',
+                          borderRadius: '12px', color: '#38bdf8', fontSize: '13px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '10px',
+                          cursor: 'pointer', transition: 'all 0.2s', opacity: isExporting ? 0.7 : 1
+                        }}
+                      >
+                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                        {isExporting ? 'Preparing Export...' : 'Export All My Data (JSON)'}
+                      </button>
+                      
+                      <button
+                        onClick={handleDeleteAccount}
+                        disabled={isDeleting}
+                        style={{
+                          width: '100%', padding: '12px 16px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)',
+                          borderRadius: '12px', color: '#f87171', fontSize: '13px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '10px',
+                          cursor: 'pointer', transition: 'all 0.2s', opacity: isDeleting ? 0.7 : 1
+                        }}
+                      >
+                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        {isDeleting ? 'Deleting Account...' : 'Permanently Delete Account'}
+                      </button>
+                    </div>
+                  </div>
                 </>
               )}
             </div>
@@ -780,6 +925,16 @@ export default function App() {
       {currentView === 'coverLetter' && (
         <div style={{ position: 'absolute', inset: 0, zIndex: 10, overflowY: 'hidden', backgroundColor: '#0f172a', display: 'flex' }}>
           <CoverLetterGenerator 
+            resumeId={currentResumeId} 
+            onBack={() => setCurrentView('dashboard')} 
+            onGoHome={() => setCurrentView('landing')}
+          />
+        </div>
+      )}
+
+      {currentView === 'interview' && (
+        <div style={{ position: 'absolute', inset: 0, zIndex: 10, overflowY: 'hidden', backgroundColor: '#0f172a', display: 'flex' }}>
+          <InterviewPrep 
             resumeId={currentResumeId} 
             onBack={() => setCurrentView('dashboard')} 
             onGoHome={() => setCurrentView('landing')}
@@ -952,33 +1107,18 @@ export default function App() {
             </button>
             <button
               className="d-flex align-items-center justify-content-center gap-2 py-2 fw-bold w-100 rounded-3 mb-2"
-              onClick={handleCopyPublicLink}
+              onClick={() => setIsShareModalOpen(true)}
               style={{
-                background: copySuccess ? 'rgba(34, 197, 94, 0.15)' : 'rgba(99, 102, 241, 0.1)',
-                border: copySuccess ? '1px solid rgba(34, 197, 94, 0.3)' : '1px solid rgba(99, 102, 241, 0.2)',
-                color: copySuccess ? '#4ade80' : '#818cf8',
+                background: 'rgba(99, 102, 241, 0.1)',
+                border: '1px solid rgba(99, 102, 241, 0.2)',
+                color: '#818cf8',
                 transition: 'all 0.2s ease'
               }}
             >
-              {copySuccess ? (
-                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ width: '16px', height: '16px' }}>
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                </svg>
-              ) : (
-                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ width: '16px', height: '16px' }}>
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                </svg>
-              )}
-              {copySuccess ? 'Link Copied!' : 'Copy Public Share Link'}
-            </button>
-            <button
-              className="d-flex align-items-center justify-content-center gap-2 py-2 fw-medium w-100 rounded-3 btn-import-profile"
-              onClick={() => setIsImportModalOpen(true)}
-            >
-              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ width: '15px', height: '15px' }}>
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ width: '16px', height: '16px' }}>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
               </svg>
-              Upload Resume / Import Profile
+              Share & Publish
             </button>
           </div>
         </div>
@@ -1050,9 +1190,21 @@ export default function App() {
           <div className="row g-3">
             
             {/* Accent Color Palette Picker */}
-            <div className="col-md-4 d-flex flex-column gap-2">
+            <div className="col-lg-4 col-md-12 d-flex flex-column gap-2">
               <span style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '1px', color: '#6366f1', textTransform: 'uppercase' }}>Step 2 — Theme Accent</span>
-              <div className="d-flex flex-wrap gap-2 py-1">
+              <div className="d-flex flex-wrap align-items-center gap-2 py-1">
+                {/* Custom Color Picker */}
+                <div style={{ position: 'relative', width: '24px', height: '24px', borderRadius: '50%', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.4)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'conic-gradient(red, yellow, lime, aqua, blue, magenta, red)', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.5)' }} title="Custom Hex Color">
+                  <input
+                    type="color"
+                    value={accentColor}
+                    onChange={(e) => setAccentColor(e.target.value)}
+                    style={{ position: 'absolute', opacity: 0, width: '200%', height: '200%', cursor: 'pointer', left: '-50%', top: '-50%' }}
+                  />
+                  <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: accentColor, border: '1px solid rgba(255,255,255,0.8)' }}></div>
+                </div>
+                <div style={{ width: '1px', height: '20px', background: 'rgba(255,255,255,0.1)', margin: '0 2px' }}></div>
+                
                 {colors.map(color => (
                   <button
                     key={color.name}
@@ -1076,21 +1228,22 @@ export default function App() {
             </div>
 
             {/* Typography Presets Selector */}
-            <div className="col-md-4 d-flex flex-column gap-2">
+            <div className="col-lg-4 col-md-12 d-flex flex-column gap-2">
               <span style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '1px', color: '#6366f1', textTransform: 'uppercase' }}>Step 3 — Typography</span>
-              <div className="d-grid gap-2" style={{ gridTemplateColumns: '1fr 1fr' }}>
+              <div className="d-flex flex-wrap gap-2">
                 {[
-                  { id: 'modern', label: 'Modern' },
-                  { id: 'editorial', label: 'Editorial' },
-                  { id: 'tech', label: 'Tech Clean' },
-                  { id: 'corporate', label: 'Corporate' }
+                  { id: 'modern', label: 'Inter & Inter' },
+                  { id: 'editorial', label: 'Playfair & Merriweather' },
+                  { id: 'tech', label: 'Roboto Mono & Inter' },
+                  { id: 'classic', label: 'Roboto & Merriweather' },
+                  { id: 'elegant', label: 'Inter & Lora' }
                 ].map(pair => (
                   <button
                     key={pair.id}
                     type="button"
                     className={`settings-pill-btn ${fontPairing === pair.id ? 'active' : ''}`}
                     onClick={() => setFontPairing(pair.id)}
-                    style={{ padding: '8px 12px' }}
+                    style={{ padding: '6px 12px', fontSize: '0.75rem', flex: '1 1 auto', whiteSpace: 'nowrap' }}
                   >
                     {pair.label}
                   </button>
@@ -1099,19 +1252,20 @@ export default function App() {
             </div>
 
             {/* Spacing Fit Selector */}
-            <div className="col-md-4 d-flex flex-column gap-2">
+            <div className="col-lg-4 col-md-12 d-flex flex-column gap-2">
               <span style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '1px', color: '#6366f1', textTransform: 'uppercase' }}>Step 4 — Spacing</span>
-              <div className="d-flex gap-1">
+              <div className="d-flex flex-wrap gap-2">
                 {[
                   { id: 'compact', label: 'Compact' },
                   { id: 'normal', label: 'Normal' },
-                  { id: 'spacious', label: 'Open' }
+                  { id: 'relaxed', label: 'Relaxed' }
                 ].map(s => (
                   <button
                     key={s.id}
                     type="button"
                     className={`settings-pill-btn ${spacingTuning === s.id ? 'active' : ''}`}
                     onClick={() => setSpacingTuning(s.id)}
+                    style={{ flex: '1 1 auto', padding: '6px 0', textAlign: 'center', fontSize: '0.75rem' }}
                   >
                     {s.label}
                   </button>
@@ -1133,7 +1287,7 @@ export default function App() {
         />
 
         {/* Floating Paper Preview */}
-        <div className="mt-3 mb-5 w-100 d-flex justify-content-center">
+        <div className="mt-3 mb-4 w-100 d-flex justify-content-center">
           <ResumePreview 
             formData={formData} 
             country="usa"
@@ -1143,13 +1297,38 @@ export default function App() {
             fontPairing={fontPairing}
           />
         </div>
+
+        {/* Mobile-Only Action Panel under the Preview */}
+        <div className="d-lg-none mt-2 mb-5 pb-4 w-100 px-3 mx-auto" style={{ maxWidth: '880px' }}>
+          <button
+            className="d-flex align-items-center justify-content-center gap-2 py-3 fw-bold w-100 rounded-3 border-0 mb-3 btn-export-pdf shadow-lg"
+            onClick={handlePrintPDF}
+          >
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ width: '18px', height: '18px' }}>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Export Professional PDF
+          </button>
+          <button
+            className="d-flex align-items-center justify-content-center gap-2 py-3 fw-bold w-100 rounded-3 border-0 shadow-lg"
+            style={{ background: 'linear-gradient(135deg, #2563eb 0%, #1e40af 100%)', color: 'white' }}
+            onClick={() => generateDocx(formData)}
+          >
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ width: '18px', height: '18px' }}>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Download DOCX (Word)
+          </button>
+        </div>
       </div>
 
-      {/* Overlay Modal for Uploading and Restoring backup files */}
-      <ImportModal 
-        isOpen={isImportModalOpen} 
-        onClose={() => setIsImportModalOpen(false)} 
-        onImportData={handleImportData}
+
+      {/* Share Modal */}
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        currentResumeId={currentResumeId}
+        user={user}
       />
 
       {/* Mobile Bottom Navigation Bar (Visible only on lg and down) */}

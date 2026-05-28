@@ -1,3 +1,8 @@
+/**
+ * @file coverLetterDocxExport.js
+ * @description Utility functions and helpers for coverLetterDocxExport operations.
+ * @author Jonathan T. Miller
+ */
 import {
   Document,
   Packer,

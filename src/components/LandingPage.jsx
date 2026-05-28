@@ -1,4 +1,9 @@
-import React, { useEffect, useState } from 'react';
+/**
+ * @file LandingPage.jsx
+ * @description The unauthenticated public-facing landing page. Features hero banners, feature grids, 
+ * an animated template showcase, and a contact form.
+ */
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 const MiniResumeMockup = ({ layout, color, name }) => {
@@ -83,8 +88,18 @@ const MiniResumeMockup = ({ layout, color, name }) => {
   );
 };
 
+/**
+ * @function LandingPage
+ * @description Renders the public landing page showcasing features and templates.
+ * @param {Object} props
+ * @param {Function} props.onStartBuilder - Callback triggered when a user clicks the Sign In or Build Resume CTA.
+ * @param {boolean} props.isAuthenticated - Used to toggle the header CTA between Sign In vs Dashboard.
+ * @param {Function} props.onSignOut - Callback to terminate the session if the user is authenticated on this page.
+ * @param {Function} props.onGoToDashboard - Callback to navigate an authenticated user straight to the dashboard.
+ */
 export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut, onGoToDashboard }) {
   const [scrolled, setScrolled] = useState(false);
+  const [isNavOpen, setIsNavOpen] = useState(false);
 
   // Contact Form hook-form setup
   const { register, handleSubmit: handleHookSubmit, reset, formState: { errors } } = useForm({ mode: 'onChange' });
@@ -117,18 +132,107 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
   };
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
+    const navContent = document.getElementById('navbarContent');
+
+    const closeNavIfOpen = (e) => {
+      if (navContent && navContent.classList.contains('show')) {
+        // If it was a touch/click, ignore if it was inside the navbar itself
+        if (e && e.type !== 'scroll') {
+          const navbar = document.querySelector('.navbar');
+          if (navbar && navbar.contains(e.target)) return;
+        }
+        
+        const toggler = document.querySelector('.navbar-toggler');
+        if (toggler && !toggler.classList.contains('collapsed')) {
+          toggler.click();
+        }
+      }
     };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+
+    const handleScroll = (e) => {
+      setScrolled(window.scrollY > 20);
+      closeNavIfOpen(e); // Close on scroll
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('click', closeNavIfOpen);
+    window.addEventListener('touchstart', closeNavIfOpen, { passive: true });
+
+    const handleShow = () => setIsNavOpen(true);
+    const handleHide = () => setIsNavOpen(false);
+
+    if (navContent) {
+      navContent.addEventListener('show.bs.collapse', handleShow);
+      navContent.addEventListener('hide.bs.collapse', handleHide);
+    }
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('click', closeNavIfOpen);
+      window.removeEventListener('touchstart', closeNavIfOpen);
+      if (navContent) {
+        navContent.removeEventListener('show.bs.collapse', handleShow);
+        navContent.removeEventListener('hide.bs.collapse', handleHide);
+      }
+    };
   }, []);
 
   return (
     <div className="landing-page bg-dark text-light min-vh-100 d-flex flex-column">
+      <style>{`
+        @media (max-width: 991.98px) {
+          #navbarContent {
+            background-color: #0f172a;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            text-align: center;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.5);
+          }
+          .mobile-nav-inner {
+            padding: 24px;
+          }
+          #navbarContent .navbar-nav {
+            margin-bottom: 20px !important;
+          }
+          #navbarContent .nav-link {
+            padding: 16px 0;
+            font-size: 1rem;
+            font-weight: 700;
+            color: #f1f5f9 !important;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+          }
+          #navbarContent .d-flex.align-items-center.gap-3 {
+            flex-direction: column;
+            width: 100%;
+            gap: 12px !important;
+          }
+          /* Sign In Button */
+          #navbarContent .nav-signin-btn {
+            width: 100%;
+            background-color: #1e293b !important;
+            color: #f8fafc !important;
+            border: 1px solid rgba(255,255,255,0.05);
+            box-shadow: none !important;
+            border-radius: 8px !important;
+          }
+          /* Build My Resume Button */
+          #navbarContent .cta-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #6366f1, #4f46e5) !important;
+            border: none;
+            border-radius: 8px !important;
+            box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4) !important;
+          }
+        }
+      `}</style>
       
       {/* 1. Global Navigation Bar */}
-      <nav className={`navbar navbar-expand-lg fixed-top transition-all ${scrolled ? 'glass-nav shadow-lg' : 'bg-transparent py-4'}`}>
+      <nav 
+        className={`navbar navbar-expand-lg fixed-top ${(scrolled || isNavOpen) ? 'glass-nav shadow-lg' : 'bg-transparent py-4'}`}
+        style={{ transition: 'all 0.35s ease-in-out' }}
+      >
         <div className="container">
           <a className="navbar-brand d-flex align-items-center gap-2" href="#">
             <div className="brand" style={{ userSelect: 'none', transform: 'scale(0.9)', transformOrigin: 'left center' }}>
@@ -144,7 +248,8 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
           </button>
 
           <div className="collapse navbar-collapse" id="navbarContent">
-            <ul className="navbar-nav mx-auto mb-2 mb-lg-0 gap-4 fw-medium" style={{ fontSize: '0.9rem', color: '#cbd5e1' }}>
+            <div className="mobile-nav-inner w-100">
+              <ul className="navbar-nav mx-auto mb-2 mb-lg-0 gap-4 fw-medium" style={{ fontSize: '0.9rem', color: '#cbd5e1' }}>
               <li className="nav-item"><a className="nav-link text-light nav-hover" href="#features">Features</a></li>
               <li className="nav-item"><a className="nav-link text-light nav-hover" href="#templates">Templates</a></li>
               <li className="nav-item"><a className="nav-link text-light nav-hover" href="#contact">Contact</a></li>
@@ -170,6 +275,7 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
                 </>
               )}
             </div>
+            </div>
           </div>
         </div>
       </nav>
@@ -185,18 +291,19 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
           <div className="row align-items-center g-5">
             <div className="col-lg-6 hero-text-content">
 
-              <h1 className="display-3 fw-bolder mb-4 hero-title" style={{ letterSpacing: '-1.5px', lineHeight: '1.1' }}>
-                Land your dream job with a <span className="text-gradient-primary">market-leading</span> resume.
+
+              <h1 className="display-3 fw-bolder mb-4 hero-title fade-in-up stagger-2" style={{ letterSpacing: '-1.5px', lineHeight: '1.1' }}>
+                Land your dream job with a <span className="gradient-text">market-leading</span> resume.
               </h1>
               <p className="lead mb-5 text-secondary" style={{ fontSize: '1.15rem', maxWidth: '90%' }}>
                 Create beautiful, ATS-optimized resumes in minutes. Stand out to recruiters with executive templates, real-time keyword scoring, and high-impact design presets.
               </p>
-              <div className="d-flex flex-wrap gap-3">
+              <div className="d-grid gap-3 d-sm-flex justify-content-sm-start">
                 <button className="btn btn-primary btn-lg px-5 py-3 fw-bold rounded-pill shadow-lg cta-btn" onClick={isAuthenticated ? onGoToDashboard : onStartBuilder}>
                   {isAuthenticated ? 'Go to Dashboard' : 'Create My Resume Now'}
                   <svg className="ms-2" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                 </button>
-                <a href="#templates" className="btn btn-outline-light btn-lg px-4 py-3 fw-bold rounded-pill glass-btn">
+                <a href="#templates" className="btn btn-outline-light btn-lg px-4 py-3 fw-bold rounded-pill glass-btn text-center">
                   View Templates
                 </a>
               </div>
@@ -260,9 +367,9 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
                 desc: "Harness Google Gemini AI to instantly generate professional summaries, write cover letters, and enhance experience bullets."
               },
               {
-                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#gradient3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><defs><linearGradient id="gradient3" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#10b981" /><stop offset="100%" stopColor="#3b82f6" /></linearGradient></defs><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>,
-                title: "Developer API Console",
-                desc: "Explore our fully documented REST API via an interactive Swagger UI dashboard and exportable Postman collections."
+                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#gradient3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><defs><linearGradient id="gradient3" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#10b981" /><stop offset="100%" stopColor="#3b82f6" /></linearGradient></defs><path d="M100.28 448H7.4V148.9h92.88zM53.79 108.1C24.09 108.1 0 83.5 0 53.8a53.79 53.79 0 0 1 107.58 0c0 29.7-24.1 54.3-53.79 54.3zM447.9 448h-92.68V302.4c0-34.7-.7-79.2-48.29-79.2-48.29 0-55.69 37.7-55.69 76.7V448h-92.78V148.9h89.08v40.8h1.3c12.4-23.5 42.69-48.3 87.88-48.3 94 0 111.28 61.9 111.28 142.3V448z" fill="url(#gradient3)" stroke="none"></path></svg>,
+                title: "LinkedIn AI Parser",
+                desc: "Instantly convert your exported LinkedIn PDF into a highly structured, ATS-ready layout using AI parsing."
               },
               {
                 icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#gradient1)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>,
@@ -272,22 +379,22 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
               {
                 icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#gradient1)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></svg>,
                 title: "Fluid Drag & Drop",
-                desc: "Smoothly reorder your jobs, skills, and education with our buttery FLIP animation engine."
+                desc: "Smoothly reorder your individual jobs, skills, and education blocks with our buttery FLIP animation engine."
               },
               {
-                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#gradient3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>,
-                title: "Hybrid Cloud Sync",
-                desc: "Save profiles securely to MongoDB for cross-device access, or keep data 100% private in browser storage."
+                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#gradient2)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>,
+                title: "Shareable Web Resumes",
+                desc: "Publish your resume to a live URL with custom slugs, password protection, and live visitor analytics."
               },
               {
-                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#gradient2)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>,
-                title: "Compliance Auditor",
-                desc: "Scan for hiring bias and anti-patterns to ensure compliance with EEOC standards in the US, CA, and AU."
+                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#gradient3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>,
+                title: "Smart Auto-Fit Engine",
+                desc: "Intelligently auto-compress typography, margins, and line-heights to fit your resume perfectly onto 1 or 2 pages."
               },
               {
                 icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#gradient2)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>,
-                title: "Premium Security",
-                desc: "Industry-standard bcrypt password hashing and isomorphic DOM purifying for XSS protection."
+                title: "Bank-Grade Security",
+                desc: "Keep your data private with zero-trust AES encryption, session validation, and secure auto-logout."
               },
               {
                 icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#gradient1)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>,
@@ -311,12 +418,7 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
               }
             ].map((f, i) => (
               <div className="col-lg-3 col-md-6" key={i}>
-                <div className="feature-card h-100 p-4 rounded-4 position-relative overflow-hidden" style={{ 
-                  background: 'linear-gradient(145deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.4) 100%)',
-                  border: '1px solid rgba(255, 255, 255, 0.05)',
-                  backdropFilter: 'blur(10px)',
-                  transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
-                }}>
+                <div className="feature-card glass-panel h-100 p-4 position-relative">
                   <div className="feature-icon-wrapper mb-4 d-inline-flex align-items-center justify-content-center rounded-3 position-relative z-1" style={{ 
                     width: '50px', height: '50px', 
                     background: 'rgba(255,255,255,0.02)',

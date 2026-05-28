@@ -1,5 +1,9 @@
-import React from 'react';
 
+/**
+ * @file ComplianceScanner.jsx
+ * @description React component rendering the ComplianceScanner UI element.
+ * @author Jonathan T. Miller
+ */
 export default function ComplianceScanner({ 
   formData, 
   targetKeywords = [],

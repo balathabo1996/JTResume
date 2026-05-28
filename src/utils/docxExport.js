@@ -1,3 +1,8 @@
+/**
+ * @file docxExport.js
+ * @description Utility functions and helpers for docxExport operations.
+ * @author Jonathan T. Miller
+ */
 import {
   Document,
   Packer,

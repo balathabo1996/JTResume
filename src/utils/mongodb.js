@@ -1,3 +1,8 @@
+/**
+ * @file mongodb.js
+ * @description Utility functions and helpers for mongodb operations.
+ * @author Jonathan T. Miller
+ */
 import { MongoClient } from 'mongodb';
 
 const uri = process.env.MONGODB_URI || '';

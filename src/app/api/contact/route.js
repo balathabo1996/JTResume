@@ -1,13 +1,35 @@
+/**
+ * @file route.js
+ * @description Next.js API route for handling backend logic related to route.js.
+ * @author Jonathan T. Miller
+ */
 import { NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
+import { contactSchema } from '../../../utils/validators';
+import { rateLimit } from '../../../utils/rate-limit';
+
+const limiter = rateLimit({
+  uniqueTokenPerInterval: 500,
+  interval: 60000 * 60, // 1 hour
+});
 
 export async function POST(request) {
   try {
-    const { name, email, subject, message } = await request.json();
+    const ip = request.headers.get('x-forwarded-for') || '127.0.0.1';
+    const res = new NextResponse();
+    await limiter.check(res, 5, ip); // Max 5 emails per hour
+    
+    const body = await request.json();
+    const validation = contactSchema.safeParse(body);
 
-    if (!name || !email || !subject || !message) {
-      return NextResponse.json({ error: 'All fields are required.' }, { status: 400 });
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: validation.error.errors[0].message },
+        { status: 400 }
+      );
     }
+
+    const { name, email, subject, message } = validation.data;
 
     const cleanEmail = email.toLowerCase().trim();
     const gmailUser = process.env.GMAIL_USER;

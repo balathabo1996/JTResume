@@ -897,10 +897,8 @@ label.form-label {
 @media (max-width: 850px) {
   .resume-paper-wrapper.letter, 
   .resume-paper-wrapper.a4 {
-    width: 100%;
-    min-height: auto;
-    padding: 24px;
-    transform: scale(1);
+    /* Scaling is now perfectly handled via React ResizeObserver inline styles to preserve aspect ratios */
+    margin: 0 auto;
   }
 }
 
@@ -1699,9 +1697,34 @@ label.form-label {
   transform: rotate(-90deg);
 }
 
+/* --- Mobile Specific Overrides --- */
+@media (max-width: 768px) {
+  /* Prevent iOS Safari from auto-zooming when tapping inputs */
+  input, select, textarea, .form-control, .form-select {
+    font-size: 16px !important;
+  }
+
+  .mockup-container {
+    transform: scale(0.9);
+    transform-origin: center center;
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
+  .badge-ats {
+    left: 10px !important;
+  }
+
+  .badge-template {
+    right: 10px !important;
+    bottom: 5% !important;
+  }
+}
+
 .gauge-bg {
   fill: none;
   stroke: rgba(255, 255, 255, 0.05);
+  stroke-width: 3.5;
 }
 
 .gauge-stroke {
@@ -2107,21 +2130,23 @@ body, input, select, textarea, button, div, span, label {
 .mockup-glass-card {
   width: 380px;
   height: 480px;
-  background: linear-gradient(135deg, rgba(30, 27, 75, 0.7) 0%, rgba(15, 23, 42, 0.9) 50%, rgba(88, 28, 135, 0.6) 100%);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(168, 85, 247, 0.3);
-  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(30, 27, 75, 0.4) 0%, rgba(15, 23, 42, 0.6) 50%, rgba(88, 28, 135, 0.3) 100%);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  border-left: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 24px;
   padding: 32px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 40px rgba(139, 92, 246, 0.15);
+  box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255,255,255,0.1);
   transform: perspective(1000px) rotateY(-5deg) rotateX(5deg);
-  transition: all 0.5s ease;
+  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .mockup-glass-card:hover {
-  transform: perspective(1000px) rotateY(0deg) rotateX(0deg) translateY(-10px);
-  box-shadow: 0 30px 60px -10px rgba(0, 0, 0, 0.6), 0 0 50px rgba(168, 85, 247, 0.25);
-  border-color: rgba(168, 85, 247, 0.5);
+  transform: perspective(1000px) rotateY(0deg) rotateX(0deg) translateY(-15px);
+  box-shadow: 0 40px 80px -10px rgba(0, 0, 0, 0.7), 0 0 60px rgba(168, 85, 247, 0.2);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .mockup-name {
@@ -2134,21 +2159,40 @@ body, input, select, textarea, button, div, span, label {
   height: 6px;
   background: linear-gradient(90deg, rgba(129, 140, 248, 0.4) 0%, rgba(168, 85, 247, 0.15) 100%);
   border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+}
+
+.mockup-line::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 50%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  animation: lineShine 3s infinite;
+}
+
+@keyframes lineShine {
+  0% { left: -100%; }
+  100% { left: 200%; }
 }
 
 .floating-badge {
   position: absolute;
   animation: float 6s infinite alternate ease-in-out;
   font-size: 0.9rem;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 
 .badge-ats {
   top: 8%;
   left: -50px;
   color: #ffffff;
-  background: linear-gradient(135deg, #064e3b 0%, #047857 100%);
-  border: 1px solid #34d399;
-  box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  background: linear-gradient(135deg, rgba(6, 78, 59, 0.8) 0%, rgba(4, 120, 87, 0.8) 100%);
+  border: 1px solid rgba(52, 211, 153, 0.4);
+  border-top: 1px solid rgba(52, 211, 153, 0.6);
+  box-shadow: 0 15px 35px rgba(16, 185, 129, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
@@ -2156,9 +2200,10 @@ body, input, select, textarea, button, div, span, label {
   bottom: 15%;
   right: -60px;
   color: #ffffff;
-  background: linear-gradient(135deg, #3b0764 0%, #581c87 100%);
-  border: 1px solid #c084fc;
-  box-shadow: 0 10px 30px rgba(139, 92, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  background: linear-gradient(135deg, rgba(59, 7, 100, 0.8) 0%, rgba(88, 28, 135, 0.8) 100%);
+  border: 1px solid rgba(192, 132, 252, 0.4);
+  border-top: 1px solid rgba(192, 132, 252, 0.6);
+  box-shadow: 0 15px 35px rgba(139, 92, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
   animation-delay: -3s;
 }
@@ -2175,7 +2220,22 @@ body, input, select, textarea, button, div, span, label {
   font-size: 0.8rem;
   font-weight: 800;
   color: #34d399;
-  box-shadow: 0 0 8px rgba(52, 211, 153, 0.5);
+  box-shadow: 0 0 15px rgba(52, 211, 153, 0.6), inset 0 0 10px rgba(52, 211, 153, 0.4);
+  position: relative;
+}
+
+.score-ring::before {
+  content: '';
+  position: absolute;
+  top: -3px; left: -3px; right: -3px; bottom: -3px;
+  border-radius: 50%;
+  border: 1px solid rgba(52, 211, 153, 0.8);
+  animation: pulseRing 2s infinite;
+}
+
+@keyframes pulseRing {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(1.4); opacity: 0; }
 }
 
 @keyframes float {
@@ -2670,5 +2730,80 @@ textarea::placeholder {
 /* Smooth Scrolling for Anchor Links (Landing Page) */
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: 75px; /* Offset for fixed navbar so backgrounds align perfectly */
 }
+
+/* ============================================
+   PREMIUM UTILITIES & GLASSMORPHISM
+   ============================================ */
+
+.glass-panel {
+  background: rgba(13, 18, 30, 0.4);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  border-radius: 16px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-panel:hover {
+  background: rgba(18, 25, 43, 0.5);
+  border-color: rgba(99, 102, 241, 0.3);
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #a5b4fc 0%, #818cf8 50%, #c084fc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+}
+
+.btn-premium {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-weight: 600;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-premium:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+}
+
+.btn-premium:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stagger-1 { animation-delay: 0.1s; }
+.stagger-2 { animation-delay: 0.2s; }
+.stagger-3 { animation-delay: 0.3s; }
+.stagger-4 { animation-delay: 0.4s; }
+

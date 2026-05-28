@@ -1,3 +1,8 @@
+/**
+ * @file route.js
+ * @description Next.js API route for handling backend logic related to route.js.
+ * @author Jonathan T. Miller
+ */
 import { NextResponse } from 'next/server';
 import clientPromise from '../../../../utils/mongodb';
 import bcrypt from 'bcryptjs';
@@ -16,8 +21,6 @@ export async function POST(request) {
     const cleanCode = code.trim();
 
     let userFound = false;
-    let isOffline = false;
-
     if (clientPromise) {
       const client = await clientPromise;
       const dbName = process.env.MONGODB_DB || 'jtresume';
@@ -52,7 +55,7 @@ export async function POST(request) {
         }
       );
     } else {
-      isOffline = true;
+      // isOffline fallback
       const usersFilePath = path.join(process.cwd(), 'data', 'users.json');
       if (fs.existsSync(usersFilePath)) {
         const fileData = fs.readFileSync(usersFilePath, 'utf8');
