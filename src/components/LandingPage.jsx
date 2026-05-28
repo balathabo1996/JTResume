@@ -347,9 +347,46 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
           </div>
         </div>
         
-        {/* Animated Premium Grid */}
-        <div className="container position-relative z-1 mt-5">
-          <div className="row g-5 justify-content-center">
+        {/* Animated Infinite Marquee Grid */}
+        <div className="container-fluid px-0 mt-2 position-relative z-1 overflow-hidden" style={{ paddingBottom: '20px' }}>
+          <style>{`
+            @keyframes infiniteScrollX {
+              0% { transform: translateX(0); }
+              100% { transform: translateX(-50%); }
+            }
+            @keyframes infiniteScrollXReverse {
+              0% { transform: translateX(-50%); }
+              100% { transform: translateX(0); }
+            }
+            .infinite-marquee {
+              display: flex;
+              width: max-content;
+              animation: infiniteScrollX 35s linear infinite;
+              padding: 5px 0;
+            }
+            .infinite-marquee:hover {
+              animation-play-state: paused;
+            }
+            .infinite-marquee.reverse {
+              animation: infiniteScrollXReverse 35s linear infinite;
+            }
+            .infinite-marquee.reverse:hover {
+              animation-play-state: paused;
+            }
+            .template-item {
+              margin: 0 -45px;
+              transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+              transform: scale(0.65);
+              cursor: pointer;
+            }
+            .template-item:hover {
+              transform: scale(0.72) translateY(-15px);
+              z-index: 100;
+            }
+          `}</style>
+
+          {/* Track 1 - Moving Left */}
+          <div className="infinite-marquee">
             {[
               { layout: 'sidebar', color: '#10b981', name: 'Kunhao Du', label: 'Executive Green' },
               { layout: 'classic', color: '#0ea5e9', name: 'John Doe', label: 'Classic Blue' },
@@ -357,61 +394,107 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
               { layout: 'sidebar', color: '#8b5cf6', name: 'Alex Kowalski', label: 'Tech Purple' },
               { layout: 'classic', color: '#f59e0b', name: 'Marcus Chen', label: 'Modern Amber' },
               { layout: 'centered', color: '#14b8a6', name: 'Emma Wilson', label: 'Minimal Teal' },
+              { layout: 'sidebar', color: '#10b981', name: 'Kunhao Du', label: 'Executive Green' },
+              { layout: 'classic', color: '#0ea5e9', name: 'John Doe', label: 'Classic Blue' },
+              { layout: 'centered', color: '#ec4899', name: 'Sarah Martinez', label: 'Creative Pink' },
+              { layout: 'sidebar', color: '#8b5cf6', name: 'Alex Kowalski', label: 'Tech Purple' },
+              { layout: 'classic', color: '#f59e0b', name: 'Marcus Chen', label: 'Modern Amber' },
+              { layout: 'centered', color: '#14b8a6', name: 'Emma Wilson', label: 'Minimal Teal' }
             ].map((tpl, i) => (
-              <div className="col-lg-4 col-md-6 d-flex justify-content-center" key={i}>
+              <div 
+                className="template-item position-relative d-flex justify-content-center" 
+                key={`t1-${i}`}
+                onMouseOver={(e) => {
+                  e.currentTarget.querySelector('.template-glow').style.opacity = '1';
+                  e.currentTarget.querySelector('.template-overlay').style.opacity = '1';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.querySelector('.template-glow').style.opacity = '0';
+                  e.currentTarget.querySelector('.template-overlay').style.opacity = '0';
+                }}
+              >
                 <div 
-                  className="template-card-wrapper position-relative" 
+                  className="template-glow position-absolute w-100 h-100 rounded" 
                   style={{ 
-                    transition: 'all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1)', 
-                    cursor: 'pointer' 
-                  }}
-                  onMouseOver={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-15px) scale(1.03)';
-                    e.currentTarget.querySelector('.template-glow').style.opacity = '1';
-                    e.currentTarget.querySelector('.template-overlay').style.opacity = '1';
-                  }}
-                  onMouseOut={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0) scale(1)';
-                    e.currentTarget.querySelector('.template-glow').style.opacity = '0';
-                    e.currentTarget.querySelector('.template-overlay').style.opacity = '0';
-                  }}
-                >
+                    background: `radial-gradient(circle at center, ${tpl.color}80 0%, transparent 70%)`,
+                    filter: 'blur(35px)',
+                    opacity: 0,
+                    transition: 'opacity 0.5s',
+                    top: 0, left: 0, zIndex: 0
+                  }} 
+                ></div>
+                <div className="position-relative z-1 rounded-4 overflow-hidden shadow-lg" style={{ border: `1px solid rgba(255,255,255,0.08)` }}>
+                  <MiniResumeMockup layout={tpl.layout} color={tpl.color} name={tpl.name} />
                   <div 
-                    className="template-glow position-absolute w-100 h-100 rounded" 
-                    style={{ 
-                      background: `radial-gradient(circle at center, ${tpl.color}80 0%, transparent 70%)`,
-                      filter: 'blur(35px)',
+                    className="template-overlay position-absolute w-100 h-100 top-0 start-0 d-flex flex-column align-items-center justify-content-center"
+                    style={{
+                      background: 'rgba(10, 13, 22, 0.85)',
+                      backdropFilter: 'blur(4px)',
                       opacity: 0,
-                      transition: 'opacity 0.5s',
-                      top: 0, left: 0, zIndex: 0
-                    }} 
-                  ></div>
-                  
-                  <div className="position-relative z-1 rounded-4 overflow-hidden shadow-lg" style={{ border: `1px solid rgba(255,255,255,0.08)` }}>
-                    <MiniResumeMockup layout={tpl.layout} color={tpl.color} name={tpl.name} />
-                    
-                    {/* Hover Overlay */}
-                    <div 
-                      className="template-overlay position-absolute w-100 h-100 top-0 start-0 d-flex flex-column align-items-center justify-content-center"
-                      style={{
-                        background: 'rgba(10, 13, 22, 0.85)',
-                        backdropFilter: 'blur(4px)',
-                        opacity: 0,
-                        transition: 'opacity 0.4s ease',
-                        zIndex: 10
-                      }}
-                    >
-                      <span className="badge mb-3 px-3 py-2 fs-6 rounded-pill border" style={{ backgroundColor: `${tpl.color}30`, color: tpl.color, borderColor: `${tpl.color}50` }}>
-                        {tpl.label}
-                      </span>
-                      <button 
-                        className="btn fw-bold rounded-pill px-4 py-2" 
-                        style={{ background: tpl.color, color: '#fff', border: 'none', boxShadow: `0 4px 15px ${tpl.color}60` }}
-                        onClick={isAuthenticated ? onGoToDashboard : onStartBuilder}
-                      >
-                        Use Template
-                      </button>
-                    </div>
+                      transition: 'opacity 0.4s ease',
+                      zIndex: 10
+                    }}
+                  >
+                    <span className="badge mb-3 px-3 py-2 fs-5 rounded-pill border" style={{ backgroundColor: `${tpl.color}30`, color: tpl.color, borderColor: `${tpl.color}50` }}>{tpl.label}</span>
+                    <button className="btn fw-bold rounded-pill px-4 py-2 fs-5" style={{ background: tpl.color, color: '#fff', border: 'none', boxShadow: `0 4px 15px ${tpl.color}60` }} onClick={isAuthenticated ? onGoToDashboard : onStartBuilder}>Use Template</button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Track 2 - Moving Right (Reversed) */}
+          <div className="infinite-marquee reverse" style={{ marginTop: '-120px' }}>
+            {[
+              { layout: 'sidebar', color: '#10b981', name: 'Kunhao Du', label: 'Executive Green' },
+              { layout: 'classic', color: '#0ea5e9', name: 'John Doe', label: 'Classic Blue' },
+              { layout: 'centered', color: '#ec4899', name: 'Sarah Martinez', label: 'Creative Pink' },
+              { layout: 'sidebar', color: '#8b5cf6', name: 'Alex Kowalski', label: 'Tech Purple' },
+              { layout: 'classic', color: '#f59e0b', name: 'Marcus Chen', label: 'Modern Amber' },
+              { layout: 'centered', color: '#14b8a6', name: 'Emma Wilson', label: 'Minimal Teal' },
+              { layout: 'sidebar', color: '#10b981', name: 'Kunhao Du', label: 'Executive Green' },
+              { layout: 'classic', color: '#0ea5e9', name: 'John Doe', label: 'Classic Blue' },
+              { layout: 'centered', color: '#ec4899', name: 'Sarah Martinez', label: 'Creative Pink' },
+              { layout: 'sidebar', color: '#8b5cf6', name: 'Alex Kowalski', label: 'Tech Purple' },
+              { layout: 'classic', color: '#f59e0b', name: 'Marcus Chen', label: 'Modern Amber' },
+              { layout: 'centered', color: '#14b8a6', name: 'Emma Wilson', label: 'Minimal Teal' }
+            ].reverse().map((tpl, i) => (
+              <div 
+                className="template-item position-relative d-flex justify-content-center" 
+                key={`t2-${i}`}
+                onMouseOver={(e) => {
+                  e.currentTarget.querySelector('.template-glow').style.opacity = '1';
+                  e.currentTarget.querySelector('.template-overlay').style.opacity = '1';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.querySelector('.template-glow').style.opacity = '0';
+                  e.currentTarget.querySelector('.template-overlay').style.opacity = '0';
+                }}
+              >
+                <div 
+                  className="template-glow position-absolute w-100 h-100 rounded" 
+                  style={{ 
+                    background: `radial-gradient(circle at center, ${tpl.color}80 0%, transparent 70%)`,
+                    filter: 'blur(35px)',
+                    opacity: 0,
+                    transition: 'opacity 0.5s',
+                    top: 0, left: 0, zIndex: 0
+                  }} 
+                ></div>
+                <div className="position-relative z-1 rounded-4 overflow-hidden shadow-lg" style={{ border: `1px solid rgba(255,255,255,0.08)` }}>
+                  <MiniResumeMockup layout={tpl.layout} color={tpl.color} name={tpl.name} />
+                  <div 
+                    className="template-overlay position-absolute w-100 h-100 top-0 start-0 d-flex flex-column align-items-center justify-content-center"
+                    style={{
+                      background: 'rgba(10, 13, 22, 0.85)',
+                      backdropFilter: 'blur(4px)',
+                      opacity: 0,
+                      transition: 'opacity 0.4s ease',
+                      zIndex: 10
+                    }}
+                  >
+                    <span className="badge mb-3 px-3 py-2 fs-5 rounded-pill border" style={{ backgroundColor: `${tpl.color}30`, color: tpl.color, borderColor: `${tpl.color}50` }}>{tpl.label}</span>
+                    <button className="btn fw-bold rounded-pill px-4 py-2 fs-5" style={{ background: tpl.color, color: '#fff', border: 'none', boxShadow: `0 4px 15px ${tpl.color}60` }} onClick={isAuthenticated ? onGoToDashboard : onStartBuilder}>Use Template</button>
                   </div>
                 </div>
               </div>
@@ -421,7 +504,7 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
       </section>
 
       {/* 5. Contact Section */}
-      <section id="contact" className="py-5" style={{ background: 'linear-gradient(to bottom, #0a0d16 0%, #060913 100%)', position: 'relative' }}>
+      <section id="contact" className="pt-2 pb-5" style={{ background: 'linear-gradient(to bottom, #0a0d16 0%, #060913 100%)', position: 'relative' }}>
         <div className="container position-relative z-1" style={{ maxWidth: '1000px' }}>
           <div className="text-center mb-5">
             <span className="text-indigo fw-bold text-uppercase" style={{ letterSpacing: '1px' }}>Get in Touch</span>
