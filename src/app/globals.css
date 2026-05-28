@@ -2666,3 +2666,9 @@ textarea::placeholder {
   size: auto;
   margin: 0mm; /* Removes default browser header/footer margins */
 }
+
+/* Smooth Scrolling for Anchor Links (Landing Page) */
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 75px; /* Offset for fixed navbar so backgrounds align perfectly */
+}
