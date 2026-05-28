@@ -248,16 +248,17 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
           </button>
 
           <div className="collapse navbar-collapse" id="navbarContent">
-            <div className="mobile-nav-inner w-100">
+            <div className="mobile-nav-inner w-100 d-lg-flex align-items-lg-center">
               <ul className="navbar-nav mx-auto mb-2 mb-lg-0 gap-4 fw-medium" style={{ fontSize: '0.9rem', color: '#cbd5e1' }}>
               <li className="nav-item"><a className="nav-link text-light nav-hover" href="#features">Features</a></li>
               <li className="nav-item"><a className="nav-link text-light nav-hover" href="#templates">Templates</a></li>
               <li className="nav-item"><a className="nav-link text-light nav-hover" href="#contact">Contact</a></li>
-            </ul>
-            <div className="d-flex align-items-center gap-3">
+              </ul>
+              
+              <div className="d-flex align-items-center justify-content-center gap-3 mt-3 mt-lg-0">
               {isAuthenticated ? (
                 <>
-                  <button className="btn nav-signin-btn px-4 py-2 fw-bold text-light text-decoration-none rounded-pill" onClick={onSignOut}>
+                  <button className="btn btn-dark px-4 py-2 fw-bold rounded-pill auth-btn border border-secondary" onClick={onSignOut}>
                     Sign Out
                   </button>
                   <button className="btn btn-primary px-4 py-2 fw-bold rounded-pill shadow-lg cta-btn" onClick={onGoToDashboard}>
@@ -266,7 +267,7 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
                 </>
               ) : (
                 <>
-                  <button className="btn nav-signin-btn px-4 py-2 fw-bold text-light text-decoration-none rounded-pill" onClick={onStartBuilder}>
+                  <button className="btn btn-dark px-4 py-2 fw-bold rounded-pill auth-btn border border-secondary" onClick={onStartBuilder}>
                     Sign In
                   </button>
                   <button className="btn btn-primary px-4 py-2 fw-bold rounded-pill shadow-lg cta-btn" onClick={onStartBuilder}>
@@ -274,14 +275,14 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
                   </button>
                 </>
               )}
-            </div>
+              </div>
             </div>
           </div>
         </div>
       </nav>
 
       {/* 2. Spectacular Hero Section */}
-      <section className="hero-section position-relative d-flex align-items-center" style={{ minHeight: '100vh', paddingTop: '80px', overflow: 'hidden' }}>
+      <section className="hero-section position-relative d-flex align-items-center" style={{ minHeight: '100vh', paddingTop: '130px', overflow: 'hidden' }}>
         {/* Dynamic Background Glows */}
         <div className="hero-glow hero-glow-1 position-absolute rounded-circle blur-4xl"></div>
         <div className="hero-glow hero-glow-2 position-absolute rounded-circle blur-4xl"></div>
