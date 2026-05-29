@@ -14,6 +14,7 @@ export default function CoverLetterGenerator({ resumeId, onBack, onGoHome }) {
   const [jobDescription, setJobDescription] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [coverLetterHtml, setCoverLetterHtml] = useState('');
+  const [tone, setTone] = useState('professional');
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
 
@@ -50,7 +51,7 @@ export default function CoverLetterGenerator({ resumeId, onBack, onGoHome }) {
       const res = await fetch('/api/ai/generate-cover-letter', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ resumeData, jobDescription })
+        body: JSON.stringify({ resumeData, jobDescription, tone })
       });
       const data = await res.json();
       
@@ -158,7 +159,43 @@ export default function CoverLetterGenerator({ resumeId, onBack, onGoHome }) {
             style={{ resize: 'none', borderRadius: '12px', padding: '16px' }}
           />
 
-          {error && <div className="alert alert-danger mt-3 mb-0 py-2">{error}</div>}
+          {/* Tone Selector */}
+          <div className="mt-4 mb-2">
+            <h6 className="fw-bold mb-3 d-flex align-items-center gap-2" style={{ color: '#e2e8f0' }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+              Select Letter Tone
+            </h6>
+            <div className="d-flex flex-column gap-2">
+              <button
+                className={`btn d-flex flex-column align-items-start text-start p-3 w-100 rounded-3 border transition-all ${tone === 'professional' ? 'bg-primary bg-opacity-10 border-primary' : 'bg-transparent border-secondary border-opacity-25 text-secondary'}`}
+                onClick={() => setTone('professional')}
+                style={{ cursor: 'pointer' }}
+              >
+                <span className={`fw-bold mb-1 ${tone === 'professional' ? 'text-primary' : 'text-light'}`}>Professional & Direct</span>
+                <span style={{ fontSize: '0.8rem' }}>The standard, corporate approach. Safe for any application.</span>
+              </button>
+              
+              <button
+                className={`btn d-flex flex-column align-items-start text-start p-3 w-100 rounded-3 border transition-all ${tone === 'passionate' ? 'bg-success bg-opacity-10 border-success' : 'bg-transparent border-secondary border-opacity-25 text-secondary'}`}
+                onClick={() => setTone('passionate')}
+                style={{ cursor: 'pointer' }}
+              >
+                <span className={`fw-bold mb-1 ${tone === 'passionate' ? 'text-success' : 'text-light'}`}>Passionate & Story-Driven</span>
+                <span style={{ fontSize: '0.8rem' }}>Focuses on mission alignment. Perfect for startups or non-profits.</span>
+              </button>
+
+              <button
+                className={`btn d-flex flex-column align-items-start text-start p-3 w-100 rounded-3 border transition-all ${tone === 'aggressive' ? 'bg-warning bg-opacity-10 border-warning' : 'bg-transparent border-secondary border-opacity-25 text-secondary'}`}
+                onClick={() => setTone('aggressive')}
+                style={{ cursor: 'pointer' }}
+              >
+                <span className={`fw-bold mb-1 ${tone === 'aggressive' ? 'text-warning' : 'text-light'}`}>Aggressive & Data-Driven</span>
+                <span style={{ fontSize: '0.8rem' }}>Focuses purely on ROI and hard metrics. Perfect for sales or fintech.</span>
+              </button>
+            </div>
+          </div>
+
+          {error && <div className="alert alert-danger mt-4 mb-0 py-2">{error}</div>}
 
           <button 
             className="btn btn-primary w-100 mt-4 py-3 fw-bold d-flex align-items-center justify-content-center gap-2" 

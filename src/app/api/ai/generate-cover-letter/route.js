@@ -8,7 +8,7 @@ import { GoogleGenAI } from '@google/genai';
 
 export async function POST(request) {
   try {
-    const { resumeData, jobDescription } = await request.json();
+    const { resumeData, jobDescription, tone = 'professional' } = await request.json();
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
@@ -32,6 +32,13 @@ export async function POST(request) {
     
     const skillsText = resumeData.skills?.map(s => s.name).join(', ') || 'No skills provided.';
 
+    let toneInstruction = "Use a standard, professional, and corporate tone. Be direct and polite.";
+    if (tone === 'passionate') {
+      toneInstruction = "Use a highly passionate, story-driven tone. Emphasize mission alignment, enthusiasm for the product/industry, and a strong desire to contribute to the company's vision.";
+    } else if (tone === 'aggressive') {
+      toneInstruction = "Use an aggressive, highly confident, data-driven tone. Skip the fluff and focus purely on hard metrics, ROI, and how your specific skills will immediately make the company money or save time. Do not use overly polite or submissive language.";
+    }
+
     const prompt = `You are an expert career coach and professional copywriter.
 I need you to write a highly tailored, compelling cover letter for a user applying for a job.
 
@@ -50,12 +57,13 @@ ${skillsText}
 ${jobDescription}
 
 ### Instructions:
-1. Write a professional, modern cover letter.
+1. Write a modern cover letter tailored to the job description.
 2. Cross-reference the user's specific experience and skills to the requirements in the job description.
 3. Keep it concise (around 300-400 words) and impactful.
-4. Do NOT use placeholders like "[Company Name]" if the company name is visible in the job description. Infer the company and role from the job description if possible.
-5. Format the output in clean HTML (using <p> tags for paragraphs). Do NOT use markdown blocks like \`\`\`html.
-6. Do not include introductory conversational text (e.g., "Here is your cover letter:"). Just output the raw HTML.
+4. TONE DIRECTIVE: ${toneInstruction} You MUST adopt this tone perfectly.
+5. Do NOT use placeholders like "[Company Name]" if the company name is visible in the job description. Infer the company and role from the job description if possible.
+6. Format the output in clean HTML (using <p> tags for paragraphs). Do NOT use markdown blocks like \`\`\`html.
+7. Do not include introductory conversational text (e.g., "Here is your cover letter:"). Just output the raw HTML.
 `;
 
     const response = await ai.models.generateContent({

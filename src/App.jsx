@@ -58,6 +58,7 @@ export default function App() {
   // Profile Modal State
   const [profileOpen, setProfileOpen] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [showSessionExpiredModal, setShowSessionExpiredModal] = useState(false);
   const [editProfileLoading, setEditProfileLoading] = useState(false);
   const [editProfileMessage, setEditProfileMessage] = useState({
     type: "",
@@ -506,9 +507,7 @@ export default function App() {
         timeout = setTimeout(
           () => {
             handleLogout();
-            alert(
-              "Your session has expired due to 30 minutes of inactivity. Please sign in again.",
-            );
+            setShowSessionExpiredModal(true);
           },
           30 * 60 * 1000,
         ); // 30 minutes
@@ -2536,6 +2535,7 @@ export default function App() {
               targetKeywords={targetKeywords}
               matchedKeywords={matchedKeywords}
               matchPercentage={matchPercentage}
+              jobDescription={jobDescription}
             />
 
             {/* Floating Paper Preview */}
@@ -2655,6 +2655,33 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {/* Session Expired Modal */}
+      {showSessionExpiredModal && (
+        <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(15,23,42,0.8)', backdropFilter: 'blur(10px)', zIndex: 9999 }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content text-light p-4" style={{ background: 'var(--ui-card-bg)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '24px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}>
+              <div className="text-center mb-4">
+                <div className="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-4" style={{ width: '80px', height: '80px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                </div>
+                <h3 className="fw-bolder mb-2">Session Expired</h3>
+                <p className="text-secondary" style={{ fontSize: '0.95rem' }}>
+                  For your security, your session has been closed due to 30 minutes of inactivity. Please sign in again to continue working.
+                </p>
+              </div>
+              <button 
+                className="btn w-100 py-3 fw-bold text-white rounded-4" 
+                style={{ background: 'linear-gradient(135deg, #0ea5e9, #3b82f6)', border: 'none', fontSize: '1.1rem' }}
+                onClick={() => setShowSessionExpiredModal(false)}
+              >
+                Sign In Again
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

@@ -1,11 +1,42 @@
+import { useState } from 'react';
+
 export default function ComplianceScanner({ 
   formData, 
   targetKeywords = [],
   matchedKeywords = [],
-  matchPercentage = 0
+  matchPercentage = 0,
+  jobDescription = '' // Need this for the API call
 }) {
+  const [isGeneratingLearningPaths, setIsGeneratingLearningPaths] = useState(false);
+  const [learningPaths, setLearningPaths] = useState(null);
+  const [learningPathError, setLearningPathError] = useState('');
+
   const { personalInfo, workExperience, education } = formData;
   
+  // Calculate missing keywords
+  const missingKeywords = targetKeywords.filter(kw => !matchedKeywords.includes(kw));
+
+  const handleGenerateLearningPaths = async () => {
+    if (missingKeywords.length === 0 || !jobDescription) return;
+    
+    setIsGeneratingLearningPaths(true);
+    setLearningPathError('');
+    try {
+      const res = await fetch('/api/ai/skill-gap', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ missingSkills: missingKeywords, jobDescription })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to generate learning paths');
+      setLearningPaths(data.learningPaths);
+    } catch (err) {
+      setLearningPathError(err.message);
+    } finally {
+      setIsGeneratingLearningPaths(false);
+    }
+  };
+
   // Scans for sensitive information
   const issues = [];
   
@@ -241,6 +272,48 @@ export default function ComplianceScanner({
                 );
               })}
             </div>
+
+            {/* Learning Path Section */}
+            {missingKeywords.length > 0 && (
+              <div className="mt-4 pt-4" style={{ borderTop: '1px solid rgba(16, 185, 129, 0.1)' }}>
+                <div className="d-flex align-items-center justify-content-between mb-3">
+                  <h5 className="fw-bold m-0 text-light" style={{ fontSize: '0.9rem' }}>Skill Gap Analysis</h5>
+                  {!learningPaths && (
+                    <button 
+                      onClick={handleGenerateLearningPaths}
+                      disabled={isGeneratingLearningPaths}
+                      className="btn btn-sm text-white fw-bold d-flex align-items-center gap-2 px-3 py-2"
+                      style={{ background: 'linear-gradient(135deg, #0ea5e9, #3b82f6)', border: 'none', borderRadius: '8px' }}
+                    >
+                      {isGeneratingLearningPaths ? (
+                        <><span className="spinner-border spinner-border-sm" /> Analyzing...</>
+                      ) : (
+                        <>✨ Generate Learning Path</>
+                      )}
+                    </button>
+                  )}
+                </div>
+
+                {learningPathError && <div className="text-danger mb-2" style={{ fontSize: '0.8rem' }}>{learningPathError}</div>}
+
+                {learningPaths && learningPaths.length > 0 && (
+                  <div className="d-flex flex-column gap-3 mt-3">
+                    {learningPaths.map((path, idx) => (
+                      <div key={idx} className="p-3 rounded-3" style={{ background: 'rgba(30, 41, 59, 0.5)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                        <div className="d-flex justify-content-between align-items-start mb-2">
+                          <h6 className="fw-bold m-0" style={{ color: '#f59e0b' }}>Missing: {path.skill}</h6>
+                          <a href={path.linkUrl} target="_blank" rel="noreferrer" className="btn btn-sm btn-outline-warning p-1 px-2" style={{ fontSize: '0.7rem' }}>
+                            View Resources
+                          </a>
+                        </div>
+                        <p className="text-secondary mb-2" style={{ fontSize: '0.8rem', lineHeight: '1.4' }}><strong>Why it matters:</strong> {path.reason}</p>
+                        <p className="text-light m-0" style={{ fontSize: '0.85rem', lineHeight: '1.4' }}><strong>Coach's Advice:</strong> {path.actionableAdvice}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>
