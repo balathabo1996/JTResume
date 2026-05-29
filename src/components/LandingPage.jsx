@@ -299,12 +299,12 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
               <p className="lead mb-5 text-secondary" style={{ fontSize: '1.15rem', maxWidth: '90%' }}>
                 Create beautiful, ATS-optimized resumes in minutes. Stand out to recruiters with executive templates, real-time keyword scoring, and high-impact design presets.
               </p>
-              <div className="d-grid gap-3 d-sm-flex justify-content-sm-start">
-                <button className="btn btn-primary btn-lg px-5 py-3 fw-bold rounded-pill shadow-lg cta-btn" onClick={isAuthenticated ? onGoToDashboard : onStartBuilder}>
+              <div className="d-flex flex-column flex-md-row gap-3 justify-content-md-start w-100">
+                <button className="btn btn-primary btn-lg px-4 px-md-5 py-3 fw-bold rounded-pill shadow-lg cta-btn text-nowrap w-100 w-md-auto d-flex align-items-center justify-content-center" onClick={isAuthenticated ? onGoToDashboard : onStartBuilder}>
                   {isAuthenticated ? 'Go to Dashboard' : 'Create My Resume Now'}
                   <svg className="ms-2" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                 </button>
-                <a href="#templates" className="btn btn-outline-light btn-lg px-4 py-3 fw-bold rounded-pill glass-btn text-center">
+                <a href="#templates" className="btn btn-outline-light btn-lg px-4 py-3 fw-bold rounded-pill glass-btn text-center text-nowrap w-100 w-md-auto d-flex align-items-center justify-content-center">
                   View Templates
                 </a>
               </div>
