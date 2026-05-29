@@ -3062,7 +3062,15 @@ textarea::placeholder {
 /* --- Floating Badges (Hero) --- */
 @media (max-width: 575.98px) {
   .floating-badge {
-    display: none !important;
+    transform: scale(0.85);
+  }
+  .badge-ats {
+    left: -10px !important;
+    top: -15px !important;
+  }
+  .badge-template {
+    right: -10px !important;
+    bottom: -15px !important;
   }
 }
 
