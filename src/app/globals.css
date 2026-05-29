@@ -243,50 +243,46 @@ h6 {
 
 /* Premium Form Group Card */
 .form-group-card {
-  background: linear-gradient(
-    145deg,
-    rgba(14, 20, 38, 0.85),
-    rgba(10, 13, 24, 0.9)
-  ) !important;
-  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  background: var(--ui-card-bg) !important;
+  border: 1px solid var(--ui-card-border) !important;
   border-radius: 16px !important;
   overflow: hidden;
   box-shadow:
-    0 4px 20px rgba(0, 0, 0, 0.3),
+    0 4px 20px rgba(0, 0, 0, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
   transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  backdrop-filter: blur(10px);
 }
 
 .form-group-card.dragging {
   opacity: 0.45;
   border: 1px dashed var(--ui-accent) !important;
-  box-shadow: 0 0 20px rgba(99, 102, 241, 0.15) !important;
+  box-shadow: 0 0 20px var(--ui-accent-glow) !important;
   transform: scale(0.98);
 }
 
 .form-group-card:hover {
-  border-color: rgba(99, 102, 241, 0.22) !important;
+  border-color: var(--ui-accent-glow) !important;
   box-shadow:
-    0 8px 32px rgba(99, 102, 241, 0.1),
-    0 2px 8px rgba(0, 0, 0, 0.3),
+    0 8px 32px var(--ui-accent-glow),
+    0 2px 8px rgba(0, 0, 0, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
   transform: translateY(-2px);
 }
 
 .form-group-card:focus-within,
 .form-group-card.active {
-  border-color: rgba(99, 102, 241, 0.4) !important;
+  border-color: var(--ui-accent) !important;
   box-shadow:
-    0 12px 40px rgba(99, 102, 241, 0.15),
-    0 2px 8px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(99, 102, 241, 0.08) !important;
+    0 12px 40px var(--ui-accent-glow),
+    0 2px 8px rgba(0, 0, 0, 0.1) !important;
   transform: translateY(-1px);
 }
 
 /* Card header - no more Bootstrap bg-dark fighting us */
 .form-group-card .card-header {
-  background: rgba(255, 255, 255, 0.025) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+  background: var(--ui-card-bg) !important;
+  border-bottom: 1px solid var(--ui-card-border) !important;
   padding: 14px 18px !important;
   cursor: pointer;
   -webkit-user-select: none; /* Safari 3+, iOS Safari 3+ */
@@ -299,16 +295,12 @@ h6 {
 }
 
 .form-group-card .card-header:hover {
-  background: linear-gradient(
-    90deg,
-    rgba(99, 102, 241, 0.08),
-    transparent
-  ) !important;
+  background: var(--ui-accent-glow) !important;
   padding-left: 22px !important;
 }
 
 .form-group-card .card-header h3 {
-  color: #cbd5e1 !important;
+  color: var(--ui-text-secondary) !important;
   font-size: 0.85rem !important;
   font-weight: 600 !important;
   letter-spacing: -0.01em !important;
@@ -317,11 +309,11 @@ h6 {
 
 .form-group-card .card-header:hover h3,
 .form-group-card.active .card-header h3 {
-  color: #f1f5f9 !important;
+  color: var(--ui-text-primary) !important;
 }
 
 .card-chevron {
-  color: #475569;
+  color: var(--ui-text-secondary);
   font-size: 0.7rem;
   transition:
     transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
@@ -330,11 +322,11 @@ h6 {
 
 .form-group-card .card-header:hover .card-chevron,
 .form-group-card.active .card-chevron {
-  color: #a5b4fc !important;
+  color: var(--ui-accent) !important;
 }
 
 .card-header-icon {
-  color: #6366f1 !important;
+  color: var(--ui-accent) !important;
   opacity: 0.85;
 }
 
@@ -380,10 +372,10 @@ h6 {
 
 /* Custom Section Title Input in headers */
 .custom-section-title-input {
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--ui-bg);
   border: 1px solid transparent;
-  border-bottom: 1px dashed rgba(255, 255, 255, 0.2);
-  color: #f1f5f9;
+  border-bottom: 1px dashed var(--ui-card-border);
+  color: var(--ui-text-primary);
   font-size: 0.85rem;
   font-weight: 600;
   padding: 4px 8px;
@@ -395,8 +387,8 @@ h6 {
 
 .custom-section-title-input:hover,
 .custom-section-title-input:focus {
-  background: rgba(0, 0, 0, 0.4);
-  border-color: rgba(99, 102, 241, 0.4);
+  background: var(--ui-card-bg);
+  border-color: var(--ui-accent);
   border-bottom-style: solid;
 }
 
@@ -404,10 +396,10 @@ h6 {
 .form-control,
 .input-control,
 .form-select {
-  background: rgba(255, 255, 255, 0.03) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  border-bottom: 2px solid rgba(99, 102, 241, 0.2) !important;
-  color: #e2e8f0 !important;
+  background: var(--ui-bg) !important;
+  border: 1px solid var(--ui-card-border) !important;
+  border-bottom: 2px solid var(--ui-accent-glow) !important;
+  color: var(--ui-text-primary) !important;
   border-radius: 10px !important;
   padding: 10px 14px !important;
   font-size: 0.875rem !important;
@@ -419,34 +411,35 @@ h6 {
 
 .form-select option,
 .input-control option {
-  background-color: #0f1524 !important;
-  color: #f1f5f9 !important;
+  background-color: var(--ui-card-bg) !important;
+  color: var(--ui-text-primary) !important;
 }
 
 .form-control:hover,
 .input-control:hover {
-  background: rgba(255, 255, 255, 0.05) !important;
-  border-color: rgba(255, 255, 255, 0.12) !important;
-  border-bottom-color: rgba(99, 102, 241, 0.35) !important;
+  background: var(--ui-card-bg) !important;
+  border-color: var(--ui-card-border) !important;
+  border-bottom-color: var(--ui-accent) !important;
 }
 
 .form-control:focus,
 .input-control:focus,
 .form-select:focus {
   outline: none !important;
-  background: rgba(99, 102, 241, 0.06) !important;
-  border-color: rgba(99, 102, 241, 0.3) !important;
-  border-bottom: 2px solid #6366f1 !important;
+  background: var(--ui-card-bg) !important;
+  border-color: var(--ui-accent) !important;
+  border-bottom: 2px solid var(--ui-accent) !important;
   box-shadow:
-    0 0 0 3px rgba(99, 102, 241, 0.1),
-    0 4px 16px rgba(0, 0, 0, 0.2) !important;
-  color: #f1f5f9 !important;
+    0 0 0 3px var(--ui-accent-glow),
+    0 4px 16px rgba(0, 0, 0, 0.05) !important;
+  color: var(--ui-text-primary) !important;
   transform: translateY(-1px);
 }
 
 .form-control::placeholder,
 .input-control::placeholder {
-  color: rgba(148, 163, 184, 0.4) !important;
+  color: var(--ui-text-secondary) !important;
+  opacity: 0.5;
   font-style: italic;
 }
 
@@ -562,11 +555,11 @@ label.form-label {
 
 /* Sidebar Custom Styling Header Positioning */
 .app-sidebar {
-  background: linear-gradient(180deg, #06080f 0%, #070a14 100%) !important;
-  border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
-  box-shadow: 4px 0 40px rgba(0, 0, 0, 0.6);
+  background: var(--ui-bg) !important;
+  border-right: 1px solid var(--ui-card-border) !important;
+  box-shadow: 4px 0 40px rgba(0, 0, 0, 0.2);
   scrollbar-width: thin;
-  scrollbar-color: #1e293b #060913;
+  scrollbar-color: var(--ui-accent) transparent;
 }
 
 /* Form Section Wrapper */
@@ -584,29 +577,28 @@ label.form-label {
 }
 
 .sidebar-sticky-header {
-  background: rgba(7, 10, 18, 0.94) !important;
+  background: var(--ui-glass-nav) !important;
   backdrop-filter: blur(12px) !important;
   -webkit-backdrop-filter: blur(12px) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+  border-bottom: 1px solid var(--ui-card-border) !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
 }
 
 .sidebar-actions {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid var(--ui-card-border);
 }
 
 /* Premium Stepper Styles */
 .stepper-container {
-  background: rgba(255, 255, 255, 0.02) !important;
-  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  background: var(--ui-card-bg) !important;
+  border: 1px solid var(--ui-card-border) !important;
   border-radius: 12px;
   padding: 10px;
   transition: all 0.3s ease;
 }
 
 .stepper-container:hover {
-  background: rgba(255, 255, 255, 0.03) !important;
-  border-color: rgba(255, 255, 255, 0.08) !important;
+  border-color: var(--ui-accent-glow) !important;
 }
 
 .step-circle {
@@ -618,9 +610,9 @@ label.form-label {
   justify-content: center;
   font-weight: 700;
   font-size: 0.75rem;
-  background: rgba(255, 255, 255, 0.06);
-  color: #64748b;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--ui-bg);
+  color: var(--ui-text-secondary);
+  border: 1px solid var(--ui-card-border);
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
 }
@@ -3094,8 +3086,16 @@ textarea::placeholder {
   .btn-primary,
   .card-chevron,
   .welcome-widget,
-  .help-prompt {
+  .help-prompt,
+  .canvas-settings-bar,
+  .compliance-checker,
+  .mobile-action-panel {
     display: none !important;
+  }
+
+  .print-no-margin {
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
   /* Reset layout boxes and canvas wrappers to make them transparent and fully visible */

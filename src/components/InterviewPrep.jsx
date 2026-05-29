@@ -17,6 +17,9 @@ export default function InterviewPrep({ resumeId, onBack, onGoHome }) {
   const [isTyping, setIsTyping] = useState(false);
   const [error, setError] = useState('');
   
+  const [isEvaluating, setIsEvaluating] = useState(false);
+  const [evaluationResult, setEvaluationResult] = useState(null);
+  
   const chatEndRef = useRef(null);
 
   // Fetch the target resume
@@ -60,6 +63,26 @@ export default function InterviewPrep({ resumeId, onBack, onGoHome }) {
       setError(err.message);
     } finally {
       setIsTyping(false);
+    }
+  };
+
+  const handleEndInterview = async () => {
+    if (messages.length === 0) return;
+    setIsEvaluating(true);
+    setError('');
+    try {
+      const res = await fetch('/api/ai/interview-evaluate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resumeData, jobDescription, messages })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to get evaluation');
+      setEvaluationResult(data.evaluation);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsEvaluating(false);
     }
   };
 
@@ -128,9 +151,21 @@ export default function InterviewPrep({ resumeId, onBack, onGoHome }) {
         </div>
 
         {resumeData && (
-          <span className="text-secondary fw-semibold bg-dark border border-secondary rounded px-2 py-1 text-truncate ms-auto" style={{ fontSize: '0.8rem', maxWidth: '140px' }}>
-            Resume: <span className="text-light">{resumeData.title}</span>
-          </span>
+          <div className="ms-auto d-flex align-items-center gap-3">
+            {isStarted && !evaluationResult && messages.length > 2 && (
+              <button 
+                onClick={handleEndInterview}
+                disabled={isEvaluating || isTyping}
+                className="btn btn-sm btn-danger fw-bold shadow-sm"
+                style={{ borderRadius: '8px', padding: '6px 14px' }}
+              >
+                {isEvaluating ? 'Evaluating...' : 'End & Get Score'}
+              </button>
+            )}
+            <span className="text-secondary fw-semibold bg-dark border border-secondary rounded px-2 py-1 text-truncate" style={{ fontSize: '0.8rem', maxWidth: '140px' }}>
+              Resume: <span className="text-light">{resumeData.title}</span>
+            </span>
+          </div>
         )}
       </div>
 
@@ -172,10 +207,72 @@ export default function InterviewPrep({ resumeId, onBack, onGoHome }) {
           )}
         </div>
 
-        {/* Right Side: Chat Interface */}
+        {/* Right Side: Chat Interface or Evaluation */}
         {isStarted && (
           <div className="col-lg-8 col-md-7 d-flex flex-column position-relative h-100" style={{ background: 'var(--ui-bg)' }}>
             
+            {evaluationResult ? (
+              <div className="flex-grow-1 overflow-y-auto p-4 p-md-5">
+                <div className="mx-auto" style={{ maxWidth: '700px' }}>
+                  <div className="text-center mb-5">
+                    <h2 className="fw-bolder mb-2" style={{ fontSize: '2.5rem', background: 'linear-gradient(to right, #0ea5e9, #3b82f6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Interview Complete</h2>
+                    <p className="text-secondary">Here is your AI-generated feedback report.</p>
+                  </div>
+                  
+                  {/* Score Card */}
+                  <div className="d-flex align-items-center justify-content-center mb-5 p-4 rounded-4" style={{ background: 'linear-gradient(145deg, rgba(30,41,59,0.8), rgba(15,23,42,0.9))', border: '1px solid rgba(255,255,255,0.05)' }}>
+                    <div className="position-relative d-flex align-items-center justify-content-center" style={{ width: '120px', height: '120px' }}>
+                      <svg width="120" height="120" style={{ transform: 'rotate(-90deg)' }}>
+                        <circle cx="60" cy="60" r="50" stroke="rgba(255,255,255,0.05)" strokeWidth="10" fill="transparent" />
+                        <circle cx="60" cy="60" r="50" stroke={evaluationResult.score >= 80 ? '#10b981' : evaluationResult.score >= 60 ? '#f59e0b' : '#ef4444'} strokeWidth="10" strokeDasharray="314.15" strokeDashoffset={314.15 - (evaluationResult.score / 100) * 314.15} strokeLinecap="round" fill="transparent" style={{ transition: 'stroke-dashoffset 1.5s cubic-bezier(0.4, 0, 0.2, 1)' }} />
+                      </svg>
+                      <div className="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center text-white">
+                        <span className="fw-bolder lh-1" style={{ fontSize: '2rem' }}>{evaluationResult.score}</span>
+                      </div>
+                    </div>
+                    <div className="ms-4">
+                      <h3 className="fw-bold mb-1">Overall Score</h3>
+                      <p className="text-secondary m-0" style={{ fontSize: '0.9rem' }}>
+                        {evaluationResult.score >= 80 ? 'Great job! You are ready for the real thing.' : evaluationResult.score >= 60 ? 'Good effort, but there is room for improvement.' : 'Needs significant practice.'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Strengths and Weaknesses */}
+                  <div className="row g-4 mb-5">
+                    <div className="col-md-6">
+                      <div className="p-4 rounded-4 h-100" style={{ background: 'rgba(16, 185, 129, 0.05)', border: '1px solid rgba(16, 185, 129, 0.1)' }}>
+                        <h5 className="fw-bold text-success mb-3 d-flex align-items-center gap-2"><svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 13l4 4L19 7"></path></svg> Key Strengths</h5>
+                        <ul className="mb-0 ps-3 text-light" style={{ fontSize: '0.9rem' }}>
+                          {evaluationResult.strengths.map((s, i) => <li key={i} className="mb-2">{s}</li>)}
+                        </ul>
+                      </div>
+                    </div>
+                    <div className="col-md-6">
+                      <div className="p-4 rounded-4 h-100" style={{ background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.1)' }}>
+                        <h5 className="fw-bold text-danger mb-3 d-flex align-items-center gap-2"><svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 18L18 6M6 6l12 12"></path></svg> Areas to Improve</h5>
+                        <ul className="mb-0 ps-3 text-light" style={{ fontSize: '0.9rem' }}>
+                          {evaluationResult.weaknesses.map((w, i) => <li key={i} className="mb-2">{w}</li>)}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Examples */}
+                  <h4 className="fw-bold mb-4 border-bottom border-secondary pb-2">Detailed Feedback</h4>
+                  <div className="d-flex flex-column gap-3">
+                    {evaluationResult.examples.map((ex, i) => (
+                      <div key={i} className="p-4 rounded-4" style={{ background: 'rgba(30, 41, 59, 0.5)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                        <div className="fw-bold mb-2 text-info" style={{ fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1px' }}>{ex.topic}</div>
+                        <p className="text-light m-0" style={{ fontSize: '0.95rem', lineHeight: '1.6' }}>{ex.feedback}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                </div>
+              </div>
+            ) : (
+            <>
             {/* Chat History */}
             <div className="flex-grow-1 overflow-y-auto p-4 d-flex flex-column gap-4">
               {messages.length === 0 && !isTyping && (
@@ -238,6 +335,9 @@ export default function InterviewPrep({ resumeId, onBack, onGoHome }) {
                 </button>
               </form>
             </div>
+
+            </>
+            )}
 
           </div>
         )}

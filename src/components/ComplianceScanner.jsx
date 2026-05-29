@@ -1,9 +1,3 @@
-
-/**
- * @file ComplianceScanner.jsx
- * @description React component rendering the ComplianceScanner UI element.
- * @author Jonathan T. Miller
- */
 export default function ComplianceScanner({ 
   formData, 
   targetKeywords = [],
@@ -39,24 +33,28 @@ export default function ComplianceScanner({
     });
   }
 
-  // Calculate some simple ATS score parameters
+  // Calculate 3 separate metrics
   const hasSummary = personalInfo.summary && personalInfo.summary.length > 50;
   const hasExperience = workExperience.length > 0;
   const hasEdu = education.length > 0;
   
-  let score = 50;
-  if (hasSummary) score += 15;
-  if (hasExperience) score += 20;
-  if (hasEdu) score += 15;
-  if (issues.length > 0) score -= (issues.length * 15);
-  
-  // Bound score
-  score = Math.max(10, Math.min(100, score));
+  // 1. Content Completeness Score (0-100)
+  let completenessScore = 0;
+  if (hasSummary) completenessScore += 34;
+  if (hasExperience) completenessScore += 33;
+  if (hasEdu) completenessScore += 33;
 
-  // Blend keyword match percentage if we have target keywords
-  const displayScore = targetKeywords.length > 0 
-    ? Math.max(10, Math.min(100, Math.round((score * 0.4) + (matchPercentage * 0.6)))) 
-    : score;
+  // 2. Policy Compliance Score (0-100)
+  // Start at 100, subtract 25 for each issue
+  let complianceScore = 100 - (issues.length * 25);
+  complianceScore = Math.max(0, complianceScore);
+
+  // 3. Keyword Match Score (0-100)
+  // If no target keywords are provided, default to 0 to encourage gamification
+  const keywordScore = targetKeywords.length > 0 ? matchPercentage : 0;
+
+  // Blended Overall Score
+  const displayScore = Math.round((completenessScore * 0.3) + (complianceScore * 0.3) + (keywordScore * 0.4));
 
   return (
     <div className="compliance-checker container-fluid p-0 mb-4 mx-auto" style={{ maxWidth: '880px' }}>
@@ -70,57 +68,91 @@ export default function ComplianceScanner({
           overflow: 'hidden'
         }}
       >
-        {/* Header Section */}
-        <div className="d-flex align-items-center justify-content-between p-4" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
-          <div className="d-flex align-items-center gap-3">
-            <div 
-              className="d-flex align-items-center justify-content-center rounded-circle"
-              style={{
-                width: '48px', height: '48px',
-                background: issues.length === 0 ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)',
-                color: issues.length === 0 ? '#10b981' : '#f59e0b',
-                boxShadow: issues.length === 0 ? '0 0 20px rgba(16, 185, 129, 0.2)' : '0 0 20px rgba(245, 158, 11, 0.2)'
-              }}
-            >
-              {issues.length === 0 ? (
-                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ width: '24px', height: '24px' }}>
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              ) : (
-                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ width: '24px', height: '24px' }}>
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-              )}
-            </div>
-            <div>
-              <h3 className="fw-bold mb-1 text-white" style={{ fontSize: '1.1rem', letterSpacing: '0.5px' }}>
-                {issues.length === 0 ? 'ATS Compliant & Ready' : 'Optimization Required'}
-              </h3>
-              <p className="mb-0" style={{ fontSize: '0.85rem', color: '#94a3b8' }}>
-                {issues.length === 0 
-                  ? 'Your resume formatting is optimized for standard automated indexing.' 
-                  : `${issues.length} compliance issue${issues.length > 1 ? 's' : ''} detected that may affect parsing.`}
-              </p>
+        {/* Massive Gamified Header Section */}
+        <div className="d-flex flex-column flex-md-row align-items-center justify-content-center p-4 gap-5" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
+          
+          {/* Circular 3-Ring SVG Speedometer */}
+          <div className="position-relative d-flex align-items-center justify-content-center" style={{ width: '240px', height: '240px' }}>
+            <svg width="240" height="240" style={{ transform: 'rotate(-90deg)', overflow: 'visible' }}>
+              <defs>
+                <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feGaussianBlur stdDeviation="4" result="blur" />
+                  <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                </filter>
+              </defs>
+
+              {/* Keyword Match (Outer Ring - Emerald) */}
+              <circle cx="120" cy="120" r="104" stroke="rgba(16, 185, 129, 0.15)" strokeWidth="12" fill="transparent" />
+              <circle cx="120" cy="120" r="104" stroke="#10b981" strokeWidth="12" 
+                strokeDasharray="653.45" strokeDashoffset={653.45 - (keywordScore / 100) * 653.45} 
+                strokeLinecap="round" fill="transparent" 
+                style={{ transition: 'stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1)', filter: keywordScore === 100 ? 'url(#glow)' : 'none' }} />
+
+              {/* Completeness (Middle Ring - Blue) */}
+              <circle cx="120" cy="120" r="84" stroke="rgba(59, 130, 246, 0.15)" strokeWidth="12" fill="transparent" />
+              <circle cx="120" cy="120" r="84" stroke="#3b82f6" strokeWidth="12" 
+                strokeDasharray="527.79" strokeDashoffset={527.79 - (completenessScore / 100) * 527.79} 
+                strokeLinecap="round" fill="transparent" 
+                style={{ transition: 'stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1)', filter: completenessScore === 100 ? 'url(#glow)' : 'none' }} />
+
+              {/* Compliance (Inner Ring - Purple) */}
+              <circle cx="120" cy="120" r="64" stroke="rgba(168, 85, 247, 0.15)" strokeWidth="12" fill="transparent" />
+              <circle cx="120" cy="120" r="64" stroke="#a855f7" strokeWidth="12" 
+                strokeDasharray="402.12" strokeDashoffset={402.12 - (complianceScore / 100) * 402.12} 
+                strokeLinecap="round" fill="transparent" 
+                style={{ transition: 'stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1)', filter: complianceScore === 100 ? 'url(#glow)' : 'none' }} />
+            </svg>
+            
+            {/* Center Blended Score */}
+            <div className="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center text-white" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
+              <span className="fw-bolder lh-1" style={{ fontSize: '2.8rem' }}>{displayScore}</span>
+              <span className="fw-bold" style={{ fontSize: '0.75rem', color: '#94a3b8', letterSpacing: '1px' }}>ATS SCORE</span>
             </div>
           </div>
 
-          {/* Circular SVG Progress Score Ring */}
-          <div className="d-flex align-items-center gap-3">
-             <div className="text-end d-none d-sm-block">
-                <div className="fw-bold text-white mb-0" style={{ fontSize: '0.9rem' }}>ATS Match Score</div>
-                <div style={{ fontSize: '0.75rem', color: displayScore > 75 ? '#10b981' : displayScore > 50 ? '#f59e0b' : '#ef4444' }}>
-                   {displayScore > 75 ? 'Excellent Fit' : displayScore > 50 ? 'Average Fit' : 'Needs Work'}
-                </div>
-             </div>
-             <div className="position-relative d-flex align-items-center justify-content-center" style={{ width: '56px', height: '56px' }}>
-               <svg width="56" height="56" className="gauge-svg" style={{ transform: 'rotate(-90deg)' }}>
-                 <circle cx="28" cy="28" r="24" className="gauge-bg" stroke="rgba(255, 255, 255, 0.05)" strokeWidth="4.5" fill="transparent" />
-                 <circle cx="28" cy="28" r="24" className="gauge-stroke" stroke={displayScore > 75 ? '#10b981' : displayScore > 50 ? '#f59e0b' : '#ef4444'} strokeWidth="4.5" strokeDasharray={`${2 * Math.PI * 24}`} strokeDashoffset={`${(2 * Math.PI * 24) - (displayScore / 100) * (2 * Math.PI * 24)}`} strokeLinecap="round" fill="transparent" style={{ transition: 'stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.4s ease' }} />
-               </svg>
-               <div className="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center text-white fw-bold" style={{ fontSize: '1.05rem', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
-                 {displayScore}
+          {/* Metric Legend */}
+          <div className="d-flex flex-column gap-3 py-2">
+            <div>
+              <h3 className="fw-bold text-white mb-1" style={{ fontSize: '1.2rem', letterSpacing: '0px' }}>
+                Your Resume Analytics
+              </h3>
+              <p className="mb-3" style={{ fontSize: '0.82rem', color: '#94a3b8', maxWidth: '300px' }}>
+                Gamify your job search. Close all three rings to ensure your resume survives automated HR screening.
+              </p>
+            </div>
+            
+            <div className="d-flex align-items-center gap-3">
+               <div className="d-flex align-items-center justify-content-center rounded-circle" style={{ width: '32px', height: '32px', background: 'rgba(16, 185, 129, 0.15)' }}>
+                  <svg fill="none" viewBox="0 0 24 24" stroke="#10b981" style={{ width: '18px', height: '18px' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                </div>
-             </div>
+               <div>
+                  <div className="text-white fw-bold" style={{ fontSize: '0.85rem' }}>Job Match</div>
+                  <div style={{ fontSize: '0.75rem', color: '#10b981' }}>
+                    {targetKeywords.length > 0 ? `${keywordScore}% Keyword Fit` : 'Paste Job Description'}
+                  </div>
+               </div>
+            </div>
+
+            <div className="d-flex align-items-center gap-3">
+               <div className="d-flex align-items-center justify-content-center rounded-circle" style={{ width: '32px', height: '32px', background: 'rgba(59, 130, 246, 0.15)' }}>
+                  <svg fill="none" viewBox="0 0 24 24" stroke="#3b82f6" style={{ width: '18px', height: '18px' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2.5 2.5 0 00-2.5-2.5H15" /></svg>
+               </div>
+               <div>
+                  <div className="text-white fw-bold" style={{ fontSize: '0.85rem' }}>Completeness</div>
+                  <div style={{ fontSize: '0.75rem', color: '#3b82f6' }}>{completenessScore}% Content Density</div>
+               </div>
+            </div>
+
+            <div className="d-flex align-items-center gap-3">
+               <div className="d-flex align-items-center justify-content-center rounded-circle" style={{ width: '32px', height: '32px', background: 'rgba(168, 85, 247, 0.15)' }}>
+                  <svg fill="none" viewBox="0 0 24 24" stroke="#a855f7" style={{ width: '18px', height: '18px' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+               </div>
+               <div>
+                  <div className="text-white fw-bold" style={{ fontSize: '0.85rem' }}>Compliance</div>
+                  <div style={{ fontSize: '0.75rem', color: '#a855f7' }}>{complianceScore}% Policy Safe</div>
+               </div>
+            </div>
+
           </div>
         </div>
 
@@ -168,20 +200,17 @@ export default function ComplianceScanner({
           </div>
         </div>
 
-        {/* 4. Target Job Keyword Matcher Checklist (Integrated into the same card) */}
+        {/* 4. Target Job Keyword Matcher Checklist */}
         {targetKeywords.length > 0 && (
           <div className="p-4" style={{ background: 'rgba(16, 185, 129, 0.05)', borderTop: '1px solid rgba(16, 185, 129, 0.1)' }}>
             <div className="d-flex align-items-center justify-content-between mb-3">
               <h4 className="fs-6 fw-bold m-0 d-flex align-items-center gap-2" style={{ color: '#10b981' }}>
                 <svg fill="currentColor" viewBox="0 0 20 20" style={{ width: '18px', height: '18px' }}><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" /></svg>
-                Keyword Matcher
+                Target Job Keyword Matcher
               </h4>
-              <span className="badge bg-success text-white fw-bold shadow-sm" style={{ fontSize: '0.75rem', padding: '0.35rem 0.6rem', borderRadius: '6px' }}>
-                {matchPercentage}% Target Match
-              </span>
             </div>
             <p className="mb-3" style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
-              Extracted terms from your target job description. Include these in your experience bullets.
+              Extracted terms from your target job description. Include these in your experience bullets to increase your Job Match score!
             </p>
             <div className="d-flex flex-wrap gap-2">
               {targetKeywords.map(kw => {

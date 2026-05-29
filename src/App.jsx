@@ -1800,7 +1800,7 @@ export default function App() {
                     title="Return to Home"
                   >
                     <div>
-                      <span className="&nbsp;brand-jt">JT</span>
+                      <span className="brand-jt">JT</span>
                       <span className="brand-resume">Resume</span>
                     </div>
                   </div>
@@ -2539,7 +2539,7 @@ export default function App() {
             />
 
             {/* Floating Paper Preview */}
-            <div className="mt-3 mb-4 w-100 d-flex justify-content-center">
+            <div className="mt-3 mb-4 w-100 d-flex justify-content-center print-no-margin">
               <ResumePreview
                 formData={formData}
                 country="usa"
@@ -2552,7 +2552,7 @@ export default function App() {
 
             {/* Mobile-Only Action Panel under the Preview */}
             <div
-              className="d-lg-none mt-2 mb-5 pb-4 w-100 px-3 mx-auto"
+              className="d-lg-none mt-2 mb-5 pb-4 w-100 px-3 mx-auto mobile-action-panel"
               style={{ maxWidth: "880px" }}
             >
               <button

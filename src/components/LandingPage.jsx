@@ -298,16 +298,38 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
 
         <div className="container position-relative z-1">
           <div className="row align-items-center g-5">
-            <div className="col-lg-6 hero-text-content">
+            <motion.div 
+              className="col-lg-6 hero-text-content"
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, ease: [0.21, 0.47, 0.32, 0.98] }}
+            >
 
 
-              <h1 className="display-3 fw-bolder mb-4 hero-title fade-in-up stagger-2" style={{ letterSpacing: '-1.5px', lineHeight: '1.1' }}>
+              <motion.h1 
+                className="display-3 fw-bolder mb-4 hero-title" 
+                style={{ letterSpacing: '-1.5px', lineHeight: '1.1' }}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.1, ease: [0.21, 0.47, 0.32, 0.98] }}
+              >
                 Land your dream job with a <span className="gradient-text">market-leading</span> resume.
-              </h1>
-              <p className="lead mb-5 text-secondary" style={{ fontSize: '1.15rem', maxWidth: '90%' }}>
+              </motion.h1>
+              <motion.p 
+                className="lead mb-5 text-secondary" 
+                style={{ fontSize: '1.15rem', maxWidth: '90%' }}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.2, ease: [0.21, 0.47, 0.32, 0.98] }}
+              >
                 Create beautiful, ATS-optimized resumes in minutes. Stand out to recruiters with executive templates, real-time keyword scoring, and high-impact design presets.
-              </p>
-              <div className="d-flex flex-column flex-md-row gap-3 justify-content-md-start w-100">
+              </motion.p>
+              <motion.div 
+                className="d-flex flex-column flex-md-row gap-3 justify-content-md-start w-100"
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.3, ease: [0.21, 0.47, 0.32, 0.98] }}
+              >
                 <button className="btn btn-primary btn-lg px-4 px-md-5 py-3 fw-bold rounded-pill shadow-lg cta-btn text-nowrap w-100 w-md-auto d-flex align-items-center justify-content-center" onClick={isAuthenticated ? onGoToDashboard : onStartBuilder}>
                   {isAuthenticated ? 'Go to Dashboard' : 'Create My Resume Now'}
                   <svg className="ms-2" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
@@ -315,12 +337,16 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
                 <a href="#templates" className="btn btn-outline-light btn-lg px-4 py-3 fw-bold rounded-pill glass-btn text-center text-nowrap w-100 w-md-auto d-flex align-items-center justify-content-center">
                   View Templates
                 </a>
-              </div>
-
-            </div>
+              </motion.div>
+            </motion.div>
             
             {/* Visual Mockup Right Side */}
-            <div className="col-lg-6 hero-visual d-flex justify-content-lg-end justify-content-center mt-5 mt-lg-0">
+            <motion.div 
+              className="col-lg-6 hero-visual d-flex justify-content-lg-end justify-content-center mt-5 mt-lg-0"
+              initial={{ opacity: 0, scale: 0.9, y: 50 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ duration: 0.9, delay: 0.4, type: "spring", bounce: 0.4 }}
+            >
               <div className="mockup-container position-relative" style={{ width: '380px', height: '480px' }}>
                 <div className="mockup-glass-card shadow-2xl w-100 h-100">
                   <div className="mockup-resume-header border-bottom pb-3 mb-3 d-flex align-items-center justify-content-between">
@@ -351,7 +377,7 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
                   🎨 Premium Executive Layout
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -359,10 +385,16 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
       {/* 3. Features Grid */}
       <section id="features" className="py-5" style={{ background: 'var(--ui-bg)' }}>
         <div className="container">
-          <div className="text-center mb-5">
+          <motion.div 
+            className="text-center mb-5"
+            initial={{ opacity: 0, scale: 0.95, y: 30 }}
+            whileInView={{ opacity: 1, scale: 1, y: 0 }}
+            viewport={{ once: true, margin: "-10%" }}
+            transition={{ duration: 0.6, ease: [0.21, 0.47, 0.32, 0.98] }}
+          >
             <span className="text-indigo fw-bold text-uppercase" style={{ letterSpacing: '1px' }}>Why JTResume?</span>
             <h2 className="display-5 fw-bold mt-2">The only tool you need to get hired.</h2>
-          </div>
+          </motion.div>
           <div className="row g-4">
             {[
               {
@@ -429,8 +461,8 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
               <motion.div 
                 className="col-lg-3 col-md-6" 
                 key={i}
-                initial={{ opacity: 0, y: 60 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, y: 50, scale: 0.9 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
                 viewport={{ once: true, margin: "-20%" }}
                 transition={{ duration: 0.7, delay: (i % 4) * 0.15, ease: [0.21, 0.47, 0.32, 0.98] }}
               >
@@ -472,7 +504,14 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
         </div>
         
         {/* Animated Infinite Marquee Grid */}
-        <div className="container-fluid px-0 mt-2 position-relative z-1 overflow-hidden" style={{ paddingBottom: '20px' }}>
+        <motion.div 
+          className="container-fluid px-0 mt-2 position-relative z-1 overflow-hidden" 
+          style={{ paddingBottom: '20px' }}
+          initial={{ opacity: 0, scale: 0.95, y: 40 }}
+          whileInView={{ opacity: 1, scale: 1, y: 0 }}
+          viewport={{ once: true, margin: "-10%" }}
+          transition={{ duration: 0.8, ease: [0.21, 0.47, 0.32, 0.98] }}
+        >
           <style>{`
             @keyframes infiniteScrollX {
               0% { transform: translateX(0); }
@@ -624,7 +663,7 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
               </div>
             ))}
           </div>
-        </div>
+        </motion.div>
       </section>
 
       {/* 5. Contact Section */}
@@ -648,7 +687,13 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
             </div>
           )}
 
-          <div className="row g-5 align-items-stretch">
+          <motion.div 
+            className="row g-5 align-items-stretch"
+            initial={{ opacity: 0, scale: 0.95, y: 40 }}
+            whileInView={{ opacity: 1, scale: 1, y: 0 }}
+            viewport={{ once: true, margin: "-10%" }}
+            transition={{ duration: 0.7, delay: 0.2, ease: [0.21, 0.47, 0.32, 0.98] }}
+          >
             {/* Contact Information */}
             <div className="col-lg-5">
               <div className="contact-card p-4 p-md-5 rounded-4 h-100">
@@ -774,7 +819,7 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
                 </form>
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </section>
 
