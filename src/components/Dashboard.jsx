@@ -6,6 +6,8 @@
 import { useState, useEffect } from 'react';
 import { encryptData } from '../utils/crypto';
 import ImportModal from './ImportModal';
+import { useTheme } from 'next-themes';
+import { Sun, Moon } from 'lucide-react';
 
 /**
  * @function Dashboard
@@ -28,6 +30,10 @@ export default function Dashboard({ user, onSelectResume, onLogout, onOpenProfil
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
   
   // Modal states
   const [showRename, setShowRename] = useState(false);
@@ -186,7 +192,7 @@ export default function Dashboard({ user, onSelectResume, onLogout, onOpenProfil
   };
 
   return (
-    <div className="min-vh-100 text-light p-4" style={{ background: 'radial-gradient(ellipse at top left, #1e1b4b 0%, #0f172a 100%)', position: 'relative', overflow: 'hidden' }}>
+    <div className="min-vh-100 text-light p-4" style={{ background: 'var(--ui-bg)', position: 'relative', overflow: 'hidden' }}>
       
       {/* Background glowing orbs */}
       <div style={{ position: 'absolute', top: '-10%', left: '-10%', width: '50%', height: '50%', background: 'radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%)', filter: 'blur(80px)', pointerEvents: 'none' }}></div>
@@ -199,7 +205,9 @@ export default function Dashboard({ user, onSelectResume, onLogout, onOpenProfil
           <div className="brand" style={{ userSelect: 'none', display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={onGoHome}>
             <span className="brand-jt" style={{ fontSize: '1.75rem' }}>JT</span><span className="brand-resume" style={{ fontSize: '1.75rem' }}>Resume</span>
           </div>
-          <div className="position-relative">
+          <div className="d-flex align-items-center gap-3">
+
+            <div className="position-relative">
             <button
               onClick={() => setShowProfileDropdown(!showProfileDropdown)}
               onBlur={() => setTimeout(() => setShowProfileDropdown(false), 200)}
@@ -272,12 +280,13 @@ export default function Dashboard({ user, onSelectResume, onLogout, onOpenProfil
                 </button>
               </div>
             )}
+            </div>
           </div>
         </div>
 
         {/* Page Header */}
         <div className="mb-5 pb-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-          <h1 className="fw-bolder mb-1" style={{ background: 'linear-gradient(to right, #fff, #a5b4fc)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Your Resumes</h1>
+          <h1 className="fw-bolder mb-1 text-gradient-primary">Your Resumes</h1>
           <p className="mb-0" style={{ color: '#94a3b8' }}>Manage and tailor your resumes for different applications.</p>
         </div>
 
@@ -297,8 +306,8 @@ export default function Dashboard({ user, onSelectResume, onLogout, onOpenProfil
                 className="card h-100 d-flex flex-column align-items-center justify-content-center p-4 text-center cursor-pointer"
                 style={{ 
                   minHeight: '220px', cursor: 'pointer', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', 
-                  background: 'rgba(255,255,255,0.02)',
-                  border: '2px dashed rgba(99,102,241,0.3)',
+                  background: 'var(--ui-card-bg)',
+                  border: '2px dashed rgba(99,102,241,0.5)',
                   borderRadius: '16px',
                   backdropFilter: 'blur(10px)'
                 }}
@@ -310,8 +319,8 @@ export default function Dashboard({ user, onSelectResume, onLogout, onOpenProfil
                   e.currentTarget.style.boxShadow = '0 12px 24px rgba(99,102,241,0.15)';
                 }}
                 onMouseOut={(e) => { 
-                  e.currentTarget.style.background = 'rgba(255,255,255,0.02)';
-                  e.currentTarget.style.borderColor = 'rgba(99,102,241,0.3)';
+                  e.currentTarget.style.background = 'var(--ui-card-bg)';
+                  e.currentTarget.style.borderColor = 'rgba(99,102,241,0.5)';
                   e.currentTarget.style.transform = 'none';
                   e.currentTarget.style.boxShadow = 'none';
                 }}
@@ -330,7 +339,7 @@ export default function Dashboard({ user, onSelectResume, onLogout, onOpenProfil
                 className="card h-100 d-flex flex-column align-items-center justify-content-center p-4 text-center cursor-pointer"
                 style={{ 
                   minHeight: '220px', cursor: 'pointer', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', 
-                  background: 'rgba(255,255,255,0.02)',
+                  background: 'var(--ui-card-bg)',
                   border: '2px dashed rgba(245, 158, 11, 0.5)',
                   borderRadius: '16px',
                   backdropFilter: 'blur(10px)'
@@ -343,7 +352,7 @@ export default function Dashboard({ user, onSelectResume, onLogout, onOpenProfil
                   e.currentTarget.style.boxShadow = '0 12px 24px rgba(245, 158, 11, 0.15)';
                 }}
                 onMouseOut={(e) => { 
-                  e.currentTarget.style.background = 'rgba(255,255,255,0.02)';
+                  e.currentTarget.style.background = 'var(--ui-card-bg)';
                   e.currentTarget.style.borderColor = 'rgba(245, 158, 11, 0.5)';
                   e.currentTarget.style.transform = 'none';
                   e.currentTarget.style.boxShadow = 'none';
@@ -364,8 +373,8 @@ export default function Dashboard({ user, onSelectResume, onLogout, onOpenProfil
                   className="card h-100 position-relative"
                   style={{ 
                     minHeight: '220px', cursor: 'pointer', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                    background: 'rgba(30, 41, 59, 0.5)',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    background: 'var(--ui-card-bg)',
+                    border: '1px solid var(--ui-card-border)',
                     borderRadius: '16px',
                     backdropFilter: 'blur(12px)',
                     overflow: 'hidden'

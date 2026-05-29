@@ -1710,7 +1710,7 @@ export default function App() {
             inset: 0,
             zIndex: 10,
             overflowY: "hidden",
-            backgroundColor: "#0f172a",
+            backgroundColor: "var(--ui-bg)",
             display: "flex",
           }}
         >
@@ -1729,7 +1729,7 @@ export default function App() {
             inset: 0,
             zIndex: 10,
             overflowY: "hidden",
-            backgroundColor: "#0f172a",
+            backgroundColor: "var(--ui-bg)",
             display: "flex",
           }}
         >
@@ -1754,7 +1754,7 @@ export default function App() {
             <div
               className="sidebar-sticky-header sticky-top shadow-sm"
               style={{
-                background: "linear-gradient(180deg, #0d1117 0%, #0d1117 100%)",
+                background: "var(--ui-bg)",
                 borderBottom: "1px solid rgba(255,255,255,0.06)",
               }}
             >

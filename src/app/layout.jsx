@@ -8,6 +8,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "./globals.css";
 import BootstrapClient from "../components/BootstrapClient";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { ThemeProvider } from "../components/ThemeProvider";
 
 export const metadata = {
   title: "JT Resume | Resume Builder",
@@ -34,7 +35,7 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" style={{ backgroundColor: "#090d16" }} suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
@@ -48,9 +49,11 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body suppressHydrationWarning>
-        <BootstrapClient />
-        {children}
-        <SpeedInsights />
+        <ThemeProvider attribute="data-theme" defaultTheme="dark" enableSystem>
+          <BootstrapClient />
+          {children}
+          <SpeedInsights />
+        </ThemeProvider>
       </body>
     </html>
   );

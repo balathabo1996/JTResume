@@ -45,9 +45,9 @@ export default function ViewResumePage({ params }) {
   if (error || !resumeData) {
     return (
       <div className="vh-100 d-flex flex-column justify-content-center align-items-center bg-dark text-light">
-        <h2 className="mb-3" style={{ color: '#f87171' }}>Resume Not Found</h2>
-        <p style={{ color: '#94a3b8' }}>The resume you are looking for does not exist or the link is invalid.</p>
-        <a href="/" className="btn mt-4" style={{ background: '#6366f1', color: '#fff', border: 'none', padding: '10px 24px', fontWeight: 600, borderRadius: '8px' }}>
+        <h2 className="mb-3" style={{ color: 'var(--ui-error)' }}>Resume Not Found</h2>
+        <p style={{ color: 'var(--ui-text-secondary)' }}>The resume you are looking for does not exist or the link is invalid.</p>
+        <a href="/" className="btn mt-4" style={{ background: 'var(--ui-accent)', color: '#fff', border: 'none', padding: '10px 24px', fontWeight: 600, borderRadius: '8px' }}>
           Create Your Own on JTResume
         </a>
       </div>
@@ -56,7 +56,7 @@ export default function ViewResumePage({ params }) {
 
   // Resume is found.
   return (
-    <div className="min-vh-100 py-5 d-flex flex-column align-items-center" style={{ backgroundColor: '#0f172a' }}>
+    <div className="min-vh-100 py-5 d-flex flex-column align-items-center" style={{ backgroundColor: 'var(--ui-bg)' }}>
       <div className="mb-5">
         <a href="/" style={{ textDecoration: 'none', color: '#818cf8', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
           <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ width: '20px', height: '20px' }}>

@@ -1,7 +1,35 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Roboto:ital,wght@0,300;0,400;0,500;0,700;1,400&family=Roboto+Mono:wght@400;500&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600;1,700&family=Cinzel:wght@400;600;700;900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Roboto:ital,wght@0,300;0,400;0,500;0,700;1,400&family=Roboto+Mono:wght@400;500&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600;1,700&family=Cinzel:wght@400;600;700;900&display=swap");
+
+/* --- Light Mode UI Design System --- */
+:root {
+  --ui-bg: #f8fafc;
+  --ui-card-bg: #ffffff;
+  --ui-card-border: rgba(0, 0, 0, 0.1);
+  --ui-text-primary: #0f172a;
+  --ui-text-secondary: #475569;
+  --ui-accent: #4f46e5;
+  --ui-accent-hover: #4338ca;
+  --ui-accent-glow: rgba(79, 70, 229, 0.15);
+  --ui-success: #059669;
+  --ui-warning: #d97706;
+  --ui-error: #dc2626;
+  --ui-border-radius: 12px;
+
+  /* Resume Render Default Variables */
+  --resume-accent: #1e3a8a;
+  --resume-font: "Inter", sans-serif;
+  --resume-text-color: #2b2b2b;
+  --resume-headings-color: #1e293b;
+  --resume-meta-color: #64748b;
+  --resume-accent-light: rgba(30, 58, 138, 0.08);
+
+  /* Nav & Logo Theme Vars */
+  --ui-glass-nav: rgba(255, 255, 255, 0.95);
+  --ui-nav-hover-bg: rgba(0, 0, 0, 0.05);
+}
 
 /* --- Obsidian Dark UI Design System --- */
-:root {
+[data-theme='dark'] {
   --ui-bg: #060913;
   --ui-card-bg: rgba(13, 18, 30, 0.55);
   --ui-card-border: rgba(255, 255, 255, 0.06);
@@ -15,13 +43,9 @@
   --ui-error: #ef4444;
   --ui-border-radius: 12px;
 
-  /* Resume Render Default Variables */
-  --resume-accent: #1e3a8a;
-  --resume-font: 'Inter', sans-serif;
-  --resume-text-color: #2b2b2b;
-  --resume-headings-color: #1e293b;
-  --resume-meta-color: #64748b;
-  --resume-accent-light: rgba(30, 58, 138, 0.08);
+  /* Nav & Logo Theme Vars */
+  --ui-glass-nav: rgba(4, 6, 12, 0.95);
+  --ui-nav-hover-bg: rgba(255, 255, 255, 0.05);
 }
 
 * {
@@ -41,7 +65,7 @@ section[id] {
 body {
   background-color: var(--ui-bg);
   color: var(--ui-text-primary);
-  font-family: 'IBM Plex Sans', 'Inter', system-ui, sans-serif;
+  font-family: "IBM Plex Sans", "Inter", system-ui, sans-serif;
   min-height: 100vh;
   overflow-x: hidden;
   letter-spacing: -0.01em;
@@ -127,18 +151,33 @@ h6 {
   filter: drop-shadow(0 0 6px rgba(99, 102, 241, 0.5));
 }
 
-/* Premium Dark Mode Colors & Spacing Overrides for Bootstrap Components */
+/* Premium Dynamic Theme Overrides for Bootstrap Components */
 .bg-dark {
-  background-color: #0f1524 !important;
+  background-color: var(--ui-bg) !important;
 }
 
 .bg-dark.bg-gradient {
-  background: linear-gradient(135deg, #161f36 0%, #0f1524 100%) !important;
+  background: linear-gradient(135deg, var(--ui-bg) 0%, var(--ui-card-bg) 100%) !important;
+}
+
+.text-light, .text-white {
+  color: var(--ui-text-primary) !important;
+}
+
+.text-secondary {
+  color: var(--ui-text-secondary) !important;
+}
+
+.bg-black {
+  background-color: var(--ui-card-bg) !important;
 }
 
 .app-canvas.bg-dark {
-  background-color: #090d16 !important;
-  background-image: radial-gradient(rgba(99, 102, 241, 0.04) 1.2px, transparent 0) !important;
+  background-color: var(--ui-bg) !important;
+  background-image: radial-gradient(
+    var(--ui-accent-glow) 1.2px,
+    transparent 0
+  ) !important;
   background-size: 24px 24px !important;
   position: relative;
   overflow: hidden;
@@ -152,7 +191,12 @@ h6 {
   right: -15%;
   width: 500px;
   height: 500px;
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.07) 0%, rgba(99, 102, 241, 0.02) 40%, transparent 70%);
+  background: radial-gradient(
+    circle,
+    rgba(99, 102, 241, 0.07) 0%,
+    rgba(99, 102, 241, 0.02) 40%,
+    transparent 70%
+  );
   z-index: -1;
   pointer-events: none;
   filter: blur(40px);
@@ -165,7 +209,12 @@ h6 {
   left: -20%;
   width: 600px;
   height: 600px;
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.04) 0%, rgba(16, 185, 129, 0.01) 40%, transparent 70%);
+  background: radial-gradient(
+    circle,
+    rgba(16, 185, 129, 0.04) 0%,
+    rgba(16, 185, 129, 0.01) 40%,
+    transparent 70%
+  );
   z-index: -1;
   pointer-events: none;
   filter: blur(50px);
@@ -185,7 +234,8 @@ h6 {
   border: 1px solid rgba(255, 255, 255, 0.06) !important;
   border-radius: 14px !important;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
-  transition: border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+  transition:
+    border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
     box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1),
     transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
     background-color 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
@@ -193,11 +243,17 @@ h6 {
 
 /* Premium Form Group Card */
 .form-group-card {
-  background: linear-gradient(145deg, rgba(14, 20, 38, 0.85), rgba(10, 13, 24, 0.9)) !important;
+  background: linear-gradient(
+    145deg,
+    rgba(14, 20, 38, 0.85),
+    rgba(10, 13, 24, 0.9)
+  ) !important;
   border: 1px solid rgba(255, 255, 255, 0.06) !important;
   border-radius: 16px !important;
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
   transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
@@ -210,14 +266,20 @@ h6 {
 
 .form-group-card:hover {
   border-color: rgba(99, 102, 241, 0.22) !important;
-  box-shadow: 0 8px 32px rgba(99, 102, 241, 0.1), 0 2px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+  box-shadow:
+    0 8px 32px rgba(99, 102, 241, 0.1),
+    0 2px 8px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
   transform: translateY(-2px);
 }
 
 .form-group-card:focus-within,
 .form-group-card.active {
   border-color: rgba(99, 102, 241, 0.4) !important;
-  box-shadow: 0 12px 40px rgba(99, 102, 241, 0.15), 0 2px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(99, 102, 241, 0.08) !important;
+  box-shadow:
+    0 12px 40px rgba(99, 102, 241, 0.15),
+    0 2px 8px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(99, 102, 241, 0.08) !important;
   transform: translateY(-1px);
 }
 
@@ -228,14 +290,20 @@ h6 {
   padding: 14px 18px !important;
   cursor: pointer;
   -webkit-user-select: none; /* Safari 3+, iOS Safari 3+ */
-  -moz-user-select: none;    /* Firefox 4+ */
-  -ms-user-select: none;     /* IE 10+ / Edge */
-  user-select: none;         /* Standard syntax */
-  transition: background 0.25s ease, padding-left 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  -moz-user-select: none; /* Firefox 4+ */
+  -ms-user-select: none; /* IE 10+ / Edge */
+  user-select: none; /* Standard syntax */
+  transition:
+    background 0.25s ease,
+    padding-left 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 .form-group-card .card-header:hover {
-  background: linear-gradient(90deg, rgba(99, 102, 241, 0.08), transparent) !important;
+  background: linear-gradient(
+    90deg,
+    rgba(99, 102, 241, 0.08),
+    transparent
+  ) !important;
   padding-left: 22px !important;
 }
 
@@ -255,7 +323,9 @@ h6 {
 .card-chevron {
   color: #475569;
   font-size: 0.7rem;
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s ease;
+  transition:
+    transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    color 0.2s ease;
 }
 
 .form-group-card .card-header:hover .card-chevron,
@@ -367,7 +437,9 @@ h6 {
   background: rgba(99, 102, 241, 0.06) !important;
   border-color: rgba(99, 102, 241, 0.3) !important;
   border-bottom: 2px solid #6366f1 !important;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1), 0 4px 16px rgba(0, 0, 0, 0.2) !important;
+  box-shadow:
+    0 0 0 3px rgba(99, 102, 241, 0.1),
+    0 4px 16px rgba(0, 0, 0, 0.2) !important;
   color: #f1f5f9 !important;
   transform: translateY(-1px);
 }
@@ -391,7 +463,7 @@ label.form-label {
   font-size: 0.7rem !important;
   font-weight: 700 !important;
   letter-spacing: 0.8px !important;
-  color: #ffffff !important;
+  color: var(--ui-text-primary) !important;
   text-transform: uppercase !important;
   margin-bottom: 6px !important;
 }
@@ -569,7 +641,6 @@ label.form-label {
 }
 
 @keyframes pulse-border {
-
   0%,
   100% {
     border-color: rgba(99, 102, 241, 0.5);
@@ -606,7 +677,11 @@ label.form-label {
 }
 
 .step-line.active {
-  background: linear-gradient(90deg, #10b981, rgba(16, 185, 129, 0.3)) !important;
+  background: linear-gradient(
+    90deg,
+    #10b981,
+    rgba(16, 185, 129, 0.3)
+  ) !important;
 }
 
 /* Premium Sidebar Global Buttons */
@@ -652,11 +727,16 @@ label.form-label {
 
 /* Onboarding Welcome Widget */
 .welcome-widget {
-  background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%) !important;
+  background: linear-gradient(
+    135deg,
+    rgba(30, 41, 59, 0.7) 0%,
+    rgba(15, 23, 42, 0.9) 100%
+  ) !important;
   border: 1px solid rgba(99, 102, 241, 0.25) !important;
   border-radius: 16px !important;
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25),
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.25),
     inset 0 1px 1px rgba(255, 255, 255, 0.1),
     0 0 15px rgba(99, 102, 241, 0.05) !important;
   backdrop-filter: blur(12px) !important;
@@ -666,7 +746,8 @@ label.form-label {
 
 .welcome-widget:hover {
   border-color: rgba(99, 102, 241, 0.45) !important;
-  box-shadow: 0 15px 35px rgba(99, 102, 241, 0.12),
+  box-shadow:
+    0 15px 35px rgba(99, 102, 241, 0.12),
     inset 0 1px 1px rgba(255, 255, 255, 0.15),
     0 0 25px rgba(99, 102, 241, 0.1) !important;
   transform: translateY(-2px);
@@ -688,7 +769,6 @@ label.form-label {
 }
 
 @keyframes bolt-pulse {
-
   0%,
   100% {
     transform: scale(1);
@@ -729,7 +809,8 @@ label.form-label {
   font-weight: 750 !important;
   border: 1px solid rgba(16, 185, 129, 0.3) !important;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2),
+  box-shadow:
+    0 4px 12px rgba(16, 185, 129, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
   display: inline-flex;
@@ -739,7 +820,8 @@ label.form-label {
 
 .btn-demo-profile:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4),
+  box-shadow:
+    0 8px 20px rgba(16, 185, 129, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
   filter: brightness(1.1);
 }
@@ -811,7 +893,7 @@ label.form-label {
 }
 
 .privacy-badge::before {
-  content: '🛡️';
+  content: "🛡️";
   font-size: 0.8rem;
 }
 
@@ -874,12 +956,14 @@ label.form-label {
   transform: scale(1.05);
 }
 
-
 /* Accent Color Selection Dots */
 .color-dot-group .color-dot {
   cursor: pointer;
   border: 2.5px solid transparent !important;
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .color-dot-group .color-dot:hover {
@@ -900,7 +984,6 @@ label.form-label {
 }
 
 @keyframes glowPulse {
-
   0%,
   100% {
     box-shadow: 0 0 12px rgba(79, 70, 229, 0.35);
@@ -951,7 +1034,6 @@ label.form-label {
 }
 
 @media (max-width: 850px) {
-
   .resume-paper-wrapper.letter,
   .resume-paper-wrapper.a4 {
     /* Scaling is now perfectly handled via React ResizeObserver inline styles to preserve aspect ratios */
@@ -1145,7 +1227,8 @@ label.form-label {
 .resume-paper-wrapper .resume-section-title,
 .resume-paper-wrapper .block-title,
 .resume-paper-wrapper .subtitle {
-  font-family: var(--resume-font-heading), 'Outfit', 'Inter', sans-serif !important;
+  font-family:
+    var(--resume-font-heading), "Outfit", "Inter", sans-serif !important;
 }
 
 .resume-paper-wrapper,
@@ -1153,7 +1236,7 @@ label.form-label {
 .resume-paper-wrapper li,
 .resume-paper-wrapper div,
 .resume-paper-wrapper span {
-  font-family: var(--resume-font-body), 'Inter', sans-serif;
+  font-family: var(--resume-font-body), "Inter", sans-serif;
 }
 
 /* 1. Classic Formal: Centered centered layout, beautiful editorial accents */
@@ -1523,7 +1606,9 @@ label.form-label {
 }
 
 .import-modal-card {
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 40px rgba(99, 102, 241, 0.1) !important;
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.6),
+    0 0 40px rgba(99, 102, 241, 0.1) !important;
   animation: modalFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -1541,7 +1626,9 @@ label.form-label {
 
 /* --- Welcome Onboarding & Privacy Badge --- */
 .welcome-onboarding-card {
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 15px rgba(99, 102, 241, 0.05) !important;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 0 15px rgba(99, 102, 241, 0.05) !important;
   animation: modalFadeIn 0.4s ease;
 }
 
@@ -1565,7 +1652,10 @@ label.form-label {
 .blueprint-frame {
   background: #0b0f19;
   border: 2px dashed rgba(99, 102, 241, 0.25);
-  background-image: radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 0);
+  background-image: radial-gradient(
+    rgba(255, 255, 255, 0.03) 1px,
+    transparent 0
+  );
   background-size: 20px 20px;
   border-radius: 16px;
   padding: 50px 30px;
@@ -1576,14 +1666,15 @@ label.form-label {
   text-align: center;
   max-width: 880px;
   width: 100%;
-  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.8), 0 10px 30px rgba(0, 0, 0, 0.4);
+  box-shadow:
+    inset 0 0 40px rgba(0, 0, 0, 0.8),
+    0 10px 30px rgba(0, 0, 0, 0.4);
   min-height: 520px;
   transition: all 0.3s ease;
   animation: pulseBorder 3s ease-in-out infinite;
 }
 
 @keyframes pulseBorder {
-
   0%,
   100% {
     border-color: rgba(99, 102, 241, 0.2);
@@ -1599,7 +1690,9 @@ label.form-label {
   height: 76px;
   border-radius: 50%;
   background: linear-gradient(135deg, #6366f1, #8b5cf6);
-  box-shadow: 0 0 20px rgba(99, 102, 241, 0.4), 0 0 40px rgba(139, 92, 246, 0.2);
+  box-shadow:
+    0 0 20px rgba(99, 102, 241, 0.4),
+    0 0 40px rgba(139, 92, 246, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1610,7 +1703,6 @@ label.form-label {
 }
 
 @keyframes bounceFloat {
-
   0%,
   100% {
     transform: translateY(0);
@@ -1676,7 +1768,9 @@ label.form-label {
 }
 
 .spec-svg {
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), filter 0.3s ease;
+  transition:
+    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    filter 0.3s ease;
 }
 
 .spec-item:hover .spec-svg {
@@ -1779,7 +1873,6 @@ label.form-label {
 
 /* --- Mobile Specific Overrides --- */
 @media (max-width: 768px) {
-
   /* Prevent iOS Safari from auto-zooming when tapping inputs */
   input,
   select,
@@ -1836,7 +1929,7 @@ label.form-label {
   border-bottom-right-radius: 6px;
   background: rgba(13, 19, 33, 0.6) !important;
   color: #f3f4f6 !important;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 0.9rem;
   min-height: 120px;
 }
@@ -1917,7 +2010,6 @@ label.form-label {
 }
 
 @keyframes pulseGlow {
-
   0%,
   100% {
     box-shadow: 0 0 5px rgba(99, 102, 241, 0.05);
@@ -2045,7 +2137,7 @@ label {
 }
 
 .brand-jt {
-  font-family: 'Cormorant Garamond', Georgia, serif !important;
+  font-family: "Cormorant Garamond", Georgia, serif !important;
   font-style: normal !important;
   font-weight: 700 !important;
   font-size: 2.1rem !important;
@@ -2061,13 +2153,36 @@ label {
   margin-bottom: -6px !important;
   margin-left: -4px !important;
   margin-right: -4px !important;
-  /* Premium Gold Gradient */
-  background: linear-gradient(135deg, #bf953f 0%, #fcf6ba 25%, #b38728 50%, #fbf5b7 75%, #aa771c 100%) !important;
+  /* Liquid Royal Gold - Highly Reflective Metallic Surface */
+  background: linear-gradient(
+    135deg,
+    #b38728 0%,
+    #fcf6ba 22%,
+    #8b6215 45%,
+    #ffffff 55%,
+    #b38728 78%,
+    #fcf6ba 100%
+  ) !important;
   background-size: 200% auto !important;
   -webkit-background-clip: text !important;
   -webkit-text-fill-color: transparent !important;
   animation: shineGradient 4s linear infinite !important;
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+/* Light Mode: Sleek Black Mixed Gold */
+html[data-theme='light'] .brand-jt {
+  background: linear-gradient(
+    135deg,
+    #0f172a 0%,
+    #c49b3a 22%,
+    #000000 45%,
+    #d4af37 55%,
+    #0f172a 78%,
+    #b38728 100%
+  ) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
 }
 
 /* JT Underline Draw - Elegant Gold */
@@ -2111,7 +2226,7 @@ label {
 }
 
 .brand-resume {
-  font-family: 'Cormorant Garamond', Georgia, serif !important;
+  font-family: "Cormorant Garamond", Georgia, serif !important;
   font-style: normal !important;
   font-weight: 400 !important;
   font-size: 2.1rem !important;
@@ -2127,14 +2242,37 @@ label {
   margin-left: -3px !important;
   /* Brought significantly closer to JT */
   margin-right: -4px !important;
-  /* Synchronized Liquid Gradient: Gold to White */
-  background: linear-gradient(135deg, #fcf6ba 0%, #ffffff 50%, #fcf6ba 100%) !important;
+  /* Champagne Metallic Chrome - Smooth, highly reflective */
+  background: linear-gradient(
+    135deg,
+    #8b6215 0%,
+    #ffffff 22%,
+    #c49b3a 45%,
+    #fcf6ba 55%,
+    #8b6215 78%,
+    #ffffff 100%
+  ) !important;
   background-size: 200% auto !important;
   -webkit-background-clip: text !important;
   -webkit-text-fill-color: transparent !important;
   animation: shineGradient 4s linear infinite !important;
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
   position: relative;
+}
+
+/* Light Mode: Sleek Black Mixed Gold */
+html[data-theme='light'] .brand-resume {
+  background: linear-gradient(
+    135deg,
+    #000000 0%,
+    #b38728 22%,
+    #0f172a 45%,
+    #d4af37 55%,
+    #000000 78%,
+    #c49b3a 100%
+  ) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
 }
 
 .brand:hover .brand-resume {
@@ -2147,10 +2285,10 @@ label {
 /* --- LANDING PAGE PRO CSS --- */
 
 .glass-nav {
-  background: rgba(4, 6, 12, 0.95) !important;
+  background: var(--ui-glass-nav) !important;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--ui-card-border);
 }
 
 .nav-hover {
@@ -2158,14 +2296,16 @@ label {
   font-weight: 600;
   font-size: 0.92rem;
   letter-spacing: 0.5px;
-  color: #cbd5e1 !important;
-  transition: color 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s ease !important;
+  color: var(--ui-text-secondary) !important;
+  transition:
+    color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.3s ease !important;
   padding: 6px 16px !important;
   border-radius: 20px;
 }
 
 .nav-hover::after {
-  content: '';
+  content: "";
   position: absolute;
   width: 0;
   height: 2px;
@@ -2179,9 +2319,9 @@ label {
 }
 
 .nav-hover:hover {
-  color: #ffffff !important;
+  color: var(--ui-text-primary) !important;
   transform: translateY(-1px);
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--ui-nav-hover-bg);
 }
 
 .nav-hover:hover::after {
@@ -2206,13 +2346,21 @@ label {
 }
 
 .hero-glow-1 {
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.4) 0%, transparent 70%);
+  background: radial-gradient(
+    circle,
+    rgba(99, 102, 241, 0.4) 0%,
+    transparent 70%
+  );
   top: -10%;
   left: -10%;
 }
 
 .hero-glow-2 {
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.3) 0%, transparent 70%);
+  background: radial-gradient(
+    circle,
+    rgba(16, 185, 129, 0.3) 0%,
+    transparent 70%
+  );
   bottom: -20%;
   right: -10%;
   animation-delay: -5s;
@@ -2262,13 +2410,18 @@ label {
 }
 
 .cta-btn::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
   width: 50%;
   height: 100%;
-  background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.2), transparent);
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
   transform: skewX(-25deg);
   animation: shine 5s infinite;
 }
@@ -2304,7 +2457,12 @@ label {
 .mockup-glass-card {
   width: 380px;
   height: 480px;
-  background: linear-gradient(135deg, rgba(30, 27, 75, 0.4) 0%, rgba(15, 23, 42, 0.6) 50%, rgba(88, 28, 135, 0.3) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(30, 27, 75, 0.4) 0%,
+    rgba(15, 23, 42, 0.6) 50%,
+    rgba(88, 28, 135, 0.3) 100%
+  );
   backdrop-filter: blur(40px);
   -webkit-backdrop-filter: blur(40px);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -2312,14 +2470,18 @@ label {
   border-left: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 24px;
   padding: 32px;
-  box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 30px 60px -12px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
   transform: perspective(1000px) rotateY(-5deg) rotateX(5deg);
   transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .mockup-glass-card:hover {
   transform: perspective(1000px) rotateY(0deg) rotateX(0deg) translateY(-15px);
-  box-shadow: 0 40px 80px -10px rgba(0, 0, 0, 0.7), 0 0 60px rgba(168, 85, 247, 0.2);
+  box-shadow:
+    0 40px 80px -10px rgba(0, 0, 0, 0.7),
+    0 0 60px rgba(168, 85, 247, 0.2);
   border-color: rgba(255, 255, 255, 0.2);
 }
 
@@ -2331,20 +2493,29 @@ label {
 
 .mockup-line {
   height: 6px;
-  background: linear-gradient(90deg, rgba(129, 140, 248, 0.4) 0%, rgba(168, 85, 247, 0.15) 100%);
+  background: linear-gradient(
+    90deg,
+    rgba(129, 140, 248, 0.4) 0%,
+    rgba(168, 85, 247, 0.15) 100%
+  );
   border-radius: 4px;
   position: relative;
   overflow: hidden;
 }
 
 .mockup-line::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
   width: 50%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
   animation: lineShine 3s infinite;
 }
 
@@ -2370,10 +2541,16 @@ label {
   top: 8%;
   left: -50px;
   color: #ffffff;
-  background: linear-gradient(135deg, rgba(6, 78, 59, 0.8) 0%, rgba(4, 120, 87, 0.8) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(6, 78, 59, 0.8) 0%,
+    rgba(4, 120, 87, 0.8) 100%
+  );
   border: 1px solid rgba(52, 211, 153, 0.4);
   border-top: 1px solid rgba(52, 211, 153, 0.6);
-  box-shadow: 0 15px 35px rgba(16, 185, 129, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  box-shadow:
+    0 15px 35px rgba(16, 185, 129, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
@@ -2381,10 +2558,16 @@ label {
   bottom: 15%;
   right: -60px;
   color: #ffffff;
-  background: linear-gradient(135deg, rgba(59, 7, 100, 0.8) 0%, rgba(88, 28, 135, 0.8) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(59, 7, 100, 0.8) 0%,
+    rgba(88, 28, 135, 0.8) 100%
+  );
   border: 1px solid rgba(192, 132, 252, 0.4);
   border-top: 1px solid rgba(192, 132, 252, 0.6);
-  box-shadow: 0 15px 35px rgba(139, 92, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  box-shadow:
+    0 15px 35px rgba(139, 92, 246, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
   animation-delay: -3s;
 }
@@ -2401,12 +2584,14 @@ label {
   font-size: 0.8rem;
   font-weight: 800;
   color: #34d399;
-  box-shadow: 0 0 15px rgba(52, 211, 153, 0.6), inset 0 0 10px rgba(52, 211, 153, 0.4);
+  box-shadow:
+    0 0 15px rgba(52, 211, 153, 0.6),
+    inset 0 0 10px rgba(52, 211, 153, 0.4);
   position: relative;
 }
 
 .score-ring::before {
-  content: '';
+  content: "";
   position: absolute;
   top: -3px;
   left: -3px;
@@ -2440,14 +2625,15 @@ label {
 }
 
 .feature-card {
-  transition: transform 0.3s ease, background 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    background 0.3s ease;
 }
 
 .feature-card:hover {
   transform: translateY(-5px);
   background: rgba(255, 255, 255, 0.06) !important;
 }
-
 
 /* --- AUTH PAGE PRO CSS --- */
 
@@ -2460,7 +2646,7 @@ label {
 }
 
 .nav-signin-btn:hover {
-  background: rgba(255, 255, 255, 0.10);
+  background: rgba(255, 255, 255, 0.1);
   border-color: #818cf8;
   color: #ffffff !important;
   box-shadow: 0 0 15px rgba(129, 140, 248, 0.25);
@@ -2468,16 +2654,36 @@ label {
 }
 
 .auth-card {
-  background: linear-gradient(135deg, rgba(30, 41, 59, 0.5) 0%, rgba(15, 23, 42, 0.8) 100%) !important;
+  background: var(--ui-card-bg) !important;
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid var(--ui-card-border) !important;
   border-radius: 24px !important;
   padding: 40px !important;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 40px rgba(139, 92, 246, 0.15) !important;
+  box-shadow:
+    0 25px 50px -12px rgba(0, 0, 0, 0.15),
+    0 0 40px var(--ui-accent-glow) !important;
   position: relative;
   overflow: hidden;
   z-index: 1;
+}
+
+.contact-card {
+  background: var(--ui-card-bg) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--ui-card-border) !important;
+  box-shadow: 
+    0 20px 40px -12px rgba(0, 0, 0, 0.08),
+    0 0 30px var(--ui-accent-glow) !important;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.contact-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 
+    0 30px 60px -15px rgba(0, 0, 0, 0.12),
+    0 0 40px var(--ui-accent-glow) !important;
 }
 
 /* Button Click Stabilizers & Tactile Animations */
@@ -2517,32 +2723,34 @@ label {
 }
 
 .auth-input {
-  background-color: rgba(0, 0, 0, 0.2) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  color: #fff !important;
+  background-color: var(--ui-bg) !important;
+  border: 1px solid var(--ui-card-border) !important;
+  color: var(--ui-text-primary) !important;
   transition: all 0.2s ease !important;
 }
 
 .auth-input:focus {
-  background-color: rgba(0, 0, 0, 0.4) !important;
-  border-color: rgba(255, 255, 255, 0.3) !important;
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.05) !important;
+  background-color: var(--ui-bg) !important;
+  border-color: var(--ui-accent) !important;
+  box-shadow: 0 0 0 3px var(--ui-accent-glow) !important;
 }
 
 .auth-submit-btn {
-  background-color: #e5e5e5 !important;
+  background-color: var(--ui-text-primary) !important;
+  color: var(--ui-bg) !important;
   border: none !important;
   transition: all 0.2s ease !important;
 }
 
 .auth-submit-btn:hover {
-  background-color: #ffffff !important;
+  background-color: var(--ui-accent) !important;
+  color: #ffffff !important;
   transform: translateY(-1px);
 }
 
 .oauth-btn {
   border: none !important;
-  color: white !important;
+  color: var(--ui-text-primary) !important;
   transition: all 0.2s ease !important;
 }
 
@@ -2551,23 +2759,25 @@ label {
   transform: translateY(-1px);
 }
 
-
 .oauth-google {
-  background-color: rgba(255, 255, 255, 0.04) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background-color: var(--ui-bg) !important;
+  border: 1px solid var(--ui-card-border) !important;
+  color: var(--ui-text-primary) !important;
 }
 
 .oauth-github {
   background-color: #24292e !important;
+  color: #ffffff !important;
 }
 
 .oauth-linkedin {
   background-color: #0077b5 !important;
+  color: #ffffff !important;
 }
 
-
 .auth-input::placeholder {
-  color: rgba(255, 255, 255, 0.4) !important;
+  color: var(--ui-text-secondary) !important;
+  opacity: 0.6 !important;
 }
 
 .auth-toggle-link {
@@ -2596,7 +2806,9 @@ label {
 .feature-card:hover {
   transform: translateY(-8px) scale(1.02);
   border-color: rgba(99, 102, 241, 0.3) !important;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 40px rgba(99, 102, 241, 0.1) !important;
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.4),
+    0 0 40px rgba(99, 102, 241, 0.1) !important;
 }
 
 .feature-card:hover .feature-glow {
@@ -2649,12 +2861,16 @@ label {
 }
 
 .mini-resume {
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+  transition:
+    transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.3s ease;
 }
 
 .mini-resume:hover {
   transform: translateY(-10px) scale(1.03);
-  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(255, 255, 255, 0.1) !important;
+  box-shadow:
+    0 30px 60px rgba(0, 0, 0, 0.6),
+    0 0 40px rgba(255, 255, 255, 0.1) !important;
   z-index: 10;
 }
 
@@ -2679,7 +2895,11 @@ textarea::placeholder {
    AI OPTIMIZER PREMIUM COMPONENT
    ============================================ */
 .ai-optimizer-box {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.03) 0%, rgba(99, 102, 241, 0.08) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(99, 102, 241, 0.03) 0%,
+    rgba(99, 102, 241, 0.08) 100%
+  );
   border: 1px solid rgba(99, 102, 241, 0.15);
   border-left: 3px solid #6366f1;
   border-radius: 10px;
@@ -2856,7 +3076,6 @@ textarea::placeholder {
    HIGH-FIDELITY PRINT SYSTEM
    ============================================ */
 @media print {
-
   /* Hide UI elements, sidebar, buttons, sticky headers, and mobile navs */
   .app-sidebar,
   .mobile-bottom-nav,
@@ -3096,7 +3315,9 @@ html {
 .glass-panel:hover {
   background: rgba(18, 25, 43, 0.5);
   border-color: rgba(99, 102, 241, 0.3);
-  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 12px 40px 0 rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .gradient-text {
@@ -3105,6 +3326,7 @@ html {
   -webkit-text-fill-color: transparent;
   background-clip: text;
   color: transparent;
+  padding-right: 1px;
 }
 
 .btn-premium {
@@ -3114,7 +3336,9 @@ html {
   border-radius: 12px;
   padding: 12px 24px;
   font-weight: 600;
-  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  box-shadow:
+    0 4px 14px rgba(99, 102, 241, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   display: inline-flex;
   align-items: center;
@@ -3124,7 +3348,9 @@ html {
 
 .btn-premium:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  box-shadow:
+    0 6px 20px rgba(99, 102, 241, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
   color: #ffffff;
 }
 
@@ -3164,4 +3390,93 @@ html {
 
 .stagger-4 {
   animation-delay: 0.4s;
+}
+
+/* ============================================
+   PRINT / PDF EXPORT OPTIMIZATIONS
+   ============================================ */
+@media print {
+  /* 1. Hide all app UI elements */
+  nav,
+  header,
+  footer,
+  .navbar,
+  .sidebar,
+  .builder-sidebar,
+  .controls,
+  .btn,
+  button,
+  a[href^="#"],
+  .modal,
+  .toast,
+  .mockup-container,
+  .floating-badge,
+  .alert,
+  .spinner-border,
+  .blueprint-icon-pulsing,
+  .blueprint-title,
+  .blueprint-desc,
+  .blueprint-specs-grid,
+  .print-hide,
+  .hero-section,
+  #features,
+  #templates,
+  #contact,
+  .brand-jt {
+    display: none !important;
+  }
+
+  /* 2. Reset Body and Backgrounds for clean white PDF */
+  body,
+  html,
+  main,
+  .container-fluid,
+  .row,
+  .col-lg-8 {
+    background: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* 3. Force background colors to render (important for colored resume sidebars) */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* 4. Reset the Resume Paper wrapper to fill the page */
+  .resume-paper-wrapper,
+  #resume-print-target,
+  .blueprint-frame {
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: auto !important;
+    transform: none !important;
+    overflow: visible !important;
+    position: static !important;
+  }
+
+  /* 5. Prevent awkward page breaks inside text blocks */
+  .experience-block,
+  .education-block,
+  .project-block,
+  .resume-section,
+  .skill-category {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* 6. Standard US Letter Page size without browser headers/footers */
+  @page {
+    size: letter;
+    margin: 0;
+  }
 }

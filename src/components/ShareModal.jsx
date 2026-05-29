@@ -75,7 +75,7 @@ export default function ShareModal({ isOpen, onClose, currentResumeId, user }) {
 
   return (
     <div className="modal-backdrop" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1050 }}>
-      <div className="modal-content" style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '12px', width: '90%', maxWidth: '500px', padding: '24px', position: 'relative' }}>
+      <div className="modal-content" style={{ background: 'var(--ui-card-bg)', border: '1px solid #334155', borderRadius: '12px', width: '90%', maxWidth: '500px', padding: '24px', position: 'relative' }}>
         <button 
           onClick={onClose} 
           style={{ position: 'absolute', top: '16px', right: '16px', background: 'transparent', border: 'none', color: '#94a3b8', fontSize: '1.2rem', cursor: 'pointer' }}
@@ -118,7 +118,7 @@ export default function ShareModal({ isOpen, onClose, currentResumeId, user }) {
             <div className="mb-3">
               <label className="form-label text-light mb-1" style={{ fontSize: '0.9rem' }}>Custom URL Slug</label>
               <div className="input-group">
-                <span className="input-group-text" style={{ background: '#0f172a', border: '1px solid #334155', color: '#94a3b8', borderRight: 'none' }}>
+                <span className="input-group-text" style={{ background: 'var(--ui-bg)', border: '1px solid #334155', color: '#94a3b8', borderRight: 'none' }}>
                   jtresume.com/u/
                 </span>
                 <input 
@@ -126,7 +126,7 @@ export default function ShareModal({ isOpen, onClose, currentResumeId, user }) {
                   className="form-control" 
                   value={slug}
                   onChange={(e) => setSlug(e.target.value.replace(/[^a-zA-Z0-9-]/g, ''))}
-                  style={{ background: '#0f172a', border: '1px solid #334155', color: '#fff', borderLeft: 'none' }}
+                  style={{ background: 'var(--ui-bg)', border: '1px solid #334155', color: '#fff', borderLeft: 'none' }}
                 />
               </div>
               <div className="form-text mt-1" style={{ color: '#64748b', fontSize: '0.8rem' }}>Letters, numbers, and hyphens only.</div>
@@ -140,7 +140,7 @@ export default function ShareModal({ isOpen, onClose, currentResumeId, user }) {
                 placeholder="Leave blank for no password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                style={{ background: '#0f172a', border: '1px solid #334155', color: '#fff' }}
+                style={{ background: 'var(--ui-bg)', border: '1px solid #334155', color: '#fff' }}
               />
             </div>
 

@@ -105,7 +105,7 @@ export default function CoverLetterGenerator({ resumeId, onBack, onGoHome }) {
   return (
     <div className="app-container container-fluid p-0 bg-dark text-light vh-100 w-100 d-flex flex-column overflow-hidden">
       {/* Header */}
-      <div className="sidebar-sticky-header sticky-top shadow-sm px-3 py-2 px-md-4 py-md-3 d-flex flex-wrap align-items-center justify-content-between gap-2" style={{ background: '#0d1117', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+      <div className="sidebar-sticky-header sticky-top shadow-sm px-3 py-2 px-md-4 py-md-3 d-flex flex-wrap align-items-center justify-content-between gap-2" style={{ background: 'var(--ui-bg)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
         
         <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
           <button 
@@ -144,7 +144,7 @@ export default function CoverLetterGenerator({ resumeId, onBack, onGoHome }) {
 
       <div className="row g-0 flex-grow-1 overflow-hidden">
         {/* Left Pane: Job Description Input */}
-        <div className="col-lg-5 col-md-6 border-end border-secondary border-opacity-25 p-4 d-flex flex-column h-100 overflow-y-auto" style={{ background: '#1e293b' }}>
+        <div className="col-lg-5 col-md-6 border-end border-secondary border-opacity-25 p-4 d-flex flex-column h-100 overflow-y-auto" style={{ background: 'var(--ui-card-bg)' }}>
           <div className="mb-3">
             <h5 className="fw-bold mb-1">Target Job Description</h5>
             <p className="text-secondary" style={{ fontSize: '0.85rem' }}>Paste the job description below. We'll cross-reference your resume and generate a tailored cover letter.</p>
@@ -175,7 +175,7 @@ export default function CoverLetterGenerator({ resumeId, onBack, onGoHome }) {
         </div>
 
         {/* Right Pane: Generated Output */}
-        <div className="col-lg-7 col-md-6 p-4 d-flex flex-column h-100 position-relative overflow-y-auto" style={{ background: '#0f172a' }}>
+        <div className="col-lg-7 col-md-6 p-4 d-flex flex-column h-100 position-relative overflow-y-auto" style={{ background: 'var(--ui-bg)' }}>
           <div className="d-flex justify-content-between align-items-center mb-4">
             <h5 className="fw-bold m-0">Your Cover Letter</h5>
             <div className="d-flex gap-2">
@@ -209,7 +209,7 @@ export default function CoverLetterGenerator({ resumeId, onBack, onGoHome }) {
             </div>
           </div>
 
-          <div className="flex-grow-1 overflow-auto d-flex justify-content-center p-3" style={{ background: '#1e293b', borderRadius: '12px' }}>
+          <div className="flex-grow-1 overflow-auto d-flex justify-content-center p-3" style={{ background: 'var(--ui-card-bg)', borderRadius: '12px' }}>
             <div 
               id="cover-letter-paper"
               className="bg-white text-dark shadow-lg position-relative" 

@@ -59,7 +59,7 @@ export default function PublicResumePage() {
 
   if (loading && !requiresPassword) {
     return (
-      <div className="d-flex justify-content-center align-items-center vh-100" style={{ background: '#090d16', color: '#fff' }}>
+      <div className="d-flex justify-content-center align-items-center vh-100" style={{ background: 'var(--ui-bg)', color: 'var(--ui-text-primary)' }}>
         <div className="spinner-border text-primary" role="status">
           <span className="visually-hidden">Loading...</span>
         </div>
@@ -69,7 +69,7 @@ export default function PublicResumePage() {
 
   if (error && !requiresPassword) {
     return (
-      <div className="d-flex justify-content-center align-items-center vh-100" style={{ background: '#090d16', color: '#fff' }}>
+      <div className="d-flex justify-content-center align-items-center vh-100" style={{ background: 'var(--ui-bg)', color: 'var(--ui-text-primary)' }}>
         <div className="text-center">
           <h2 className="mb-3 text-danger">Access Denied</h2>
           <p className="text-secondary">{error}</p>
@@ -80,9 +80,9 @@ export default function PublicResumePage() {
 
   if (requiresPassword && !resume) {
     return (
-      <div className="d-flex justify-content-center align-items-center vh-100" style={{ background: '#090d16', color: '#fff' }}>
-        <div className="card shadow-lg p-4" style={{ background: '#1e293b', border: '1px solid #334155', maxWidth: '400px', width: '100%' }}>
-          <h3 className="text-center mb-4" style={{ color: '#f8fafc' }}>Protected Resume</h3>
+      <div className="d-flex justify-content-center align-items-center vh-100" style={{ background: 'var(--ui-bg)', color: 'var(--ui-text-primary)' }}>
+        <div className="card shadow-lg p-4" style={{ background: 'var(--ui-card-bg)', border: '1px solid #334155', maxWidth: '400px', width: '100%' }}>
+          <h3 className="text-center mb-4" style={{ color: 'var(--ui-text-primary)' }}>Protected Resume</h3>
           <form onSubmit={handlePasswordSubmit}>
             <div className="mb-3">
               <input
@@ -91,7 +91,7 @@ export default function PublicResumePage() {
                 placeholder="Enter Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                style={{ background: '#0f172a', border: '1px solid #334155', color: '#fff' }}
+                style={{ background: 'var(--ui-bg)', border: '1px solid #334155', color: 'var(--ui-text-primary)' }}
                 autoFocus
               />
             </div>
@@ -106,7 +106,7 @@ export default function PublicResumePage() {
   }
 
   return (
-    <div style={{ background: '#090d16', minHeight: '100vh', padding: '20px 0' }}>
+    <div style={{ background: 'var(--ui-bg)', minHeight: '100vh', padding: '20px 0' }}>
       <div className="container-fluid d-flex justify-content-center">
         {resume && (
           <ResumePreview 

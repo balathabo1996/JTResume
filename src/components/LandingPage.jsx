@@ -5,6 +5,9 @@
  */
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { motion } from 'framer-motion';
+import { useTheme } from 'next-themes';
+import { Sun, Moon } from 'lucide-react';
 
 const MiniResumeMockup = ({ layout, color, name }) => {
   const role = name === 'Emma Wilson' ? 'Product Designer' : name === 'Sarah Martinez' ? 'Marketing Manager' : 'Software Engineer';
@@ -100,6 +103,10 @@ const MiniResumeMockup = ({ layout, color, name }) => {
 export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut, onGoToDashboard }) {
   const [scrolled, setScrolled] = useState(false);
   const [isNavOpen, setIsNavOpen] = useState(false);
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
 
   // Contact Form hook-form setup
   const { register, handleSubmit: handleHookSubmit, reset, formState: { errors } } = useForm({ mode: 'onChange' });
@@ -182,7 +189,7 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
       <style>{`
         @media (max-width: 991.98px) {
           #navbarContent {
-            background-color: #0f172a;
+            background-color: var(--ui-card-bg);
             position: absolute;
             top: 100%;
             left: 0;
@@ -200,8 +207,8 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
             padding: 16px 0;
             font-size: 1rem;
             font-weight: 700;
-            color: #f1f5f9 !important;
-            border-bottom: 1px solid rgba(255,255,255,0.03);
+            color: var(--ui-text-primary) !important;
+            border-bottom: 1px solid var(--ui-card-border);
           }
           #navbarContent .d-flex.align-items-center.gap-3 {
             flex-direction: column;
@@ -211,9 +218,9 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
           /* Sign In Button */
           #navbarContent .nav-signin-btn {
             width: 100%;
-            background-color: #1e293b !important;
-            color: #f8fafc !important;
-            border: 1px solid rgba(255,255,255,0.05);
+            background-color: var(--ui-bg) !important;
+            color: var(--ui-text-primary) !important;
+            border: 1px solid var(--ui-card-border);
             box-shadow: none !important;
             border-radius: 8px !important;
           }
@@ -249,13 +256,14 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
 
           <div className="collapse navbar-collapse" id="navbarContent">
             <div className="mobile-nav-inner w-100 d-lg-flex align-items-lg-center">
-              <ul className="navbar-nav mx-auto mb-2 mb-lg-0 gap-4 fw-medium" style={{ fontSize: '0.9rem', color: '#cbd5e1' }}>
+              <ul className="navbar-nav mx-auto mb-2 mb-lg-0 gap-4 fw-medium" style={{ fontSize: '0.9rem' }}>
               <li className="nav-item"><a className="nav-link text-light nav-hover" href="#features">Features</a></li>
               <li className="nav-item"><a className="nav-link text-light nav-hover" href="#templates">Templates</a></li>
               <li className="nav-item"><a className="nav-link text-light nav-hover" href="#contact">Contact</a></li>
               </ul>
               
               <div className="d-flex align-items-center justify-content-center gap-3 mt-3 mt-lg-0">
+
               {isAuthenticated ? (
                 <>
                   <button className="btn btn-dark px-4 py-2 fw-bold rounded-pill auth-btn border border-secondary" onClick={onSignOut}>
@@ -349,7 +357,7 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
       </section>
 
       {/* 3. Features Grid */}
-      <section id="features" className="py-5" style={{ background: 'linear-gradient(to bottom, #060913 0%, #0d1221 100%)' }}>
+      <section id="features" className="py-5" style={{ background: 'var(--ui-bg)' }}>
         <div className="container">
           <div className="text-center mb-5">
             <span className="text-indigo fw-bold text-uppercase" style={{ letterSpacing: '1px' }}>Why JTResume?</span>
@@ -418,7 +426,14 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
                 desc: "Never lose your progress. Our intelligent debounce system automatically saves your data as you edit."
               }
             ].map((f, i) => (
-              <div className="col-lg-3 col-md-6" key={i}>
+              <motion.div 
+                className="col-lg-3 col-md-6" 
+                key={i}
+                initial={{ opacity: 0, y: 60 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-20%" }}
+                transition={{ duration: 0.7, delay: (i % 4) * 0.15, ease: [0.21, 0.47, 0.32, 0.98] }}
+              >
                 <div className="feature-card glass-panel h-100 p-4 position-relative">
                   <div className="feature-icon-wrapper mb-4 d-inline-flex align-items-center justify-content-center rounded-3 position-relative z-1" style={{ 
                     width: '50px', height: '50px', 
@@ -431,22 +446,28 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
                   <h4 className="fw-bolder mb-3 text-light position-relative z-1" style={{ fontSize: '1.1rem', letterSpacing: '-0.3px' }}>{f.title}</h4>
                   <p className="text-secondary mb-0 position-relative z-1" style={{ fontSize: '0.85rem', lineHeight: '1.6' }}>{f.desc}</p>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
       {/* 4. Templates Showcase */}
-      <section id="templates" className="py-5 overflow-hidden" style={{ background: '#0a0d16', position: 'relative' }}>
+      <section id="templates" className="py-5 overflow-hidden" style={{ background: 'var(--ui-bg)', position: 'relative' }}>
         <div className="container position-relative z-1">
           <div className="row align-items-center mb-0">
-            <div className="col-lg-7">
+            <motion.div 
+              className="col-lg-7"
+              initial={{ opacity: 0, x: -40 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-20%" }}
+              transition={{ duration: 0.8, ease: [0.21, 0.47, 0.32, 0.98] }}
+            >
               <h2 className="display-5 fw-bolder mb-3 text-light" style={{ letterSpacing: '-1px' }}>Templates</h2>
               <p className="lead text-secondary" style={{ fontSize: '1.1rem' }}>
                 Explore our diverse selection of templates, each designed to fit different styles, professions, and personalities. JTResume currently offers 6 premium layouts, with more on the way.
               </p>
-            </div>
+            </motion.div>
           </div>
         </div>
         
@@ -607,13 +628,19 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
       </section>
 
       {/* 5. Contact Section */}
-      <section id="contact" className="py-5" style={{ background: 'linear-gradient(to bottom, #0a0d16 0%, #060913 100%)', position: 'relative' }}>
+      <section id="contact" className="py-5" style={{ background: 'var(--ui-bg)', position: 'relative' }}>
         <div className="container position-relative z-1" style={{ maxWidth: '1000px' }}>
-          <div className="text-center mb-5">
+          <motion.div 
+            className="text-center mb-5"
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-20%" }}
+            transition={{ duration: 0.7, ease: [0.21, 0.47, 0.32, 0.98] }}
+          >
             <span className="text-indigo fw-bold text-uppercase" style={{ letterSpacing: '1px' }}>Get in Touch</span>
             <h2 className="display-5 fw-bold mt-2">Have questions? Contact us!</h2>
             <p className="text-secondary mt-2">Drop us a line and our team will get back to you shortly.</p>
-          </div>
+          </motion.div>
 
           {contactFeedback.text && (
             <div className={`alert alert-${contactFeedback.type} py-3 px-4 rounded-3 mb-4 text-center mx-auto`} style={{ maxWidth: '800px', fontSize: '0.9rem', fontWeight: 600 }}>
@@ -624,11 +651,7 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
           <div className="row g-5 align-items-stretch">
             {/* Contact Information */}
             <div className="col-lg-5">
-              <div className="contact-card p-4 p-md-5 rounded-4 h-100" style={{ 
-                background: 'linear-gradient(145deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.4) 100%)',
-                border: '1px solid rgba(255, 255, 255, 0.05)',
-                backdropFilter: 'blur(10px)'
-              }}>
+              <div className="contact-card p-4 p-md-5 rounded-4 h-100">
                 <h4 className="fw-bold mb-4 text-white">Contact Information</h4>
                 <ul className="list-unstyled d-flex flex-column gap-4 mb-0 mt-4">
                   <li className="d-flex align-items-start gap-3">
@@ -682,11 +705,7 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
 
             {/* Contact Form */}
             <div className="col-lg-7">
-              <div className="contact-card p-4 p-md-5 rounded-4 h-100" style={{ 
-                background: 'linear-gradient(145deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.4) 100%)',
-                border: '1px solid rgba(255, 255, 255, 0.05)',
-                backdropFilter: 'blur(10px)'
-              }}>
+              <div className="contact-card p-4 p-md-5 rounded-4 h-100">
                 <form onSubmit={handleHookSubmit(handleContactSubmit)}>
               <div className="row g-4">
                 <div className="col-md-6">
@@ -760,7 +779,7 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
       </section>
 
       {/* Footer */}
-      <footer className="footer border-top border-secondary border-opacity-25 py-4" style={{ background: '#04060d' }}>
+      <footer className="footer border-top border-secondary border-opacity-25 py-4" style={{ background: 'var(--ui-bg)' }}>
         <div className="container">
           <div className="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
             <a href="#" className="brand text-decoration-none" style={{ transform: 'scale(0.8)' }}>
