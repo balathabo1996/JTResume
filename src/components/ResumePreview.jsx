@@ -467,6 +467,139 @@ export default function ResumePreview({ formData, country = 'usa', templateStyle
         </div>
       </div>
     );
+  } else if (templateStyle === 'terminal') {
+    const username = (personalInfo.fullName || 'user').toLowerCase().replace(/\s+/g, '_');
+    const promptPrefix = <><span style={{ color: '#27c93f' }}>{username}@dev</span>:<span style={{ color: '#79c0ff' }}>~/resume</span>$</>;
+
+    paperContent = (
+      <div 
+        className="resume-paper-wrapper letter template-terminal"
+        style={{ ...colorStyles, backgroundColor: '#0d1117', color: '#c9d1d9', fontFamily: "'Fira Code', 'Consolas', 'Courier New', monospace" }}
+        id="resume-print-target"
+      >
+        <style>{`
+          .template-terminal { padding: 40px !important; }
+          .terminal-window { border: 1px solid #30363d; border-radius: 8px; overflow: hidden; background: #0d1117; height: 100%; box-shadow: 0 0 20px rgba(0,0,0,0.5); display: flex; flex-direction: column; }
+          .terminal-header { background: #161b22; border-bottom: 1px solid #30363d; padding: 10px 16px; display: flex; align-items: center; gap: 8px; }
+          .terminal-btn { width: 12px; height: 12px; border-radius: 50%; }
+          .terminal-btn.close { background: #ff5f56; }
+          .terminal-btn.min { background: #ffbd2e; }
+          .terminal-btn.max { background: #27c93f; }
+          .terminal-title { margin-left: auto; margin-right: auto; color: #8b949e; font-size: 0.8rem; font-family: sans-serif; }
+          .terminal-body { padding: 24px; flex-grow: 1; font-size: 0.85rem; line-height: 1.6; }
+          .cmd-line { margin-bottom: 16px; }
+          .cmd-input { margin-bottom: 8px; font-weight: bold; }
+          .cmd-output { margin-bottom: 24px; color: #c9d1d9; }
+          .str { color: #a5d6ff; }
+          .num { color: #79c0ff; }
+          .key { color: #7ee787; }
+          .bool { color: #ff7b72; }
+          .comment { color: #8b949e; font-style: italic; }
+          
+          /* Override rich text ul/li bullets for terminal */
+          .template-terminal .rich-text-content ul { list-style-type: none; padding-left: 0; }
+          .template-terminal .rich-text-content ul li::before { content: '>'; color: #27c93f; margin-right: 8px; font-weight: bold; }
+        `}</style>
+        
+        <div className="terminal-window">
+          <div className="terminal-header">
+            <div className="terminal-btn close"></div>
+            <div className="terminal-btn min"></div>
+            <div className="terminal-btn max"></div>
+            <div className="terminal-title">bash - {username}</div>
+            <div style={{ width: '44px' }}></div>
+          </div>
+          
+          <div className="terminal-body">
+            <div className="cmd-output comment">
+              # JTResume Terminal Builder v1.0.0<br/>
+              # Type 'help' for a list of commands.<br/>
+              <br/>
+              Last login: {new Date().toUTCString()} on ttys000
+            </div>
+
+            <div className="cmd-line">
+              <div className="cmd-input">{promptPrefix} cat personal_info.json</div>
+              <div className="cmd-output">
+                {`{`}
+                <div style={{ paddingLeft: '20px' }}>
+                  <span className="key">"name"</span>: <span className="str">"{personalInfo.fullName || 'Your Name'}"</span>,<br/>
+                  <span className="key">"title"</span>: <span className="str">"{personalInfo.jobTitle || 'Software Engineer'}"</span>,<br/>
+                  {personalInfo.email && <><span className="key">"email"</span>: <span className="str">"{personalInfo.email}"</span>,<br/></>}
+                  {personalInfo.phone && <><span className="key">"phone"</span>: <span className="str">"{personalInfo.phone}"</span>,<br/></>}
+                  {personalInfo.location && <><span className="key">"location"</span>: <span className="str">"{personalInfo.location}"</span>,<br/></>}
+                  {personalInfo.linkedin && <><span className="key">"github"</span>: <span className="str">"{personalInfo.linkedin}"</span><br/></>}
+                </div>
+                {`}`}
+              </div>
+            </div>
+
+            {personalInfo.summary && (
+              <div className="cmd-line">
+                <div className="cmd-input">{promptPrefix} cat summary.txt</div>
+                <div className="cmd-output str" style={{ whiteSpace: 'pre-wrap' }}>
+                  "{personalInfo.summary}"
+                </div>
+              </div>
+            )}
+
+            {skills.length > 0 && (
+              <div className="cmd-line">
+                <div className="cmd-input">{promptPrefix} ls -la ./skills/</div>
+                <div className="cmd-output">
+                  {skills.map((sk, skIdx) => (
+                    <div key={skIdx} style={{ display: 'flex', gap: '16px' }}>
+                      <span style={{ color: '#d2a8ff', minWidth: '120px' }}>drwxr-xr-x</span>
+                      <span className="key" style={{ minWidth: '150px' }}>{sk.category || 'Category'}</span>
+                      <span className="str">-&gt; [{sk.items.join(', ')}]</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {workExperience.length > 0 && (
+              <div className="cmd-line">
+                <div className="cmd-input">{promptPrefix} ./scripts/print_experience.sh</div>
+                <div className="cmd-output">
+                  {workExperience.map((exp, expIdx) => (
+                    <div key={expIdx} style={{ marginBottom: '20px' }}>
+                      <div style={{ color: '#ff7b72', fontWeight: 'bold' }}>
+                        [{exp.startDate} - {exp.endDate || 'Present'}] {exp.company}
+                      </div>
+                      <div style={{ color: '#d2a8ff', marginBottom: '8px' }}>ROLE="{exp.role}"</div>
+                      <div 
+                        className="rich-text-content" 
+                        style={{ paddingLeft: '16px', borderLeft: '2px solid #30363d', color: '#c9d1d9' }}
+                        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(exp.description || '') }} 
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {education.length > 0 && (
+              <div className="cmd-line">
+                <div className="cmd-input">{promptPrefix} ./scripts/print_education.sh</div>
+                <div className="cmd-output">
+                  {education.map((edu, eduIdx) => (
+                    <div key={eduIdx} style={{ marginBottom: '12px' }}>
+                      <span style={{ color: '#ff7b72' }}>{edu.degree}</span> @ <span className="str">"{edu.school}"</span> <span className="comment">({edu.startDate} - {edu.endDate})</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="cmd-line">
+              <div className="cmd-input">{promptPrefix} <span style={{ animation: 'blink 1s step-end infinite', background: '#c9d1d9', color: '#0d1117', padding: '0 4px' }}>&nbsp;</span></div>
+              <style>{`@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }`}</style>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   } else if (templateStyle === 'executive') {
     paperContent = (
       <div 

@@ -2289,6 +2289,11 @@ export default function App() {
                       label: "Academic Editorial",
                       desc: "Double-border editorial serif designed for researchers & scholars",
                     },
+                    {
+                      id: "terminal",
+                      label: "The Developer Terminal",
+                      desc: "A radical dark-mode CLI layout built exclusively for engineers",
+                    },
                   ].map((tpl) => (
                     <div className="col-md-4 col-sm-6" key={tpl.id}>
                       <button
