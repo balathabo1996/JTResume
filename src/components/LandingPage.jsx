@@ -313,7 +313,7 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.1, ease: [0.21, 0.47, 0.32, 0.98] }}
               >
-                Land your dream job with a <span className="gradient-text">market-leading</span> resume.
+                Land your dream job with a <span className="gradient-text">market leading</span> resume.
               </motion.h1>
               <motion.p 
                 className="lead mb-5 text-secondary" 
