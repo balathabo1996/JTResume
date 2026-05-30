@@ -61,6 +61,9 @@ export async function POST(request) {
       // Check if user exists
       const existingUser = await usersCollection.findOne({ email: cleanEmail });
       if (existingUser) {
+        if (existingUser.provider && existingUser.provider !== 'credentials') {
+          return NextResponse.json({ error: `This email is already registered via ${existingUser.provider}. Please sign in using ${existingUser.provider}.` }, { status: 400 });
+        }
         return NextResponse.json({ error: 'User with this email already exists.' }, { status: 400 });
       }
 
@@ -81,6 +84,9 @@ export async function POST(request) {
 
       const existingUser = users.find(u => u.email === cleanEmail);
       if (existingUser) {
+        if (existingUser.provider && existingUser.provider !== 'credentials') {
+          return NextResponse.json({ error: `This email is already registered via ${existingUser.provider}. Please sign in using ${existingUser.provider}.` }, { status: 400 });
+        }
         return NextResponse.json({ error: 'User with this email already exists.' }, { status: 400 });
       }
 

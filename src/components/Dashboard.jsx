@@ -6,8 +6,6 @@
 import { useState, useEffect } from 'react';
 import { encryptData } from '../utils/crypto';
 import ImportModal from './ImportModal';
-import { useTheme } from 'next-themes';
-import { Sun, Moon } from 'lucide-react';
 
 /**
  * @function Dashboard
@@ -30,7 +28,6 @@ export default function Dashboard({ user, onSelectResume, onLogout, onOpenProfil
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-  const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);

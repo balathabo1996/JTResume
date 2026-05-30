@@ -170,17 +170,22 @@ export async function POST(request) {
 
     let dbUser;
     if (existingUser) {
+      if (existingUser.provider && existingUser.provider !== userProfile.provider) {
+        throw new Error(`This email is registered with ${existingUser.provider}. Please use that method.`);
+      } else if (!existingUser.provider || existingUser.provider === 'credentials') {
+        throw new Error(`This email is already registered. Please sign in with your password.`);
+      }
+
       await db.collection('users').updateOne(
         { email: cleanEmail },
         {
           $set: {
-            provider: userProfile.provider,
             avatar: userProfile.avatar,
             lastLogin: new Date(),
           },
         }
       );
-      dbUser = { ...existingUser, provider: userProfile.provider, avatar: userProfile.avatar };
+      dbUser = { ...existingUser, avatar: userProfile.avatar };
     } else {
       const newUser = {
         fullName: userProfile.fullName,

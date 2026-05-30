@@ -9,7 +9,6 @@ import "./globals.css";
 import BootstrapClient from "../components/BootstrapClient";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/next";
-import { ThemeProvider } from "../components/ThemeProvider";
 
 export const metadata = {
   title: "JT Resume | Resume Builder",
@@ -50,12 +49,10 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body suppressHydrationWarning>
-        <ThemeProvider attribute="data-theme" defaultTheme="dark" enableSystem>
           <BootstrapClient />
           {children}
           <SpeedInsights />
           <Analytics />
-        </ThemeProvider>
       </body>
     </html>
   );

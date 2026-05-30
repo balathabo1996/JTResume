@@ -29,13 +29,10 @@ export async function POST(request) {
       const existingUser = await usersCollection.findOne({ email: cleanEmail });
 
       if (existingUser) {
-        // If the user exists, ensure they are linked with this SSO provider
-        if (existingUser.provider !== provider) {
-          await usersCollection.updateOne(
-            { email: cleanEmail },
-            { $set: { provider: provider } }
-          );
-          existingUser.provider = provider;
+        if (existingUser.provider && existingUser.provider !== provider) {
+          return NextResponse.json({ error: `This email is registered with ${existingUser.provider}. Please sign in using ${existingUser.provider}.` }, { status: 400 });
+        } else if (!existingUser.provider || existingUser.provider === 'credentials') {
+          return NextResponse.json({ error: `This email is already registered. Please sign in with your password.` }, { status: 400 });
         }
         dbUser = existingUser;
       } else {
@@ -68,9 +65,10 @@ export async function POST(request) {
       const existingUser = users.find(u => u.email === cleanEmail);
 
       if (existingUser) {
-        if (existingUser.provider !== provider) {
-          existingUser.provider = provider;
-          fs.writeFileSync(usersFilePath, JSON.stringify(users, null, 2), 'utf8');
+        if (existingUser.provider && existingUser.provider !== provider) {
+          return NextResponse.json({ error: `This email is registered with ${existingUser.provider}. Please sign in using ${existingUser.provider}.` }, { status: 400 });
+        } else if (!existingUser.provider || existingUser.provider === 'credentials') {
+          return NextResponse.json({ error: `This email is already registered. Please sign in with your password.` }, { status: 400 });
         }
         dbUser = existingUser;
       } else {

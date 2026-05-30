@@ -57,6 +57,10 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Invalid email or password.' }, { status: 400 });
     }
 
+    if (user.provider && user.provider !== 'credentials') {
+      return NextResponse.json({ error: `This email is registered via ${user.provider}. Please sign in using ${user.provider}.` }, { status: 400 });
+    }
+
     const isPasswordMatch = await bcrypt.compare(password, user.password);
     if (!isPasswordMatch) {
       return NextResponse.json({ error: 'Invalid email or password.' }, { status: 400 });

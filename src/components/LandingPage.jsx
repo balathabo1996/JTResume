@@ -6,7 +6,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { motion } from 'framer-motion';
-import { useTheme } from 'next-themes';
 import { Sun, Moon } from 'lucide-react';
 
 const MiniResumeMockup = ({ layout, color, name }) => {
@@ -103,7 +102,6 @@ const MiniResumeMockup = ({ layout, color, name }) => {
 export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut, onGoToDashboard }) {
   const [scrolled, setScrolled] = useState(false);
   const [isNavOpen, setIsNavOpen] = useState(false);
-  const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const navRef = useRef(null);
   const togglerRef = useRef(null);
@@ -525,6 +523,26 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
                 icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#gradient2)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="4 7 4 4 20 4 20 7"></polyline><line x1="9" y1="20" x2="15" y2="20"></line><line x1="12" y1="4" x2="12" y2="20"></line></svg>,
                 title: "Advanced Rich Text",
                 desc: "Craft pixel-perfect descriptions with our powerful WYSIWYG editor supporting custom formatting and bullet points."
+              },
+              {
+                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#gradient3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>,
+                title: "AI Cover Letter Generator",
+                desc: "Automatically craft tailored cover letters that perfectly align with your resume and target job description using Gemini AI."
+              },
+              {
+                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#gradient1)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2H3v16h5v4l4-4h5l4-4V2zm-9 9H7V9h5v2zm5-4H7V5h10v2z"></path></svg>,
+                title: "Google Single Sign-On",
+                desc: "Instantly sign in and securely sync all your resumes across devices with one-click Google authentication."
+              },
+              {
+                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#gradient3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>,
+                title: "Local Offline Storage",
+                desc: "Keep working even when your connection drops with our intelligent local JSON file fallback storage."
+              },
+              {
+                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#gradient2)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>,
+                title: "Performance Optimized",
+                desc: "Lightning fast load times with optimized Interaction to Next Paint (INP) for a buttery smooth mobile and desktop experience."
               }
             ].map((f, i) => (
               <motion.div 
