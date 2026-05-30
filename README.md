@@ -11,6 +11,9 @@ JTResume is a modern, full-stack Next.js web application designed to help job se
 * **📊 Resume Strength Grader**: Receive real-time, actionable feedback and a comprehensive score based on your resume's overall completeness and impact.
 * **📝 Advanced Rich Text Editor**: Craft pixel-perfect descriptions with our powerful WYSIWYG editor supporting custom formatting and bullet points.
 * **📥 Universal Import System**: Extract and parse highly structured data directly from an exported LinkedIn PDF using AI, or import via plain text and standard JSON profiles.
+* **🔑 Google Single Sign-On**: Instantly sign in and securely sync all your resumes across devices with one-click Google OAuth authentication, strictly isolated from password accounts.
+* **💾 Local Offline Storage**: Keep working even when your connection to MongoDB drops with our intelligent local JSON file fallback storage engine.
+* **⚡ Performance Optimized**: Lightning fast load times with optimized Interaction to Next Paint (INP) for a buttery smooth 60fps mobile and desktop scrolling experience.
 * **🔒 Bank-Grade Security**: Features zero-trust local AES encryption for sensitive data, JWT session validation, strict Zod schema validation, API rate limiting, and an intelligent idle auto-logout system.
 * **🎨 Deluxe Design Customizer**: Fine-tune themes instantly:
   * **6 Custom Layout Styles**: Classic Formal, Modern Minimalist, Creative Executive (2-column sidebar), Executive Prestige, Tech Minimalist, and Academic Editorial.

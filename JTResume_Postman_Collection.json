@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "JTResume API v2.0",
-    "description": "A Postman collection containing all backend API endpoints for the JTResume Next.js application, including new AI Engine features, SSO, and Universal Import.",
+    "description": "A Postman collection containing all backend API endpoints for the JTResume Next.js application. Features include the complete AI Engine suite, User Management with strict SSO/Password isolation, CRUD Resume Operations, and Universal Import endpoints.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [

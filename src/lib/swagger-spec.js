@@ -246,6 +246,7 @@ This API is built explicitly to handle professional resume data operations.
         },
         responses: {
           201: { description: 'User registered.' },
+          400: { description: 'Bad Request - Email already associated with SSO.' },
         },
       },
     },
@@ -269,6 +270,7 @@ This API is built explicitly to handle professional resume data operations.
         },
         responses: {
           200: { description: 'Logged in successfully.' },
+          400: { description: 'Bad Request - Email registered via SSO.' },
           401: { description: 'Invalid credentials.' },
         },
       },
@@ -404,7 +406,8 @@ This API is built explicitly to handle professional resume data operations.
           }
         },
         responses: {
-          200: { description: 'OAuth logged in successfully.' }
+          200: { description: 'OAuth logged in successfully.' },
+          400: { description: 'Bad Request - Email registered via password.' }
         }
       }
     },
