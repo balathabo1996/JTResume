@@ -1,7 +1,7 @@
 /**
  * @file CoverLetterGenerator.jsx
  * @description React component rendering the CoverLetterGenerator UI element.
- * @author Jonathan T. Miller
+ * @author Thabotharan Balachandran
  */
 import { useState, useEffect } from 'react';
 import DOMPurify from 'isomorphic-dompurify';

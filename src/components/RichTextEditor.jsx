@@ -1,7 +1,7 @@
 /**
  * @file RichTextEditor.jsx
  * @description React component rendering the RichTextEditor UI element.
- * @author Jonathan T. Miller
+ * @author Thabotharan Balachandran
  */
 import { useRef, useEffect } from 'react';
 

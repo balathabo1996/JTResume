@@ -1,3 +1,8 @@
+/**
+ * @file ComplianceScanner.jsx
+ * @description Source file for ComplianceScanner.jsx.
+ * @author Thabotharan Balachandran
+ */
 import { useState } from 'react';
 
 export default function ComplianceScanner({ 

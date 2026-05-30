@@ -2,7 +2,7 @@
 /**
  * @file layout.jsx
  * @description Source file for layout.jsx.
- * @author Jonathan T. Miller
+ * @author Thabotharan Balachandran
  */
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./globals.css";

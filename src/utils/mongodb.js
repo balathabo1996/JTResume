@@ -1,7 +1,7 @@
 /**
  * @file mongodb.js
  * @description Utility functions and helpers for mongodb operations.
- * @author Jonathan T. Miller
+ * @author Thabotharan Balachandran
  */
 import { MongoClient } from 'mongodb';
 

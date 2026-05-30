@@ -4,7 +4,7 @@
 /**
  * @file page.jsx
  * @description Source file for page.jsx.
- * @author Jonathan T. Miller
+ * @author Thabotharan Balachandran
  */
 import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';

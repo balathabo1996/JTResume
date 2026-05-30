@@ -4,7 +4,7 @@
  * Handles top-level routing between the landing page, dashboard, auth flows, and the resume builder.
  * Also manages global user authentication state, end-to-end encryption key storage, and idle auto-logout logic.
  *
- * @author Jonathan T. Miller
+ * @author Thabotharan Balachandran
  */
 "use client";
 import React, { useState, useEffect } from "react";

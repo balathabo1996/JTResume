@@ -1,7 +1,7 @@
 /**
  * @file AuthPage.jsx
  * @description React component rendering the AuthPage UI element.
- * @author Jonathan T. Miller
+ * @author Thabotharan Balachandran
  */
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';

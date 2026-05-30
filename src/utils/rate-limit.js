@@ -1,3 +1,8 @@
+/**
+ * @file rate-limit.js
+ * @description Source file for rate-limit.js.
+ * @author Thabotharan Balachandran
+ */
 import { LRUCache } from 'lru-cache';
 
 /**

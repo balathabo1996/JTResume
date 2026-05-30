@@ -4,7 +4,7 @@
 /**
  * @file page.js
  * @description Source file for page.js.
- * @author Jonathan T. Miller
+ * @author Thabotharan Balachandran
  */
 import { useEffect, useState } from 'react';
 

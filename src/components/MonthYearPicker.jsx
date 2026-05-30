@@ -1,9 +1,14 @@
+/**
+ * @file MonthYearPicker.jsx
+ * @description Source file for MonthYearPicker.jsx.
+ * @author Thabotharan Balachandran
+ */
 // No React hooks needed here
 
 /**
  * @file MonthYearPicker.jsx
  * @description React component rendering the MonthYearPicker UI element.
- * @author Jonathan T. Miller
+ * @author Thabotharan Balachandran
  */
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const currentYear = new Date().getFullYear();

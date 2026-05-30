@@ -1,7 +1,7 @@
 /**
  * @file InterviewPrep.jsx
  * @description React component rendering the InterviewPrep UI element.
- * @author Jonathan T. Miller
+ * @author Thabotharan Balachandran
  */
 import { useState, useEffect, useRef } from 'react';
 import DOMPurify from 'isomorphic-dompurify';

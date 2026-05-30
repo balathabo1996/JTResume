@@ -1,8 +1,13 @@
 "use client";
 /**
  * @file page.jsx
+ * @description Source file for page.jsx.
+ * @author Thabotharan Balachandran
+ */
+/**
+ * @file page.jsx
  * @description Next.js API route for handling backend logic related to page.jsx.
- * @author Jonathan T. Miller
+ * @author Thabotharan Balachandran
  */
 import { useEffect } from "react";
 import SwaggerUI from "swagger-ui-react";

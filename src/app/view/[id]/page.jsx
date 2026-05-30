@@ -2,7 +2,12 @@
 /**
  * @file page.jsx
  * @description Source file for page.jsx.
- * @author Jonathan T. Miller
+ * @author Thabotharan Balachandran
+ */
+/**
+ * @file page.jsx
+ * @description Source file for page.jsx.
+ * @author Thabotharan Balachandran
  */
 import { useEffect, useState, use } from 'react';
 import ResumePreview from '../../../components/ResumePreview';

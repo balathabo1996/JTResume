@@ -1,7 +1,7 @@
 /**
  * @file SortableList.jsx
  * @description React component rendering the SortableList UI element.
- * @author Jonathan T. Miller
+ * @author Thabotharan Balachandran
  */
 import React, { useMemo } from 'react';
 import {

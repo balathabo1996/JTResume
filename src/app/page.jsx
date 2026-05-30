@@ -1,7 +1,7 @@
 /**
  * @file page.jsx
  * @description Source file for page.jsx.
- * @author Jonathan T. Miller
+ * @author Thabotharan Balachandran
  */
 import App from '../App';
 

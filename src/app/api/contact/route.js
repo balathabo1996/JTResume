@@ -1,7 +1,7 @@
 /**
  * @file route.js
  * @description Next.js API route for handling backend logic related to route.js.
- * @author Jonathan T. Miller
+ * @author Thabotharan Balachandran
  */
 import { NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';

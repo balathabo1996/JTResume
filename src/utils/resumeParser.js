@@ -1,4 +1,9 @@
 /**
+ * @file resumeParser.js
+ * @description Source file for resumeParser.js.
+ * @author Thabotharan Balachandran
+ */
+/**
  * Client-Side Heuristic Resume Parser
  * Parses plain text (e.g. copy-pasted from Word/PDF) into the JTResume state schema.
  */

@@ -1,9 +1,13 @@
 "use client";
-
+/**
+ * @file BootstrapClient.jsx
+ * @description Source file for BootstrapClient.jsx.
+ * @author Thabotharan Balachandran
+ */
 /**
  * @file BootstrapClient.jsx
  * @description React component rendering the BootstrapClient UI element.
- * @author Jonathan T. Miller
+ * @author Thabotharan Balachandran
  */
 import { useEffect } from "react";
 

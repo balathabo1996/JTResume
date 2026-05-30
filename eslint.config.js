@@ -1,3 +1,8 @@
+/**
+ * @file eslint.config.js
+ * @description Source file for eslint.config.js.
+ * @author Thabotharan Balachandran
+ */
 import js from '@eslint/js'
 import globals from 'globals'
 import reactHooks from 'eslint-plugin-react-hooks'

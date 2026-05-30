@@ -67,6 +67,30 @@
             },
             "url": { "raw": "{{baseUrl}}/api/ai/interview", "host": ["{{baseUrl}}"], "path": ["api", "ai", "interview"] }
           }
+        },
+        {
+          "name": "Evaluate Mock Interview",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"messages\": [{\"role\": \"user\", \"parts\": [{\"text\": \"I'm great at React.\"}]}],\n  \"resumeData\": {},\n  \"jobDescription\": \"Senior Dev\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/ai/interview-evaluate", "host": ["{{baseUrl}}"], "path": ["api", "ai", "interview-evaluate"] }
+          }
+        },
+        {
+          "name": "Analyze Skill Gap",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"missingSkills\": [\"AWS\", \"Docker\"],\n  \"jobDescription\": \"Cloud Engineer\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/ai/skill-gap", "host": ["{{baseUrl}}"], "path": ["api", "ai", "skill-gap"] }
+          }
         }
       ]
     },

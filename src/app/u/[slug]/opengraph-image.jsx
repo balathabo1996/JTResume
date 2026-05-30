@@ -1,3 +1,8 @@
+/**
+ * @file opengraph-image.jsx
+ * @description Source file for opengraph-image.jsx.
+ * @author Thabotharan Balachandran
+ */
 import { ImageResponse } from 'next/og';
 import clientPromise from '../../../utils/mongodb';
 

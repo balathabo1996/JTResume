@@ -580,7 +580,7 @@ export default function BuilderForm({
                 onChange={(e) => updatePersonalInfo("fullName", e.target.value)}
                 onFocus={() => onFieldFocus("fullName")}
                 onBlur={onFieldBlur}
-                placeholder="e.g. Jonathan T. Miller"
+                placeholder="e.g. Thabotharan Balachandran"
               />
             </div>
 

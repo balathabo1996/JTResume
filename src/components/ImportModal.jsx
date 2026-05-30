@@ -1,7 +1,7 @@
 /**
  * @file ImportModal.jsx
  * @description React component rendering the ImportModal UI element.
- * @author Jonathan T. Miller
+ * @author Thabotharan Balachandran
  */
 import { useState } from 'react';
 import { parsePlainResumeText } from '../utils/resumeParser';
@@ -69,7 +69,7 @@ export default function ImportModal({ isOpen, onClose, onImportData }) {
           const namePart = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, ' ');
           let extractedName = namePart.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
           if (extractedName.match(/resume|cv|builder|profile|doc/i)) {
-            extractedName = "Jonathan T. Miller";
+            extractedName = "Thabotharan Balachandran";
           }
 
           // Pre-populate high-fidelity parsed mock fields

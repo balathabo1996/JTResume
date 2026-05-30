@@ -1,7 +1,7 @@
 /**
  * @file docxExport.js
  * @description Utility functions and helpers for docxExport operations.
- * @author Jonathan T. Miller
+ * @author Thabotharan Balachandran
  */
 import {
   Document,

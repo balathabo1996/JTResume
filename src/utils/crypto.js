@@ -1,3 +1,8 @@
+/**
+ * @file crypto.js
+ * @description Source file for crypto.js.
+ * @author Thabotharan Balachandran
+ */
 import CryptoJS from 'crypto-js';
 
 /**

@@ -6,7 +6,10 @@ JTResume is a modern, full-stack Next.js web application designed to help job se
 
 ## ✨ Key Features
 
-* **🧠 AI-Powered Content Enhancement**: Integrates Google Gemini AI to automatically generate professional summaries, enhance experience bullet points, write cover letters, and conduct mock interviews.
+* **✨ AI-Powered Content Enhancement**: Integrates Google Gemini AI to automatically generate professional summaries, enhance experience bullet points, write cover letters, and conduct realistic mock interviews tailored to your resume.
+* **🎓 AI Learning Paths**: Automatically generate personalized learning resources and courses to bridge the gap for any missing ATS keywords.
+* **📊 Resume Strength Grader**: Receive real-time, actionable feedback and a comprehensive score based on your resume's overall completeness and impact.
+* **📝 Advanced Rich Text Editor**: Craft pixel-perfect descriptions with our powerful WYSIWYG editor supporting custom formatting and bullet points.
 * **📥 Universal Import System**: Extract and parse highly structured data directly from an exported LinkedIn PDF using AI, or import via plain text and standard JSON profiles.
 * **🔒 Bank-Grade Security**: Features zero-trust local AES encryption for sensitive data, JWT session validation, strict Zod schema validation, API rate limiting, and an intelligent idle auto-logout system.
 * **🎨 Deluxe Design Customizer**: Fine-tune themes instantly:
@@ -15,8 +18,8 @@ JTResume is a modern, full-stack Next.js web application designed to help job se
   * **4 Typography Pairings**: Modern Sans, Editorial Serif, Tech Clean, and Corporate.
   * **Spacing Fit Tuning**: Dynamically adjust vertical padding and line heights to make your resume fit exactly on a single page.
 * **📄 Advanced Exporting**: Instantly export a perfectly scaled, professional A4/Letter vector PDF using your browser's native print engine, or download an editable Word Document (`.docx`).
-* **🔍 Target Job ATS Scanner**: Paste any job description to automatically extract critical industry keywords and monitor your resume's dynamic keyword match percentage as you write.
-* **⚠️ Smart Compliance Auditor**: Scan for potential hiring bias and anti-patterns (such as marital status, birthdates, and headshots) to ensure compliance with Equal Employment Opportunity Commission (EEOC) standards.
+* **🎯 Target Job ATS Scanner**: Paste any job description to automatically extract critical industry keywords and monitor your resume's dynamic keyword match percentage as you write.
+* **⚖️ Smart Compliance Auditor**: Scan for potential hiring bias and anti-patterns (such as marital status, birthdates, and headshots) to ensure compliance with Equal Employment Opportunity Commission (EEOC) standards.
 
 ---
 

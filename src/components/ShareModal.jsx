@@ -1,7 +1,7 @@
 /**
  * @file ShareModal.jsx
  * @description React component rendering the ShareModal UI element.
- * @author Jonathan T. Miller
+ * @author Thabotharan Balachandran
  */
 import { useState, useEffect } from 'react';
 

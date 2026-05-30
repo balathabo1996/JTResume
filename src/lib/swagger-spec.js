@@ -1,7 +1,7 @@
 /**
  * @file swagger-spec.js
  * @description Source file for swagger-spec.js.
- * @author Jonathan T. Miller
+ * @author Thabotharan Balachandran
  */
 export const swaggerSpec = {
   openapi: '3.0.0',
@@ -175,6 +175,53 @@ This API is built explicitly to handle professional resume data operations.
         },
         responses: {
           200: { description: 'AI interview response.' }
+        }
+      }
+    },
+    '/ai/interview-evaluate': {
+      post: {
+        tags: ['AI Engine'],
+        summary: 'Evaluate an AI mock interview transcript',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  messages: { type: 'array', items: { type: 'object' } },
+                  resumeData: { type: 'object' },
+                  jobDescription: { type: 'string' }
+                }
+              }
+            }
+          }
+        },
+        responses: {
+          200: { description: 'Evaluation and feedback.' }
+        }
+      }
+    },
+    '/ai/skill-gap': {
+      post: {
+        tags: ['AI Engine'],
+        summary: 'Analyze skill gaps and generate learning paths',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  missingSkills: { type: 'array', items: { type: 'string' } },
+                  jobDescription: { type: 'string' }
+                }
+              }
+            }
+          }
+        },
+        responses: {
+          200: { description: 'Generated learning paths.' }
         }
       }
     },

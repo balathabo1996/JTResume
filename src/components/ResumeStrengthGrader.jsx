@@ -1,7 +1,7 @@
 /**
  * @file ResumeStrengthGrader.jsx
  * @description React component rendering the ResumeStrengthGrader UI element.
- * @author Jonathan T. Miller
+ * @author Thabotharan Balachandran
  */
 import { useState } from 'react';
 

@@ -1,7 +1,7 @@
 /**
  * @file coverLetterDocxExport.js
  * @description Utility functions and helpers for coverLetterDocxExport operations.
- * @author Jonathan T. Miller
+ * @author Thabotharan Balachandran
  */
 import {
   Document,

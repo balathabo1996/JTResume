@@ -1,7 +1,7 @@
 /**
  * @file validators.js
  * @description Utility functions and helpers for validators operations.
- * @author Jonathan T. Miller
+ * @author Thabotharan Balachandran
  */
 import { z } from 'zod';
 

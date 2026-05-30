@@ -1,3 +1,8 @@
+/**
+ * @file route.js
+ * @description Source file for route.js.
+ * @author Thabotharan Balachandran
+ */
 import { NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
 

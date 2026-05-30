@@ -1,3 +1,8 @@
+/**
+ * @file middleware.js
+ * @description Source file for middleware.js.
+ * @author Thabotharan Balachandran
+ */
 import { NextResponse } from 'next/server';
 
 export function middleware(request) {
