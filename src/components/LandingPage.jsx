@@ -3,7 +3,7 @@
  * @description The unauthenticated public-facing landing page. Features hero banners, feature grids, 
  * an animated template showcase, and a contact form.
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { motion } from 'framer-motion';
 import { useTheme } from 'next-themes';
@@ -105,6 +105,8 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
   const [isNavOpen, setIsNavOpen] = useState(false);
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const navRef = useRef(null);
+  const togglerRef = useRef(null);
 
   useEffect(() => setMounted(true), []);
 
@@ -145,20 +147,25 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
       if (navContent && navContent.classList.contains('show')) {
         // If it was a touch/click, ignore if it was inside the navbar itself
         if (e && e.type !== 'scroll') {
-          const navbar = document.querySelector('.navbar');
-          if (navbar && navbar.contains(e.target)) return;
+          if (navRef.current && navRef.current.contains(e.target)) return;
         }
         
-        const toggler = document.querySelector('.navbar-toggler');
-        if (toggler && !toggler.classList.contains('collapsed')) {
-          toggler.click();
+        if (togglerRef.current && !togglerRef.current.classList.contains('collapsed')) {
+          togglerRef.current.click();
         }
       }
     };
 
+    let ticking = false;
     const handleScroll = (e) => {
-      setScrolled(window.scrollY > 20);
-      closeNavIfOpen(e); // Close on scroll
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          setScrolled(window.scrollY > 20);
+          closeNavIfOpen(e); // Close on scroll
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -186,6 +193,22 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
 
   return (
     <div className="landing-page bg-dark text-light min-vh-100 d-flex flex-column">
+      {/* Mobile Nav Backdrop Overlay */}
+      {isNavOpen && (
+        <div 
+          className="d-lg-none position-fixed top-0 start-0 w-100 h-100" 
+          style={{ 
+            backgroundColor: 'rgba(0, 0, 0, 0.65)', 
+            zIndex: 1029,
+            backdropFilter: 'blur(3px)'
+          }} 
+          onClick={() => {
+            if (togglerRef.current && !togglerRef.current.classList.contains('collapsed')) {
+              togglerRef.current.click();
+            }
+          }}
+        />
+      )}
       <style>{`
         @media (max-width: 991.98px) {
           #navbarContent {
@@ -262,6 +285,7 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
       
       {/* 1. Global Navigation Bar */}
       <nav 
+        ref={navRef}
         className={`navbar navbar-expand-lg fixed-top ${(scrolled || isNavOpen) ? 'glass-nav shadow-lg' : 'bg-transparent py-4'}`}
         style={{ transition: 'all 0.35s ease-in-out' }}
       >
@@ -273,7 +297,7 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
             </div>
           </a>
           
-          <button className="navbar-toggler border-0 shadow-none text-light" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+          <button ref={togglerRef} className="navbar-toggler border-0 shadow-none text-light" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" className="bi bi-list" viewBox="0 0 16 16">
               <path fillRule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/>
             </svg>
@@ -591,6 +615,10 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
               transform: scale(0.72) translateY(-15px);
               z-index: 100;
             }
+            .template-item:hover .template-glow,
+            .template-item:hover .template-overlay {
+              opacity: 1 !important;
+            }
           `}</style>
 
           {/* Track 1 - Moving Left */}
@@ -612,14 +640,6 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
               <div 
                 className="template-item position-relative d-flex justify-content-center" 
                 key={`t1-${i}`}
-                onMouseOver={(e) => {
-                  e.currentTarget.querySelector('.template-glow').style.opacity = '1';
-                  e.currentTarget.querySelector('.template-overlay').style.opacity = '1';
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.querySelector('.template-glow').style.opacity = '0';
-                  e.currentTarget.querySelector('.template-overlay').style.opacity = '0';
-                }}
               >
                 <div 
                   className="template-glow position-absolute w-100 h-100 rounded" 
@@ -670,14 +690,6 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
               <div 
                 className="template-item position-relative d-flex justify-content-center" 
                 key={`t2-${i}`}
-                onMouseOver={(e) => {
-                  e.currentTarget.querySelector('.template-glow').style.opacity = '1';
-                  e.currentTarget.querySelector('.template-overlay').style.opacity = '1';
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.querySelector('.template-glow').style.opacity = '0';
-                  e.currentTarget.querySelector('.template-overlay').style.opacity = '0';
-                }}
               >
                 <div 
                   className="template-glow position-absolute w-100 h-100 rounded" 
