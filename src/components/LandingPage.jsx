@@ -189,48 +189,73 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
       <style>{`
         @media (max-width: 991.98px) {
           #navbarContent {
-            background-color: var(--ui-card-bg);
+            background: rgba(10, 15, 25, 0.75);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
             position: absolute;
             top: 100%;
             left: 0;
             right: 0;
             text-align: center;
-            box-shadow: 0 15px 30px rgba(0,0,0,0.5);
+            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+            overflow: hidden;
           }
           .mobile-nav-inner {
-            padding: 24px;
+            padding: 28px 24px 32px 24px;
           }
           #navbarContent .navbar-nav {
-            margin-bottom: 20px !important;
+            margin-bottom: 24px !important;
           }
           #navbarContent .nav-link {
             padding: 16px 0;
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--ui-text-primary) !important;
-            border-bottom: 1px solid var(--ui-card-border);
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.8) !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            transition: all 0.3s ease;
+          }
+          #navbarContent .nav-link:hover {
+            color: #ffffff !important;
+            background-color: rgba(255, 255, 255, 0.02);
+            text-shadow: 0 0 12px rgba(255, 255, 255, 0.4);
           }
           #navbarContent .d-flex.align-items-center.gap-3 {
             flex-direction: column;
             width: 100%;
-            gap: 12px !important;
+            gap: 14px !important;
           }
           /* Sign In Button */
           #navbarContent .nav-signin-btn {
             width: 100%;
-            background-color: var(--ui-bg) !important;
-            color: var(--ui-text-primary) !important;
-            border: 1px solid var(--ui-card-border);
+            background: rgba(255, 255, 255, 0.05) !important;
+            color: #fff !important;
+            border: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: none !important;
-            border-radius: 8px !important;
+            border-radius: 12px !important;
+            padding: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+          }
+          #navbarContent .nav-signin-btn:hover {
+            background: rgba(255, 255, 255, 0.1) !important;
           }
           /* Build My Resume Button */
           #navbarContent .cta-btn {
             width: 100%;
-            background: linear-gradient(135deg, #6366f1, #4f46e5) !important;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6) !important;
             border: none;
-            border-radius: 8px !important;
-            box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4) !important;
+            border-radius: 12px !important;
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3) !important;
+            padding: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+          }
+          #navbarContent .cta-btn:hover {
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.5) !important;
+            transform: translateY(-2px);
           }
         }
       `}</style>
