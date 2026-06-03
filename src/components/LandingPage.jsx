@@ -829,54 +829,66 @@ export default function LandingPage({ onStartBuilder, isAuthenticated, onSignOut
                 <form onSubmit={handleHookSubmit(handleContactSubmit)}>
               <div className="row g-4">
                 <div className="col-md-6">
-                  <label className="form-label fw-bold text-light mb-2" style={{ fontSize: '0.85rem' }}>Full Name</label>
-                  <input 
-                    type="text" 
-                    className={`form-control auth-input py-2.5 ${errors.name ? 'is-invalid' : ''}`}
-                    placeholder="John Doe" 
-                    {...register('name', { required: 'Full Name is required' })}
-                    disabled={contactSending}
-                  />
-                  {errors.name && <div className="invalid-feedback">{errors.name.message}</div>}
+                  <div className="form-floating">
+                    <input 
+                      type="text" 
+                      id="contactName"
+                      className={`form-control auth-input ${errors.name ? 'is-invalid' : ''}`}
+                      placeholder=" " 
+                      {...register('name', { required: 'Full Name is required' })}
+                      disabled={contactSending}
+                    />
+                    <label htmlFor="contactName">Full Name</label>
+                    {errors.name && <div className="invalid-feedback">{errors.name.message}</div>}
+                  </div>
                 </div>
                 <div className="col-md-6">
-                  <label className="form-label fw-bold text-light mb-2" style={{ fontSize: '0.85rem' }}>Email Address</label>
-                  <input 
-                    type="email" 
-                    className={`form-control auth-input py-2.5 ${errors.email ? 'is-invalid' : ''}`}
-                    placeholder="john.doe@example.com" 
-                    {...register('email', { 
-                      required: 'Email address is required',
-                      pattern: {
-                        value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                        message: 'Invalid email address'
-                      }
-                    })}
-                    disabled={contactSending}
-                  />
-                  {errors.email && <div className="invalid-feedback">{errors.email.message}</div>}
+                  <div className="form-floating">
+                    <input 
+                      type="email" 
+                      id="contactEmail"
+                      className={`form-control auth-input ${errors.email ? 'is-invalid' : ''}`}
+                      placeholder=" " 
+                      {...register('email', { 
+                        required: 'Email address is required',
+                        pattern: {
+                          value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                          message: 'Invalid email address'
+                        }
+                      })}
+                      disabled={contactSending}
+                    />
+                    <label htmlFor="contactEmail">Email Address</label>
+                    {errors.email && <div className="invalid-feedback">{errors.email.message}</div>}
+                  </div>
                 </div>
                 <div className="col-12">
-                  <label className="form-label fw-bold text-light mb-2" style={{ fontSize: '0.85rem' }}>Subject</label>
-                  <input 
-                    type="text" 
-                    className={`form-control auth-input py-2.5 ${errors.subject ? 'is-invalid' : ''}`}
-                    placeholder="How can we help you?" 
-                    {...register('subject', { required: 'Subject is required' })}
-                    disabled={contactSending}
-                  />
-                  {errors.subject && <div className="invalid-feedback">{errors.subject.message}</div>}
+                  <div className="form-floating">
+                    <input 
+                      type="text" 
+                      id="contactSubject"
+                      className={`form-control auth-input ${errors.subject ? 'is-invalid' : ''}`}
+                      placeholder=" " 
+                      {...register('subject', { required: 'Subject is required' })}
+                      disabled={contactSending}
+                    />
+                    <label htmlFor="contactSubject">Subject</label>
+                    {errors.subject && <div className="invalid-feedback">{errors.subject.message}</div>}
+                  </div>
                 </div>
                 <div className="col-12">
-                  <label className="form-label fw-bold text-light mb-2" style={{ fontSize: '0.85rem' }}>Message</label>
-                  <textarea 
-                    className={`form-control auth-input py-2.5 ${errors.message ? 'is-invalid' : ''}`}
-                    rows="5"
-                    placeholder="Tell us more about your inquiry..." 
-                    {...register('message', { required: 'Message is required' })}
-                    disabled={contactSending}
-                  ></textarea>
-                  {errors.message && <div className="invalid-feedback">{errors.message.message}</div>}
+                  <div className="form-floating">
+                    <textarea 
+                      id="contactMessage"
+                      className={`form-control auth-input ${errors.message ? 'is-invalid' : ''}`}
+                      style={{ height: '120px' }}
+                      placeholder=" " 
+                      {...register('message', { required: 'Message is required' })}
+                      disabled={contactSending}
+                    ></textarea>
+                    <label htmlFor="contactMessage">Message</label>
+                    {errors.message && <div className="invalid-feedback">{errors.message.message}</div>}
+                  </div>
                 </div>
                 <div className="col-12 text-center mt-4">
                   <button type="submit" className="btn btn-primary px-5 py-3 fw-bold rounded-pill shadow-lg cta-btn" disabled={contactSending}>

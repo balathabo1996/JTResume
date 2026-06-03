@@ -2616,7 +2616,7 @@ html[data-theme='light'] .brand-resume {
   -webkit-backdrop-filter: blur(24px);
   border: 1px solid var(--ui-card-border) !important;
   border-radius: 24px !important;
-  padding: 40px !important;
+  padding: 0 !important;
   box-shadow:
     0 25px 50px -12px rgba(0, 0, 0, 0.15),
     0 0 40px var(--ui-accent-glow) !important;
@@ -3359,6 +3359,62 @@ html {
 }
 
 /* ============================================
+   MATERIAL FLOATING LABELS
+   ============================================ */
+.form-floating {
+  position: relative;
+  margin-bottom: 1.25rem !important;
+}
+
+.form-floating > .form-control,
+.form-floating > .form-select {
+  height: auto !important;
+  padding: 12px 14px !important;
+  border: 1px solid var(--ui-card-border) !important;
+  border-bottom: 1px solid var(--ui-card-border) !important;
+  border-radius: 10px !important;
+  background: transparent !important;
+}
+
+.form-floating > .form-control:focus,
+.form-floating > .form-select:focus {
+  border-color: var(--ui-accent) !important;
+  box-shadow: inset 0 0 0 1px var(--ui-accent), 0 4px 16px rgba(0, 0, 0, 0.05) !important;
+  border-bottom: 1px solid var(--ui-accent) !important;
+}
+
+.form-floating > label {
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  transform: translateY(-50%);
+  padding: 0 6px !important;
+  height: auto !important;
+  color: var(--ui-text-secondary) !important;
+  font-size: 0.85rem !important;
+  font-weight: 500 !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  background-color: transparent;
+  transition: all 0.2s ease-in-out;
+  pointer-events: none;
+}
+
+.form-floating > label::after {
+  display: none !important;
+}
+
+.form-floating > .form-control:focus ~ label,
+.form-floating > .form-control:not(:placeholder-shown) ~ label,
+.form-floating > .form-select ~ label {
+  top: 0 !important;
+  transform: translateY(-50%) scale(0.9) !important;
+  color: var(--ui-accent) !important;
+  background-color: var(--ui-bg) !important;
+  opacity: 1 !important;
+}
+
+/* ============================================
    PRINT / PDF EXPORT OPTIMIZATIONS
    ============================================ */
 @media print {
@@ -3441,9 +3497,30 @@ html {
     break-inside: avoid !important;
   }
 
-  /* 6. Standard US Letter Page size without browser headers/footers */
   @page {
     size: letter;
     margin: 0;
   }
+}
+
+/* --- Auth Hover Animations --- */
+.oauth-btn {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.oauth-btn:hover {
+  transform: translateY(-3px) scale(1.05);
+  background: rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3), 0 0 15px var(--ui-accent-glow);
+  border-color: var(--ui-accent) !important;
+}
+
+.forgot-link {
+  transition: all 0.2s ease-in-out;
+  position: relative;
+}
+
+.forgot-link:hover {
+  color: var(--ui-text-primary) !important;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
 }
