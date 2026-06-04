@@ -1,6 +1,6 @@
 /**
  * @file ComplianceScanner.jsx
- * @description Source file for ComplianceScanner.jsx.
+ * @description ATS compliance checker sidebar. Displays score meters, detailed checks (length, contact details, sections), and keyword highlight overlays.
  * @author Thabotharan Balachandran
  */
 import { useState } from 'react';

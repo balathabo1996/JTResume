@@ -1,6 +1,6 @@
 /**
  * @file AuthPage.jsx
- * @description React component rendering the AuthPage UI element.
+ * @description Dual-pane sliding Authentication screen. Uses framer-motion for smooth transitions between registration, password reset, and login cards.
  * @author Thabotharan Balachandran
  */
 import { useState } from 'react';

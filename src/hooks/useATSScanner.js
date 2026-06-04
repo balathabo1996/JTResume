@@ -1,3 +1,8 @@
+/**
+ * @file useATSScanner.js
+ * @description Custom react hook encapsulating ATS keyword extraction, dictionary filters, score computations, and results caching.
+ * @author Thabotharan Balachandran
+ */
 import { useState, useCallback } from 'react';
 
 const COMMON_PROFESSIONAL_KEYWORDS = [

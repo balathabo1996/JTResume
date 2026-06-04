@@ -1,6 +1,6 @@
 /**
  * @file route.js
- * @description Next.js API route for handling backend logic related to route.js.
+ * @description API route for fetching or updating public sharing status and slug maps for shared resumes.
  * @author Thabotharan Balachandran
  */
 import { NextResponse } from 'next/server';

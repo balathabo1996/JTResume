@@ -1,6 +1,6 @@
 /**
  * @file route.js
- * @description Next.js API route for handling backend logic related to route.js.
+ * @description API route for cloning an existing resume document with a duplicate title suffix.
  * @author Thabotharan Balachandran
  */
 import { NextResponse } from 'next/server';

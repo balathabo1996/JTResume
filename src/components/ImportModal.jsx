@@ -1,6 +1,6 @@
 /**
  * @file ImportModal.jsx
- * @description React component rendering the ImportModal UI element.
+ * @description Resume importer overlay modal. Ingests LinkedIn profile PDFs, word docx files, or raw markdown text via parser API wrappers.
  * @author Thabotharan Balachandran
  */
 import { useState } from 'react';

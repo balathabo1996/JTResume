@@ -1,3 +1,8 @@
+/**
+ * @file page.js
+ * @description Single Sign-On (SSO) intermediate landing route, handles login checks and redirections.
+ * @author Thabotharan Balachandran
+ */
 /* global process */
 /* eslint-disable react-hooks/set-state-in-effect */
 'use client';

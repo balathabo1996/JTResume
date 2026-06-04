@@ -1,7 +1,7 @@
 "use client";
 /**
  * @file page.jsx
- * @description Source file for page.jsx.
+ * @description Authenticated viewer page for a specific resume. Permits print previews, template tests, and exports.
  * @author Thabotharan Balachandran
  */
 /**

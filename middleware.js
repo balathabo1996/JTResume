@@ -1,6 +1,6 @@
 /**
  * @file middleware.js
- * @description Source file for middleware.js.
+ * @description Next.js edge middleware for blocking suspicious/non-browser requests (e.g. curl, wget, python-requests) and injecting standard security headers (X-Content-Type-Options, X-Frame-Options, Referrer-Policy) on API routes.
  * @author Thabotharan Balachandran
  */
 import { NextResponse } from 'next/server';

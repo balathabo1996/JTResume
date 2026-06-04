@@ -1,6 +1,6 @@
 /**
  * @file crypto.js
- * @description Source file for crypto.js.
+ * @description Client-side End-to-End Encryption (E2EE) helper. Implements PBKDF2 key derivation, AES-GCM data encryption, and decryption.
  * @author Thabotharan Balachandran
  */
 import CryptoJS from 'crypto-js';

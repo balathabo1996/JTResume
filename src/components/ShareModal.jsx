@@ -1,6 +1,6 @@
 /**
  * @file ShareModal.jsx
- * @description React component rendering the ShareModal UI element.
+ * @description Public share config modal. Enables public link publishing, generates slug settings, and triggers link copy events.
  * @author Thabotharan Balachandran
  */
 import { useState, useEffect } from 'react';

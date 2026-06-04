@@ -1,3 +1,8 @@
+/**
+ * @file page.js
+ * @description OAuth authenticator redirect callback handler. Processes state updates post third-party auth.
+ * @author Thabotharan Balachandran
+ */
 /* eslint-disable react-hooks/set-state-in-effect */
 'use client';
 

@@ -2,6 +2,7 @@
  * @file LandingPage.jsx
  * @description The unauthenticated public-facing landing page. Features hero banners, feature grids, 
  * an animated template showcase, and a contact form.
+ * @author Thabotharan Balachandran
  */
 import { useEffect, useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';

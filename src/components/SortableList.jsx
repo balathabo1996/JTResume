@@ -1,6 +1,6 @@
 /**
  * @file SortableList.jsx
- * @description React component rendering the SortableList UI element.
+ * @description Interactive list organizer. Handles drag-and-drop index shifts, item deletions, and creation events for nested resume lists.
  * @author Thabotharan Balachandran
  */
 import React, { useMemo } from 'react';

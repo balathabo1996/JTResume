@@ -1,6 +1,6 @@
 /**
  * @file route.js
- * @description Next.js API route for handling backend logic related to route.js.
+ * @description API route for authenticating email/password credentials and issuing a secure session cookie.
  * @author Thabotharan Balachandran
  */
 import { NextResponse } from 'next/server';

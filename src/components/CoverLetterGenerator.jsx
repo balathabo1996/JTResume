@@ -1,6 +1,6 @@
 /**
  * @file CoverLetterGenerator.jsx
- * @description React component rendering the CoverLetterGenerator UI element.
+ * @description Interactive Cover Letter Generator panel. Generates custom cover letters using resume details and user-provided job criteria via Gemini AI.
  * @author Thabotharan Balachandran
  */
 import { useState, useEffect } from 'react';

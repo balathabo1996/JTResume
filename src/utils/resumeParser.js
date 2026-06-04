@@ -1,6 +1,6 @@
 /**
  * @file resumeParser.js
- * @description Source file for resumeParser.js.
+ * @description Raw data extraction and schema normalizer helper. Maps parsed resumes into a standard JSON state schema.
  * @author Thabotharan Balachandran
  */
 /**

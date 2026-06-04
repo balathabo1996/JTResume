@@ -4,6 +4,7 @@
  * @description The main form interface for constructing the resume. It provides the UI for dragging, 
  * dropping, and editing complex arrays of data like work experience, education, skills, and certifications.
  * Communicates with the top-level App component to synchronize the `formData` state.
+ * @author Thabotharan Balachandran
  */
 import { useState, useRef, useEffect } from "react";
 import RichTextEditor from "./RichTextEditor";

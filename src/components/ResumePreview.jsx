@@ -1,6 +1,6 @@
 /**
  * @file ResumePreview.jsx
- * @description React component rendering the ResumePreview UI element.
+ * @description Dual-pane layout resume preview frame. Dynamically renders resume schemas across selected styles (Modern, Professional, Creative) with print-CSS rules.
  * @author Thabotharan Balachandran
  */
 import { useState, useEffect, useRef } from 'react';

@@ -1,6 +1,6 @@
 /**
  * @file route.js
- * @description Source file for route.js.
+ * @description API route for evaluating mock interview replies, providing scoring metrics and detailed improvement suggestions.
  * @author Thabotharan Balachandran
  */
 import { NextResponse } from 'next/server';

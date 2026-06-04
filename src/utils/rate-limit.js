@@ -1,6 +1,6 @@
 /**
  * @file rate-limit.js
- * @description Source file for rate-limit.js.
+ * @description Memory-based IP rate limiter for API endpoints to protect against malicious brute-force attempts.
  * @author Thabotharan Balachandran
  */
 import { LRUCache } from 'lru-cache';

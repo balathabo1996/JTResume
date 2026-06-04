@@ -1,3 +1,8 @@
+/**
+ * @file ProfileModal.jsx
+ * @description User settings manager overlay modal. Controls user details editing, password updates, raw JSON resume export, and account deletion.
+ * @author Thabotharan Balachandran
+ */
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 

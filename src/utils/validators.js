@@ -1,6 +1,6 @@
 /**
  * @file validators.js
- * @description Utility functions and helpers for validators operations.
+ * @description Universal validation library. Encapsulates zod schemas for authentication payloads, email validators, and passwords.
  * @author Thabotharan Balachandran
  */
 import { z } from 'zod';

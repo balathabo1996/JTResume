@@ -1,6 +1,6 @@
 /**
  * @file route.js
- * @description Next.js API route for handling backend logic related to route.js.
+ * @description API route for retrieving all saved resumes for a specific user, or creating a new empty resume document.
  * @author Thabotharan Balachandran
  */
 import { NextResponse } from 'next/server';

@@ -1,3 +1,8 @@
+/**
+ * @file layout.jsx
+ * @description Next.js App Router root layout component. Sets up HTML shell, global meta viewport settings, Inter font pairings, Bootstrap client loader, and global styles.
+ * @author Thabotharan Balachandran
+ */
 /* eslint-disable react-refresh/only-export-components */
 /**
  * @file layout.jsx

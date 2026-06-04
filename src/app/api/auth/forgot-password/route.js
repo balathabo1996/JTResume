@@ -1,6 +1,6 @@
 /**
  * @file route.js
- * @description Next.js API route for handling backend logic related to route.js.
+ * @description API route for initiating a secure password reset token sequence and return instructions.
  * @author Thabotharan Balachandran
  */
 import { NextResponse } from 'next/server';

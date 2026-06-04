@@ -1,3 +1,8 @@
+/**
+ * @file page.jsx
+ * @description Public resume viewer page. Loads, decrypts (if needed), and renders a read-only responsive resume template.
+ * @author Thabotharan Balachandran
+ */
 /* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 

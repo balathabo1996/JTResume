@@ -1,6 +1,6 @@
 /**
  * @file route.js
- * @description Next.js API route for handling backend logic related to route.js.
+ * @description API route for converting resume PDFs, docx, or raw text into standard JTResume structured JSON schema via generative AI mapping.
  * @author Thabotharan Balachandran
  */
 import { NextResponse } from 'next/server';

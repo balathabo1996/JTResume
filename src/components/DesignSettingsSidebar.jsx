@@ -1,3 +1,8 @@
+/**
+ * @file DesignSettingsSidebar.jsx
+ * @description Design settings sidebar panel. Provides visual customizer toggles for resume templates, typography fonts, spacing tuners, and accent colors.
+ * @author Thabotharan Balachandran
+ */
 import React from "react";
 
 export default function DesignSettingsSidebar({

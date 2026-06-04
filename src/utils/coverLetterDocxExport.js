@@ -1,6 +1,6 @@
 /**
  * @file coverLetterDocxExport.js
- * @description Utility functions and helpers for coverLetterDocxExport operations.
+ * @description Word docx export formatter for generated cover letters. Formats custom fonts, margins, paragraph heights, and line spacing.
  * @author Thabotharan Balachandran
  */
 import {

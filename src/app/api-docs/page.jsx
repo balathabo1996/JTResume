@@ -1,7 +1,7 @@
 "use client";
 /**
  * @file page.jsx
- * @description Source file for page.jsx.
+ * @description Swagger API Documentation page. Integrates dynamic OpenAPI yaml schema with SwaggerUI-React client container.
  * @author Thabotharan Balachandran
  */
 /**

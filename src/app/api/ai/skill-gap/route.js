@@ -1,6 +1,6 @@
 /**
  * @file route.js
- * @description Source file for route.js.
+ * @description API route for listing missing technical skills and key vocabulary gaps between candidate resume and target job description.
  * @author Thabotharan Balachandran
  */
 import { NextResponse } from 'next/server';

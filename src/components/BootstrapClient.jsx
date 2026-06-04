@@ -1,7 +1,7 @@
 "use client";
 /**
  * @file BootstrapClient.jsx
- * @description Source file for BootstrapClient.jsx.
+ * @description Next.js dynamic wrapper client loader to import and bind bootstrap library JavaScript components after mounting.
  * @author Thabotharan Balachandran
  */
 /**

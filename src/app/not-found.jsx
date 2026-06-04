@@ -1,4 +1,9 @@
 'use client';
+/**
+ * @file not-found.jsx
+ * @description Hyper-premium client-side 404 error page. Rendered with custom glassmorphic layout, mesh gradients, and interactive hover animations.
+ * @author Thabotharan Balachandran
+ */
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';

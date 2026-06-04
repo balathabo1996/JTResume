@@ -1,6 +1,6 @@
 /**
  * @file route.js
- * @description Next.js API route for handling backend logic related to route.js.
+ * @description API route for generating realistic mock interview questions tailored to candidates' specific work history and experience.
  * @author Thabotharan Balachandran
  */
 import { NextResponse } from 'next/server';

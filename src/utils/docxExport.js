@@ -1,6 +1,6 @@
 /**
  * @file docxExport.js
- * @description Utility functions and helpers for docxExport operations.
+ * @description Word document resume generator. Builds formatted, structured tables and layouts for resume data mapping using docx library rules.
  * @author Thabotharan Balachandran
  */
 import {

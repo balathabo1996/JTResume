@@ -1,6 +1,6 @@
 /**
  * @file opengraph-image.jsx
- * @description Source file for opengraph-image.jsx.
+ * @description Dynamic server-side OpenGraph image generator. Renders custom preview cards with user profile info for shared resumes.
  * @author Thabotharan Balachandran
  */
 import { ImageResponse } from 'next/og';

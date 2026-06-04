@@ -2,6 +2,7 @@
  * @file Dashboard.jsx
  * @description The user dashboard view. Lists the user's saved resumes, provides actions to create, 
  * import, delete, or rename resumes. Communicates heavily with the Next.js API routes (`/api/resumes`).
+ * @author Thabotharan Balachandran
  */
 import { useState, useEffect } from 'react';
 import { encryptData } from '../utils/crypto';

@@ -1,6 +1,6 @@
 /**
  * @file mongodb.js
- * @description Utility functions and helpers for mongodb operations.
+ * @description MongoDB Mongoose connection cacher. Reuses active MongoDB sockets across Next.js API serverless function lifecycles.
  * @author Thabotharan Balachandran
  */
 import { MongoClient } from 'mongodb';

@@ -1,6 +1,6 @@
 /**
  * @file RichTextEditor.jsx
- * @description React component rendering the RichTextEditor UI element.
+ * @description Custom thin rich text editing interface for resume list items, summaries, and experience details, supporting basic formatting.
  * @author Thabotharan Balachandran
  */
 import { useRef, useEffect } from 'react';

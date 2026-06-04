@@ -1,6 +1,6 @@
 /**
  * @file route.js
- * @description Next.js API route for handling backend logic related to route.js.
+ * @description API route for generating tailored cover letters blending user resume details and targeted job description via Gemini LLM.
  * @author Thabotharan Balachandran
  */
 import { NextResponse } from 'next/server';

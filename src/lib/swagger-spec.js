@@ -1,6 +1,6 @@
 /**
  * @file swagger-spec.js
- * @description Source file for swagger-spec.js.
+ * @description Static Swagger schema compiler. Compiles API route decorators and schema yaml files into standard OpenAPI definitions.
  * @author Thabotharan Balachandran
  */
 export const swaggerSpec = {

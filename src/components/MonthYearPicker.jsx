@@ -1,6 +1,6 @@
 /**
  * @file MonthYearPicker.jsx
- * @description Source file for MonthYearPicker.jsx.
+ * @description Dual-selector month and year picker UI control. Automatically parses date variations and supports a 'Present' toggle for ongoing jobs.
  * @author Thabotharan Balachandran
  */
 // No React hooks needed here

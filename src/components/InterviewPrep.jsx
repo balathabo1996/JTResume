@@ -1,6 +1,6 @@
 /**
  * @file InterviewPrep.jsx
- * @description React component rendering the InterviewPrep UI element.
+ * @description Interactive AI mock interview prep environment. Simulates real-time voice/text interviews, logs conversation history, and grades answers.
  * @author Thabotharan Balachandran
  */
 import { useState, useEffect, useRef } from 'react';
