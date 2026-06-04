@@ -57,26 +57,7 @@ export default function App() {
 
   // Profile Modal State
   const [profileOpen, setProfileOpen] = useState(false);
-  const [isEditingProfile, setIsEditingProfile] = useState(false);
-  const [showSessionExpiredModal, setShowSessionExpiredModal] = useState(false);
-  const [editProfileLoading, setEditProfileLoading] = useState(false);
-  const [editProfileMessage, setEditProfileMessage] = useState({
-    type: "",
-    text: "",
-  });
-  const [showPasswordForm, setShowPasswordForm] = useState(false);
-  const [passwordLoading, setPasswordLoading] = useState(false);
-  const [passwordMessage, setPasswordMessage] = useState({
-    type: "",
-    text: "",
-  });
-
-  const {
-    register: registerProfile,
-    handleSubmit: handleProfileSubmit,
-    reset: resetProfile,
-    formState: { errors: profileErrors },
-  } = useForm({ mode: "onChange" });
+  
   const {
     register: registerPassword,
     handleSubmit: handlePasswordSubmit,

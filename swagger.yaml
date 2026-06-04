@@ -1,0 +1,257 @@
+openapi: 3.0.0
+info:
+  title: JTResume API
+  description: Backend API routes for the JTResume SaaS application
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000
+    description: Local Development Server
+paths:
+  /api/auth/register:
+    post:
+      summary: Register a new user
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fullName:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '201':
+          description: User registered successfully
+  /api/auth/login:
+    post:
+      summary: Authenticate user
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Successful login
+  /api/auth/change-password:
+    post:
+      summary: Change user password
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                currentPassword:
+                  type: string
+                newPassword:
+                  type: string
+      responses:
+        '200':
+          description: Password updated
+  /api/auth/update-profile:
+    post:
+      summary: Update user profile details
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                currentEmail:
+                  type: string
+                fullName:
+                  type: string
+                email:
+                  type: string
+                phone:
+                  type: string
+      responses:
+        '200':
+          description: Profile updated successfully
+  /api/resumes:
+    get:
+      summary: Get all resumes for a user
+      tags:
+        - Resumes
+      parameters:
+        - in: query
+          name: userId
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: A list of resumes
+    post:
+      summary: Create a new resume
+      tags:
+        - Resumes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                title:
+                  type: string
+      responses:
+        '201':
+          description: Resume created
+  /api/resumes/{id}:
+    get:
+      summary: Get resume by ID
+      tags:
+        - Resumes
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Resume object
+    put:
+      summary: Update a resume
+      tags:
+        - Resumes
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: string
+                  description: Stringified JSON (optionally encrypted)
+                isEncrypted:
+                  type: boolean
+                templateStyle:
+                  type: string
+                accentColor:
+                  type: string
+      responses:
+        '200':
+          description: Resume updated
+    delete:
+      summary: Delete a resume
+      tags:
+        - Resumes
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Resume deleted
+  /api/ai/enhance-bullet:
+    post:
+      summary: AI enhance a resume bullet point
+      tags:
+        - AI Services
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                text:
+                  type: string
+                role:
+                  type: string
+      responses:
+        '200':
+          description: Enhanced bullets returned
+  /api/ai/generate-summary:
+    post:
+      summary: AI generate a professional summary
+      tags:
+        - AI Services
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                jobTitle:
+                  type: string
+                experience:
+                  type: array
+                  items:
+                    type: object
+      responses:
+        '200':
+          description: Generated summaries returned
+  /api/ai/generate-cover-letter:
+    post:
+      summary: AI generate a cover letter based on resume
+      tags:
+        - AI Services
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                resumeData:
+                  type: object
+                jobDescription:
+                  type: string
+      responses:
+        '200':
+          description: Cover letter generated
+  /api/user/delete:
+    delete:
+      summary: Permanently delete a user account and all data
+      tags:
+        - User
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+      responses:
+        '200':
+          description: Account deleted

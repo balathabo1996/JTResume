@@ -119,6 +119,16 @@ npm run start
 
 <br />
 
+## 📖 API Documentation
+
+JTResume provides a fully documented backend API for developers who want to extend its capabilities or build integrations.
+
+- **Postman Collection**: Import `JTResume_API_Postman_Collection.json` into Postman to instantly test and interact with all authentication, resume, and AI endpoints.
+- **Swagger / OpenAPI**: View the `swagger.yaml` file for a standard OpenAPI 3.0 specification detailing schemas, request parameters, and responses.
+
+<br />
+
+
 ## 📄 License
 
 This project is licensed under the **MIT License**. Feel free to fork, customize, and use it to build your ultimate professional profile.
