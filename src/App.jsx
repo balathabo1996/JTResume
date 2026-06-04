@@ -8,7 +8,6 @@
  */
 "use client";
 import React, { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
 import BuilderForm from "./components/BuilderForm";
 import ResumePreview from "./components/ResumePreview";
 import ComplianceScanner from "./components/ComplianceScanner";
@@ -57,13 +56,7 @@ export default function App() {
 
   // Profile Modal State
   const [profileOpen, setProfileOpen] = useState(false);
-  
-  const {
-    register: registerPassword,
-    handleSubmit: handlePasswordSubmit,
-    reset: resetPassword,
-    formState: { errors: passwordErrors },
-  } = useForm({ mode: "onChange" });
+  const [showSessionExpiredModal, setShowSessionExpiredModal] = useState(false);
 
   const [isInitializing, setIsInitializing] = useState(true); // Prevent flicker on reload
   const [formData, setFormData] = useState(emptyResumeState); // Empty slate by default for public deployment
