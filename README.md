@@ -1,90 +1,118 @@
-# 💼 JTResume — Premium Full-Stack Resume Builder
+<div align="center">
+  <img src="public/apple-icon.png" alt="JTResume Logo" width="120" />
+  
+  # 💼 JTResume
+  
+  **Premium, Developer-Grade Resume Builder for the Modern Era**
+  
+  [![Next.js](https://img.shields.io/badge/Next.js-14+-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+  [![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+  [![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=for-the-badge&logo=mongodb)](https://mongodb.com/)
+  [![License](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
 
-JTResume is a modern, full-stack Next.js web application designed to help job seekers build, customize, and export professional, ATS-compliant resumes. It features a sophisticated obsidian dark-mode interface, AI-powered content enhancements, passwordless authentication, and dynamic design templates.
+  *Craft pixel-perfect, ATS-compliant resumes with cutting-edge AI enhancements, bank-grade encryption, and a breathtaking glassmorphic dark-mode UI.*
 
----
-
-## ✨ Key Features
-
-* **✨ AI-Powered Content Enhancement**: Integrates Google Gemini AI to automatically generate professional summaries, enhance experience bullet points, write cover letters, and conduct realistic mock interviews tailored to your resume.
-* **🎓 AI Learning Paths**: Automatically generate personalized learning resources and courses to bridge the gap for any missing ATS keywords.
-* **📊 Resume Strength Grader**: Receive real-time, actionable feedback and a comprehensive score based on your resume's overall completeness and impact.
-* **📝 Advanced Rich Text Editor**: Craft pixel-perfect descriptions with our powerful WYSIWYG editor supporting custom formatting and bullet points.
-* **📥 Universal Import System**: Extract and parse highly structured data directly from an exported LinkedIn PDF using AI, or import via plain text and standard JSON profiles.
-* **🔑 Google Single Sign-On**: Instantly sign in and securely sync all your resumes across devices with one-click Google OAuth authentication, strictly isolated from password accounts.
-* **💾 Local Offline Storage**: Keep working even when your connection to MongoDB drops with our intelligent local JSON file fallback storage engine.
-* **⚡ Performance Optimized**: Lightning fast load times with optimized Interaction to Next Paint (INP) for a buttery smooth 60fps mobile and desktop scrolling experience.
-* **🔒 Bank-Grade Security**: Features zero-trust local AES encryption for sensitive data, JWT session validation, strict Zod schema validation, API rate limiting, and an intelligent idle auto-logout system.
-* **🎨 Deluxe Design Customizer**: Fine-tune themes instantly:
-  * **6 Custom Layout Styles**: Classic Formal, Modern Minimalist, Creative Executive (2-column sidebar), Executive Prestige, Tech Minimalist, and Academic Editorial.
-  * **10 Curated Accent Palettes**: Professionally balanced color presets.
-  * **4 Typography Pairings**: Modern Sans, Editorial Serif, Tech Clean, and Corporate.
-  * **Spacing Fit Tuning**: Dynamically adjust vertical padding and line heights to make your resume fit exactly on a single page.
-* **📄 Advanced Exporting**: Instantly export a perfectly scaled, professional A4/Letter vector PDF using your browser's native print engine, or download an editable Word Document (`.docx`).
-* **🎯 Target Job ATS Scanner**: Paste any job description to automatically extract critical industry keywords and monitor your resume's dynamic keyword match percentage as you write.
-* **⚖️ Smart Compliance Auditor**: Scan for potential hiring bias and anti-patterns (such as marital status, birthdates, and headshots) to ensure compliance with Equal Employment Opportunity Commission (EEOC) standards.
+</div>
 
 ---
 
-## 🛠️ Technology Stack
+<br />
 
-**Frontend:**
-* **Framework**: Next.js (App Router)
-* **UI & Styling**: React 19, Bootstrap 5, Premium Custom Vanilla CSS (with CSS grid, flexbox, glassmorphic card overlays, neon gradients, and active step pulsing micro-animations)
-* **Fonts**: Google Fonts (Outfit, Inter, Merriweather, Playfair Display, Roboto Mono)
+## 🌟 The Vision
 
-**Backend:**
-* **API**: Next.js Route Handlers
-* **Database**: MongoDB
-* **AI Integration**: Google GenAI (`@google/genai`) for Gemini
-* **Authentication**: `bcryptjs`, JWT Tokens, SSO/OAuth capabilities
-* **Security**: `zod` (Input Validation), `crypto-js` (Client-side AES Encryption), Upstash Redis (API Rate Limiting)
-* **Utilities**: `docx` for Word exports, `nodemailer` for communications, `isomorphic-dompurify` for XSS protection
+**JTResume** is not just another resume builder. It is a full-stack, hyper-premium platform engineered specifically for professionals who demand excellence. Designed with a sophisticated obsidian dark-mode interface, it seamlessly blends aesthetic beauty with extreme functionality. 
 
----
+Whether you need a flawlessly structured ATS-compliant format, AI-driven content generation, or a highly secure offline-fallback workspace, JTResume is built to elevate your career journey.
 
-## 💻 Local Installation & Setup
+<br />
+
+## ✨ Signature Features
+
+### 🤖 AI-Powered Intelligence (Google Gemini)
+- **Smart Content Enhancement**: Automatically generate professional summaries and rewrite experience bullets for maximum impact.
+- **AI Cover Letters**: Instantly draft tailored cover letters perfectly aligned with your generated resume.
+- **Mock Interviews**: Engage in realistic, interactive mock interviews driven by AI, tailored precisely to the skills listed on your resume.
+- **Target ATS Scanner**: Paste any job description to automatically extract critical industry keywords and monitor your resume's dynamic match percentage as you type.
+
+### 🎨 Hyper-Premium UI/UX
+- **Dual-Pane Sliding Auth**: Experience a buttery-smooth, `framer-motion` powered side-by-side authentication flow wrapped in a vibrant mesh gradient.
+- **Deluxe Customizer**: Choose from **6 Custom Layouts**, **10 Curated Accent Palettes**, and **4 Typography Pairings**.
+- **Interactive 404 Void**: A breathtaking, parallax-driven glassmorphism 404 page that actively responds to mouse movements.
+- **Spacing Fit Tuning**: Dynamically adjust vertical padding and line heights to guarantee your resume fits flawlessly on a single page.
+
+### 🔒 Enterprise-Grade Security
+- **Zero-Trust Encryption**: Client-side AES encryption ensures your sensitive resume data is encrypted *before* it ever touches the server.
+- **Secure Sessions**: Intelligent idle auto-logout safely terminates sessions after 30 minutes of inactivity.
+- **Compliance Auditor**: Automatically scans your document for hiring bias triggers (birthdates, marital status, headshots) to maintain strict EEOC compliance.
+
+### ⚡ Engineering & Performance
+- **Universal Import**: Seamlessly extract and parse structured data directly from a downloaded LinkedIn PDF or standard JSON.
+- **Native PDF Exporting**: Renders a perfectly scaled, professional A4/Letter vector PDF using your browser's native print engine—bypassing bulky external libraries.
+- **Local Fallback Engine**: Keep working securely even if the MongoDB connection drops; the app gracefully falls back to local storage.
+
+<br />
+
+## 🛠️ Technology Architecture
+
+| Layer | Technologies |
+| :--- | :--- |
+| **Frontend Core** | Next.js 14+ (App Router), React 19, Framer Motion |
+| **Styling** | Custom Vanilla CSS, Bootstrap 5, Glassmorphism, CSS Grid |
+| **Typography** | Google Fonts (*Outfit, Inter, Merriweather, Playfair Display*) |
+| **Backend API** | Next.js Route Handlers, Serverless Functions |
+| **Database** | MongoDB Atlas, Mongoose |
+| **AI Engine** | Google GenAI (`@google/genai`) for Gemini |
+| **Security** | `bcryptjs`, JWT, `crypto-js` (AES), `zod` validation |
+| **Utilities** | `docx` (Word export), `isomorphic-dompurify` (XSS protection) |
+
+<br />
+
+## 🚀 Getting Started
 
 ### Prerequisites
-* Node.js (v18+)
-* MongoDB Cluster / Database URI
-* Google Gemini API Key
+- **Node.js** (v18+)
+- **MongoDB Database URI**
+- **Google Gemini API Key**
 
-### Getting Started
+### 1. Installation
 
-1. **Clone the Repository**:
-   ```bash
-   git clone https://github.com/your-username/jtresume.git
-   cd jtresume
-   ```
+Clone the repository and install dependencies:
 
-2. **Install Dependencies**:
-   ```bash
-   npm install
-   ```
+```bash
+git clone https://github.com/your-username/jtresume.git
+cd jtresume
+npm install
+```
 
-3. **Configure Environment Variables**:
-   Create a `.env.local` or `.env` file in the root directory and configure the necessary keys:
-   ```env
-   MONGODB_URI=your_mongodb_connection_string
-   GEMINI_API_KEY=your_gemini_api_key
-   # Add other required SMTP or Auth variables depending on the configuration
-   ```
+### 2. Environment Configuration
 
-4. **Run the Development Server**:
-   ```bash
-   npm run dev
-   ```
-   *Open [http://localhost:3000](http://localhost:3000) in your browser to view the application.*
+Create a `.env.local` or `.env` file in the project root:
 
-5. **Build for Production**:
-   ```bash
-   npm run build
-   npm run start
-   ```
+```env
+MONGODB_URI=your_mongodb_connection_string
+GEMINI_API_KEY=your_gemini_api_key
+```
 
----
+### 3. Launch Development Server
+
+Fire up the local server with hot-reloading:
+
+```bash
+npm run dev
+```
+Navigate to [http://localhost:3000](http://localhost:3000) to experience the app.
+
+### 4. Production Build
+
+To build and run the optimized production bundle:
+
+```bash
+npm run build
+npm run start
+```
+
+<br />
 
 ## 📄 License
 
-This project is licensed under the MIT License — feel free to customize and use it for your own resume-building goals!
+This project is licensed under the **MIT License**. Feel free to fork, customize, and use it to build your ultimate professional profile.

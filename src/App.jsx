@@ -494,7 +494,7 @@ export default function App() {
     resetPassword();
     setEditProfileMessage({ type: "", text: "" });
     setFormData(emptyResumeState);
-    setCurrentView("landing");
+    window.location.href = "/";
   };
 
   // Auto-logout after 30 minutes of idle
