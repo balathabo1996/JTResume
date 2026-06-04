@@ -462,12 +462,8 @@ export default function App() {
     sessionStorage.removeItem("e2ee_key");
     setUser(null);
     setProfileOpen(false);
-    setIsEditingProfile(false);
-    setShowPasswordForm(false);
-    setPasswordMessage({ type: "", text: "" });
-    resetPassword();
-    setEditProfileMessage({ type: "", text: "" });
     setFormData(emptyResumeState);
+    setCurrentView("landing");
     window.location.href = "/";
   };
 
