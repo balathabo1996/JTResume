@@ -75,6 +75,7 @@ Rules:
 - Make the summary sound professional.
 - Extract skills into a single 'Top Skills' category.
 - If a field is missing, leave it as an empty string or empty array.
+- CRITICAL: DO NOT hallucinate or invent dates. Only extract dates (e.g., startDate, endDate, birthDate) EXACTLY as they appear in the text. If a date is not mentioned, leave the field as an empty string "".
 
 Here is the extracted LinkedIn text:
 """

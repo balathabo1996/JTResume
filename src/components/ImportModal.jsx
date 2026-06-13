@@ -170,7 +170,13 @@ export default function ImportModal({ isOpen, onClose, onImportData }) {
         method: 'POST',
         body: formData
       });
-      const data = await res.json();
+      const textResponse = await res.text();
+      let data;
+      try {
+        data = JSON.parse(textResponse);
+      } catch (err) {
+        throw new Error(`Server returned HTML (${res.status}). Next.js compilation or timeout error.`);
+      }
       
       if (!res.ok) throw new Error(data.error || 'Failed to parse LinkedIn PDF');
       
