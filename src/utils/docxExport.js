@@ -13,7 +13,7 @@ import {
 } from "docx";
 import { saveAs } from "file-saver";
 
-export const generateDocx = async (formData) => {
+export const generateDocx = async (formData, options = {}) => {
   const {
     personalInfo = {},
     workExperience = [],
@@ -22,6 +22,39 @@ export const generateDocx = async (formData) => {
     projects = [],
     certifications = [],
   } = formData;
+
+  const {
+    templateStyle = "modern",
+    accentColor = "#1e3a8a",
+    spacingTuning = "normal",
+    fontPairing = "modern",
+  } = options;
+
+  // Clean accent color hex code (e.g. #1e3a8a -> 1e3a8a)
+  const hexAccent = (accentColor || "#1e3a8a").replace("#", "");
+
+  // Font family mapping
+  let headingFont = "Arial";
+  let bodyFont = "Arial";
+  if (fontPairing === "editorial") {
+    headingFont = "Georgia";
+    bodyFont = "Times New Roman";
+  } else if (fontPairing === "tech") {
+    headingFont = "Consolas";
+    bodyFont = "Courier New";
+  } else if (fontPairing === "classic") {
+    headingFont = "Times New Roman";
+    bodyFont = "Georgia";
+  } else if (fontPairing === "elegant") {
+    headingFont = "Garamond";
+    bodyFont = "Calibri";
+  } else if (fontPairing === "modern") {
+    headingFont = "Calibri";
+    bodyFont = "Calibri";
+  }
+
+  // Spacing configurations
+  const spacingScale = spacingTuning === "compact" ? 0.6 : spacingTuning === "relaxed" ? 1.4 : 1.0;
 
   const children = [];
 
@@ -54,7 +87,7 @@ export const generateDocx = async (formData) => {
           }),
         ],
         alignment: AlignmentType.CENTER,
-        spacing: { after: 200 }, // 10pt
+        spacing: { after: Math.round(200 * spacingScale) }, // 10pt scaled
       })
     );
   }
@@ -68,7 +101,7 @@ export const generateDocx = async (formData) => {
             size: 22,
           }),
         ],
-        spacing: { after: 300 },
+        spacing: { after: Math.round(300 * spacingScale) },
       })
     );
   }
@@ -79,7 +112,7 @@ export const generateDocx = async (formData) => {
       new Paragraph({
         text: title.toUpperCase(),
         heading: HeadingLevel.HEADING_2,
-        spacing: { before: 200, after: 100 },
+        spacing: { before: Math.round(200 * spacingScale), after: Math.round(100 * spacingScale) },
       })
     );
   };
@@ -112,7 +145,7 @@ export const generateDocx = async (formData) => {
             new TextRun({ text: exp.company || "Company", italics: true, size: 22 }),
             new TextRun({ text: exp.location ? `, ${exp.location}` : "", italics: true, size: 22 }),
           ],
-          spacing: { after: 100 },
+          spacing: { after: Math.round(100 * spacingScale) },
         })
       );
 
@@ -128,7 +161,7 @@ export const generateDocx = async (formData) => {
                 bullet: {
                   level: 0,
                 },
-                spacing: { after: 80 },
+                spacing: { after: Math.round(80 * spacingScale) },
               })
             );
           }
@@ -142,14 +175,14 @@ export const generateDocx = async (formData) => {
                 new Paragraph({
                   children: [new TextRun({ text: line.replace(/^- /, '').trim(), size: 22 })],
                   bullet: { level: 0 },
-                  spacing: { after: 80 },
+                  spacing: { after: Math.round(80 * spacingScale) },
                 })
              );
            }
          });
       }
       
-      children.push(new Paragraph({ text: "", spacing: { after: 100 } })); // space between jobs
+      children.push(new Paragraph({ text: "", spacing: { after: Math.round(100 * spacingScale) } })); // space between jobs
     });
   }
 
@@ -179,7 +212,7 @@ export const generateDocx = async (formData) => {
             new TextRun({ text: edu.school || "School", italics: true, size: 22 }),
             new TextRun({ text: edu.location ? `, ${edu.location}` : "", italics: true, size: 22 }),
           ],
-          spacing: { after: 150 },
+          spacing: { after: Math.round(150 * spacingScale) },
         })
       );
     });
@@ -198,7 +231,7 @@ export const generateDocx = async (formData) => {
           children: [
             new TextRun({ text: skillList, size: 22 }),
           ],
-          spacing: { after: 200 },
+          spacing: { after: Math.round(200 * spacingScale) },
         })
       );
     }
@@ -230,7 +263,7 @@ export const generateDocx = async (formData) => {
             children: [
               new TextRun({ text: proj.description, size: 22 }),
             ],
-            spacing: { after: 150 },
+            spacing: { after: Math.round(150 * spacingScale) },
           })
         );
       }
@@ -255,7 +288,7 @@ export const generateDocx = async (formData) => {
               position: 9000,
             },
           ],
-          spacing: { after: 100 },
+          spacing: { after: Math.round(100 * spacingScale) },
         })
       );
     });
@@ -280,11 +313,12 @@ export const generateDocx = async (formData) => {
           run: {
             size: 32, // 16pt
             bold: true,
-            font: "Arial",
+            font: headingFont,
+            color: hexAccent,
           },
           paragraph: {
             spacing: {
-              after: 120,
+              after: Math.round(120 * spacingScale),
             },
           },
         },
@@ -297,20 +331,21 @@ export const generateDocx = async (formData) => {
           run: {
             size: 26, // 13pt
             bold: true,
-            font: "Arial",
-            color: "333333",
+            font: headingFont,
+            color: hexAccent,
           },
           paragraph: {
             border: {
               bottom: {
-                color: "cccccc",
-                space: 1,
+                color: hexAccent,
+                space: 4,
                 value: "single",
-                size: 6,
+                size: 12,
               },
             },
             spacing: {
-              after: 120,
+              before: Math.round(160 * spacingScale),
+              after: Math.round(120 * spacingScale),
             },
           },
         },
@@ -319,7 +354,7 @@ export const generateDocx = async (formData) => {
           name: "Normal",
           quickFormat: true,
           run: {
-            font: "Arial",
+            font: bodyFont,
             size: 22, // 11pt
           },
         },

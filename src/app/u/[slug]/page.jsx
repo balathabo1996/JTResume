@@ -111,17 +111,19 @@ export default function PublicResumePage() {
   }
 
   return (
-    <div style={{ background: 'var(--ui-bg)', minHeight: '100vh', padding: '20px 0' }}>
-      <div className="container-fluid d-flex justify-content-center">
+    <div style={{ background: 'var(--ui-bg)', minHeight: '100vh', padding: '20px 0' }} className="print-no-margin">
+      <div className="container-fluid d-flex justify-content-center resume-preview-outer-container">
         {resume && (
-          <ResumePreview 
-            formData={resume.data} 
-            templateStyle={resume.templateStyle || 'modern'} 
-            country={resume.country || 'usa'} 
-            accentColor={resume.accentColor || '#4f46e5'} 
-            spacingTuning={resume.spacingTuning || 'normal'}
-            fontPairing={resume.fontPairing || 'modern'}
-          />
+          <div className="resume-preview-scale-wrapper" style={{ transform: 'scale(1)', transformOrigin: 'top center' }}>
+            <ResumePreview 
+              formData={resume.data} 
+              templateStyle={resume.templateStyle || 'modern'} 
+              country={resume.country || 'usa'} 
+              accentColor={resume.accentColor || '#4f46e5'} 
+              spacingTuning={resume.spacingTuning || 'normal'}
+              fontPairing={resume.fontPairing || 'modern'}
+            />
+          </div>
         )}
       </div>
     </div>

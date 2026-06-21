@@ -9,7 +9,7 @@
 import { useState, useRef, useEffect } from "react";
 import RichTextEditor from "./RichTextEditor";
 import MonthYearPicker from "./MonthYearPicker";
-import { SortableList } from "./SortableList";
+import { SortableList, DragHandle as SortableDragHandle } from "./SortableList";
 
 /**
  * @function BuilderForm
@@ -109,6 +109,9 @@ export default function BuilderForm({
     'education', 'skills', 'certifications', 'references'
   ]);
 
+  const [draggableSectionId, setDraggableSectionId] = useState(null);
+  const [activeDragSection, setActiveDragSection] = useState(null);
+
   const dragItem = useRef(null);
   const dragOverItem = useRef(null);
 
@@ -163,10 +166,22 @@ export default function BuilderForm({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData.customSections]);
 
+  useEffect(() => {
+    if (activeDragSection) {
+      const handleGlobalMouseUp = () => {
+        setActiveDragSection(null);
+        dragItem.current = null;
+        dragOverItem.current = null;
+      };
+      window.addEventListener('mouseup', handleGlobalMouseUp);
+      return () => window.removeEventListener('mouseup', handleGlobalMouseUp);
+    }
+  }, [activeDragSection]);
+
   const handleDragStart = (e, key) => {
     dragItem.current = key;
     e.dataTransfer.effectAllowed = 'move';
-    e.currentTarget.classList.add('dragging');
+    setActiveDragSection(key);
   };
 
   const handleDragEnter = (e, key) => {
@@ -209,14 +224,19 @@ export default function BuilderForm({
   };
 
   const handleDragEnd = (e) => {
-    e.currentTarget.classList.remove('dragging');
+    setActiveDragSection(null);
     dragItem.current = null;
     dragOverItem.current = null;
   };
 
-  const DragHandle = () => (
-    <div className="drag-handle" style={{ cursor: 'grab', padding: '0 8px', color: '#94a3b8' }}>
-      <svg width="12" height="20" viewBox="0 0 12 20" fill="currentColor"><circle cx="4" cy="4" r="1.5"/><circle cx="4" cy="10" r="1.5"/><circle cx="4" cy="16" r="1.5"/><circle cx="8" cy="4" r="1.5"/><circle cx="8" cy="10" r="1.5"/><circle cx="8" cy="16" r="1.5"/></svg>
+  const DragHandle = ({ sectionId }) => (
+    <div 
+      className="drag-handle" 
+      onMouseEnter={() => setDraggableSectionId(sectionId)}
+      onMouseLeave={() => setDraggableSectionId(null)}
+      style={{ cursor: 'grab', padding: '0 8px', color: '#94a3b8' }}
+    >
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.6 }}><circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/></svg>
     </div>
   );
 
@@ -530,8 +550,8 @@ export default function BuilderForm({
       </div>
 
       {/* 1. PERSONAL INFORMATION */}
-      <div data-id="personal" style={{ order: sectionOrder.indexOf('personal') !== -1 ? sectionOrder.indexOf('personal') : 99 }} draggable onDragStart={(e) => handleDragStart(e, 'personal')} onDragEnter={(e) => handleDragEnter(e, 'personal')} onDragEnd={handleDragEnd} onDragOver={(e) => handleDragOver(e, 'personal')}
-        className={`form-group-card mb-3 ${activeSection === "personal" ? "active" : ""}`}
+      <div data-id="personal" style={{ order: sectionOrder.indexOf('personal') !== -1 ? sectionOrder.indexOf('personal') : 99 }} draggable={draggableSectionId === 'personal'} onDragStart={(e) => handleDragStart(e, 'personal')} onDragEnter={(e) => handleDragEnter(e, 'personal')} onDragEnd={handleDragEnd} onDragOver={(e) => handleDragOver(e, 'personal')}
+        className={`form-group-card mb-3 ${activeSection === "personal" ? "active" : ""} ${activeDragSection === "personal" ? "dragging" : ""}`}
       >
         <div
           className="card-header d-flex align-items-center justify-content-between"
@@ -556,7 +576,7 @@ export default function BuilderForm({
             Personal Information
           </h3>
           <div className="d-flex align-items-center gap-2">
-            <DragHandle />
+            <DragHandle sectionId="personal" />
             <span
               className="card-chevron"
               style={{
@@ -723,8 +743,8 @@ export default function BuilderForm({
 
       {/* 2. WORK EXPERIENCE */}
       {sectionOrder.includes('experience') && (
-        <div data-id="experience" style={{ order: sectionOrder.indexOf('experience') !== -1 ? sectionOrder.indexOf('experience') : 99 }} draggable onDragStart={(e) => handleDragStart(e, 'experience')} onDragEnter={(e) => handleDragEnter(e, 'experience')} onDragEnd={handleDragEnd} onDragOver={(e) => handleDragOver(e, 'experience')}
-          className={`form-group-card mb-3 ${activeSection === "experience" ? "active" : ""}`}
+        <div data-id="experience" style={{ order: sectionOrder.indexOf('experience') !== -1 ? sectionOrder.indexOf('experience') : 99 }} draggable={draggableSectionId === 'experience'} onDragStart={(e) => handleDragStart(e, 'experience')} onDragEnter={(e) => handleDragEnter(e, 'experience')} onDragEnd={handleDragEnd} onDragOver={(e) => handleDragOver(e, 'experience')}
+          className={`form-group-card mb-3 ${activeSection === "experience" ? "active" : ""} ${activeDragSection === "experience" ? "dragging" : ""}`}
         >
           <div
             className="card-header d-flex align-items-center justify-content-between"
@@ -749,7 +769,7 @@ export default function BuilderForm({
               Work Experience
             </h3>
             <div className="d-flex align-items-center gap-2">
-              <DragHandle />
+              <DragHandle sectionId="experience" />
               <button
                 className="btn-repeater-delete"
                 onClick={(e) => { e.stopPropagation(); handleDeleteSection("experience"); }}
@@ -783,9 +803,7 @@ export default function BuilderForm({
                     className="fw-medium text-secondary d-flex align-items-center gap-1"
                     style={{ fontSize: "0.88rem" }}
                   >
-                    <DragHandle>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
-                    </DragHandle>
+                    <SortableDragHandle />
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg> Role #{expIdx + 1}: {exp.role || "New Position"}
                   </span>
                   <div className="d-flex align-items-center gap-2"><span style={{ color: '#94a3b8', transform: expandedItems[exp.id || `exp-${expIdx}`] ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', display: 'inline-block', fontSize: '0.8rem' }}>▼</span><button className="btn-repeater-delete"
@@ -943,7 +961,7 @@ export default function BuilderForm({
 
       {/* 2b. PROJECTS */}
       {sectionOrder.includes('projects') && (
-        <div data-id="projects" style={{ order: sectionOrder.indexOf('projects') !== -1 ? sectionOrder.indexOf('projects') : 99 }} draggable onDragStart={(e) => handleDragStart(e, 'projects')} onDragEnter={(e) => handleDragEnter(e, 'projects')} onDragEnd={handleDragEnd} onDragOver={(e) => handleDragOver(e, 'projects')} className={`form-group-card mb-3 ${activeSection === 'projects' ? 'active' : ''}`}>
+        <div data-id="projects" style={{ order: sectionOrder.indexOf('projects') !== -1 ? sectionOrder.indexOf('projects') : 99 }} draggable={draggableSectionId === 'projects'} onDragStart={(e) => handleDragStart(e, 'projects')} onDragEnter={(e) => handleDragEnter(e, 'projects')} onDragEnd={handleDragEnd} onDragOver={(e) => handleDragOver(e, 'projects')} className={`form-group-card mb-3 ${activeSection === 'projects' ? 'active' : ''} ${activeDragSection === 'projects' ? 'dragging' : ''}`}>
           <div
             className="card-header d-flex align-items-center justify-content-between"
             onClick={() => toggleSection('projects')}
@@ -956,7 +974,7 @@ export default function BuilderForm({
               Projects
             </h3>
             <div className="d-flex align-items-center gap-2">
-              <DragHandle />
+              <DragHandle sectionId="projects" />
               <button
                 className="btn-repeater-delete"
                 onClick={(e) => { e.stopPropagation(); handleDeleteSection("projects"); }}
@@ -978,9 +996,7 @@ export default function BuilderForm({
                 <>
                 <div className="repeater-item-header d-flex align-items-center justify-content-between" onClick={() => toggleItemCollapse(proj.id || `proj-${projIdx}`)} style={{ cursor: 'pointer', userSelect: 'none' }}>
                   <span className="fw-medium d-flex align-items-center gap-1" style={{ fontSize: '0.82rem', color: '#94a3b8' }}>
-                    <DragHandle>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
-                    </DragHandle>
+                    <SortableDragHandle />
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg> Project #{projIdx + 1}: {proj.name || 'New Project'}
                   </span>
                   <div className="d-flex align-items-center gap-2"><span style={{ color: '#94a3b8', transform: expandedItems[proj.id || `proj-${projIdx}`] ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', display: 'inline-block', fontSize: '0.8rem' }}>▼</span><button className="btn-repeater-delete"
@@ -1068,8 +1084,8 @@ export default function BuilderForm({
 
       {/* 3. EDUCATION */}
       {sectionOrder.includes('education') && (
-        <div data-id="education" style={{ order: sectionOrder.indexOf('education') !== -1 ? sectionOrder.indexOf('education') : 99 }} draggable onDragStart={(e) => handleDragStart(e, 'education')} onDragEnter={(e) => handleDragEnter(e, 'education')} onDragEnd={handleDragEnd} onDragOver={(e) => handleDragOver(e, 'education')}
-          className={`form-group-card mb-3 ${activeSection === "education" ? "active" : ""}`}
+        <div data-id="education" style={{ order: sectionOrder.indexOf('education') !== -1 ? sectionOrder.indexOf('education') : 99 }} draggable={draggableSectionId === 'education'} onDragStart={(e) => handleDragStart(e, 'education')} onDragEnter={(e) => handleDragEnter(e, 'education')} onDragEnd={handleDragEnd} onDragOver={(e) => handleDragOver(e, 'education')}
+          className={`form-group-card mb-3 ${activeSection === "education" ? "active" : ""} ${activeDragSection === "education" ? "dragging" : ""}`}
         >
           <div
             className="card-header d-flex align-items-center justify-content-between"
@@ -1094,7 +1110,7 @@ export default function BuilderForm({
               Education & Academic Background
             </h3>
             <div className="d-flex align-items-center gap-2">
-              <DragHandle />
+              <DragHandle sectionId="education" />
               <button
                 className="btn-repeater-delete"
                 onClick={(e) => { e.stopPropagation(); handleDeleteSection("education"); }}
@@ -1128,9 +1144,7 @@ export default function BuilderForm({
                     className="fw-medium text-secondary d-flex align-items-center gap-1"
                     style={{ fontSize: "0.88rem" }}
                   >
-                    <DragHandle>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
-                    </DragHandle>
+                    <SortableDragHandle />
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.42 10.922a2 2 0 0 0-.019-3.838L12.83 4.336a2 2 0 0 0-1.66 0L2.6 7.08a2 2 0 0 0 0 3.838l9.36 4.336a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg> Education #{eduIdx + 1}: {edu.degree || "New Degree"}
                   </span>
                   <div className="d-flex align-items-center gap-2"><span style={{ color: '#94a3b8', transform: expandedItems[edu.id || `edu-${eduIdx}`] ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', display: 'inline-block', fontSize: '0.8rem' }}>▼</span><button className="btn-repeater-delete"
@@ -1253,8 +1267,8 @@ export default function BuilderForm({
 
       {/* 4. SKILLS & CORE COMPETENCIES */}
       {sectionOrder.includes('skills') && (
-        <div data-id="skills" style={{ order: sectionOrder.indexOf('skills') !== -1 ? sectionOrder.indexOf('skills') : 99 }} draggable onDragStart={(e) => handleDragStart(e, 'skills')} onDragEnter={(e) => handleDragEnter(e, 'skills')} onDragEnd={handleDragEnd} onDragOver={(e) => handleDragOver(e, 'skills')}
-          className={`form-group-card mb-3 ${activeSection === "skills" ? "active" : ""}`}
+        <div data-id="skills" style={{ order: sectionOrder.indexOf('skills') !== -1 ? sectionOrder.indexOf('skills') : 99 }} draggable={draggableSectionId === 'skills'} onDragStart={(e) => handleDragStart(e, 'skills')} onDragEnter={(e) => handleDragEnter(e, 'skills')} onDragEnd={handleDragEnd} onDragOver={(e) => handleDragOver(e, 'skills')}
+          className={`form-group-card mb-3 ${activeSection === "skills" ? "active" : ""} ${activeDragSection === "skills" ? "dragging" : ""}`}
         >
           <div
             className="card-header d-flex align-items-center justify-content-between"
@@ -1279,7 +1293,7 @@ export default function BuilderForm({
               Skills & Core Competencies
             </h3>
             <div className="d-flex align-items-center gap-2">
-              <DragHandle />
+              <DragHandle sectionId="skills" />
               <button
                 className="btn-repeater-delete"
                 onClick={(e) => { e.stopPropagation(); handleDeleteSection("skills"); }}
@@ -1312,9 +1326,7 @@ export default function BuilderForm({
                     className="fw-medium text-secondary d-flex align-items-center gap-1"
                     style={{ fontSize: "0.88rem" }}
                   >
-                    <DragHandle>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
-                    </DragHandle>
+                    <SortableDragHandle />
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Skill Category: {skill.category || "New Category"}
                   </span>
                   <div className="d-flex align-items-center gap-2"><span style={{ color: '#94a3b8', transform: expandedItems[skill.id || `sk-${skIdx}`] ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', display: 'inline-block', fontSize: '0.8rem' }}>▼</span><button className="btn-repeater-delete"
@@ -1383,8 +1395,8 @@ export default function BuilderForm({
 
       {/* 5. CERTIFICATIONS */}
       {sectionOrder.includes('certifications') && (
-        <div data-id="certifications" style={{ order: sectionOrder.indexOf('certifications') !== -1 ? sectionOrder.indexOf('certifications') : 99 }} draggable onDragStart={(e) => handleDragStart(e, 'certifications')} onDragEnter={(e) => handleDragEnter(e, 'certifications')} onDragEnd={handleDragEnd} onDragOver={(e) => handleDragOver(e, 'certifications')}
-          className={`form-group-card mb-3 ${activeSection === "certifications" ? "active" : ""}`}
+        <div data-id="certifications" style={{ order: sectionOrder.indexOf('certifications') !== -1 ? sectionOrder.indexOf('certifications') : 99 }} draggable={draggableSectionId === 'certifications'} onDragStart={(e) => handleDragStart(e, 'certifications')} onDragEnter={(e) => handleDragEnter(e, 'certifications')} onDragEnd={handleDragEnd} onDragOver={(e) => handleDragOver(e, 'certifications')}
+          className={`form-group-card mb-3 ${activeSection === "certifications" ? "active" : ""} ${activeDragSection === "certifications" ? "dragging" : ""}`}
         >
           <div
             className="card-header d-flex align-items-center justify-content-between"
@@ -1409,7 +1421,7 @@ export default function BuilderForm({
               Certifications & Training
             </h3>
             <div className="d-flex align-items-center gap-2">
-              <DragHandle />
+              <DragHandle sectionId="certifications" />
               <button
                 className="btn-repeater-delete"
                 onClick={(e) => { e.stopPropagation(); handleDeleteSection("certifications"); }}
@@ -1443,9 +1455,7 @@ export default function BuilderForm({
                     className="fw-medium text-secondary d-flex align-items-center gap-1"
                     style={{ fontSize: "0.88rem" }}
                   >
-                    <DragHandle>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
-                    </DragHandle>
+                    <SortableDragHandle />
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg> Cert: {cert.name || "New Certification"}
                   </span>
                   <div className="d-flex align-items-center gap-2"><span style={{ color: '#94a3b8', transform: expandedItems[cert.id || `cert-${certIdx}`] ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', display: 'inline-block', fontSize: '0.8rem' }}>▼</span><button className="btn-repeater-delete"
@@ -1527,8 +1537,8 @@ export default function BuilderForm({
 
       {/* 6. REFERENCES (Highly expected in Australia) */}
       {sectionOrder.includes('references') && (
-        <div data-id="references" style={{ order: sectionOrder.indexOf('references') !== -1 ? sectionOrder.indexOf('references') : 99 }} draggable onDragStart={(e) => handleDragStart(e, 'references')} onDragEnter={(e) => handleDragEnter(e, 'references')} onDragEnd={handleDragEnd} onDragOver={(e) => handleDragOver(e, 'references')}
-          className={`form-group-card mb-3 ${activeSection === "references" ? "active" : ""}`}
+        <div data-id="references" style={{ order: sectionOrder.indexOf('references') !== -1 ? sectionOrder.indexOf('references') : 99 }} draggable={draggableSectionId === 'references'} onDragStart={(e) => handleDragStart(e, 'references')} onDragEnter={(e) => handleDragEnter(e, 'references')} onDragEnd={handleDragEnd} onDragOver={(e) => handleDragOver(e, 'references')}
+          className={`form-group-card mb-3 ${activeSection === "references" ? "active" : ""} ${activeDragSection === "references" ? "dragging" : ""}`}
         >
           <div
             className="card-header d-flex align-items-center justify-content-between"
@@ -1553,7 +1563,7 @@ export default function BuilderForm({
               Professional References
             </h3>
             <div className="d-flex align-items-center gap-2">
-              <DragHandle />
+              <DragHandle sectionId="references" />
               <button
                 className="btn-repeater-delete"
                 onClick={(e) => { e.stopPropagation(); handleDeleteSection("references"); }}
@@ -1587,9 +1597,7 @@ export default function BuilderForm({
                     className="fw-medium text-secondary d-flex align-items-center gap-1"
                     style={{ fontSize: "0.88rem" }}
                   >
-                    <DragHandle>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
-                    </DragHandle>
+                    <SortableDragHandle />
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Reference #{refIdx + 1}: {ref.name || "New Reference"}
                   </span>
                   <div className="d-flex align-items-center gap-2"><span style={{ color: '#94a3b8', transform: expandedItems[ref.id || `ref-${refIdx}`] ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', display: 'inline-block', fontSize: '0.8rem' }}>▼</span><button className="btn-repeater-delete"
@@ -1663,7 +1671,7 @@ export default function BuilderForm({
 
       {/* DYNAMIC CUSTOM SECTIONS */}
       {(formData.customSections || []).map((section, sectionIdx) => (
-        <div key={section.id} data-id={"custom-" + section.id} style={{ order: sectionOrder.indexOf("custom-" + section.id) !== -1 ? sectionOrder.indexOf("custom-" + section.id) : 99 }} draggable onDragStart={(e) => handleDragStart(e, "custom-" + section.id)} onDragEnter={(e) => handleDragEnter(e, "custom-" + section.id)} onDragEnd={handleDragEnd} onDragOver={(e) => handleDragOver(e, "custom-" + section.id)} className={`form-group-card mb-3 ${activeSection === `custom-${section.id}` ? 'active' : ''}`}>
+        <div key={section.id} data-id={"custom-" + section.id} style={{ order: sectionOrder.indexOf("custom-" + section.id) !== -1 ? sectionOrder.indexOf("custom-" + section.id) : 99 }} draggable={draggableSectionId === "custom-" + section.id} onDragStart={(e) => handleDragStart(e, "custom-" + section.id)} onDragEnter={(e) => handleDragEnter(e, "custom-" + section.id)} onDragEnd={handleDragEnd} onDragOver={(e) => handleDragOver(e, "custom-" + section.id)} className={`form-group-card mb-3 ${activeSection === `custom-${section.id}` ? 'active' : ''} ${activeDragSection === "custom-" + section.id ? 'dragging' : ''}`}>
           <div
             className="card-header d-flex align-items-center justify-content-between"
             onClick={() => toggleSection(`custom-${section.id}`)}
@@ -1683,7 +1691,7 @@ export default function BuilderForm({
               />
             </h3>
             <div className="d-flex align-items-center gap-2">
-              <DragHandle />
+              <DragHandle sectionId={"custom-" + section.id} />
               <button
                 className="btn-repeater-delete"
                 onClick={(e) => { e.stopPropagation(); handleRemoveCustomSection(sectionIdx); }}
@@ -1709,11 +1717,9 @@ export default function BuilderForm({
                 }}
                 renderItem={(item, itemIdx) => (
                   <>
-                  <div className="repeater-item-header d-flex align-items-center justify-content-between" onClick={() => toggleItemCollapse(`custom-${section.id}-${itemIdx}`)} style={{ cursor: 'pointer', userSelect: 'none' }}>
+                  <div className="repeater-item-header d-flex align-items-center justify-content-between" onClick={() => toggleItemCollapse(item.id || `custom-${section.id}-${itemIdx}`)} style={{ cursor: 'pointer', userSelect: 'none' }}>
                     <span className="fw-medium d-flex align-items-center gap-1" style={{ fontSize: '0.82rem', color: '#94a3b8' }}>
-                      <DragHandle>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
-                      </DragHandle>
+                      <SortableDragHandle />
                       📌 Entry #{itemIdx + 1}: {item.title || 'New Entry'}
                     </span>
                     <div className="d-flex align-items-center gap-2">

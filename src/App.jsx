@@ -21,6 +21,34 @@ import { generateDocx } from "./utils/docxExport";
 import { deriveKey, encryptData, decryptData } from "./utils/crypto";
 
 // Baseline Empty Resume state schema
+
+const normalizeResumeData = (data) => {
+  if (!data) return data;
+  const newData = { ...data };
+  const addIds = (arr, prefix) => {
+    if (!Array.isArray(arr)) return [];
+    return arr.map((item, idx) => ({
+      ...item,
+      id: item.id || `${prefix}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}-${idx}`
+    }));
+  };
+  newData.workExperience = addIds(newData.workExperience, 'exp');
+  newData.projects = addIds(newData.projects, 'proj');
+  newData.education = addIds(newData.education, 'edu');
+  newData.skills = addIds(newData.skills, 'sk');
+  newData.certifications = addIds(newData.certifications, 'cert');
+  newData.references = addIds(newData.references, 'ref');
+  
+  if (Array.isArray(newData.customSections)) {
+    newData.customSections = newData.customSections.map((sec, sIdx) => ({
+      ...sec,
+      id: sec.id || `custom-${Date.now()}-${sIdx}`,
+      items: addIds(sec.items, 'ci')
+    }));
+  }
+  return newData;
+};
+
 const emptyResumeState = {
   personalInfo: {
     fullName: "",
@@ -760,7 +788,7 @@ export default function App() {
                         console.warn("Missing E2EE key for encrypted resume");
                       }
                     }
-                    setFormData(resumeData || emptyResumeState);
+                    setFormData(resumeData ? normalizeResumeData(resumeData) : emptyResumeState);
                     if (data.resume.templateStyle)
                       setTemplateStyle(data.resume.templateStyle);
                     if (data.resume.accentColor)
@@ -1715,9 +1743,58 @@ export default function App() {
           className="app-container container-fluid p-0"
           style={{ position: "absolute", inset: 0, zIndex: 5 }}
         >
+          <style>
+            {`
+              @media print {
+                .app-sidebar,
+                .app-sidebar.d-lg-flex,
+                .print-hide,
+                .canvas-settings-bar,
+                .mobile-action-panel {
+                  display: none !important;
+                }
+                html,
+                body,
+                .app-root,
+                .app-container,
+                .app-canvas,
+                .app-canvas.overflow-y-auto,
+                .print-no-margin,
+                .print-no-padding,
+                .resume-preview-outer-container,
+                .resume-preview-scale-wrapper {
+                  display: block !important;
+                  position: static !important;
+                  height: auto !important;
+                  max-height: none !important;
+                  min-height: 0 !important;
+                  overflow: visible !important;
+                  overflow-y: visible !important;
+                  overflow-x: visible !important;
+                  transform: none !important;
+                }
+                .resume-paper-wrapper {
+                  margin: 0 auto !important;
+                  zoom: 1 !important;
+                  transform: none !important;
+                }
+                .experience-block,
+                .education-block,
+                .project-block,
+                .reference-card {
+                  page-break-inside: avoid !important;
+                  break-inside: avoid !important;
+                }
+                .resume-section {
+                  page-break-inside: auto !important;
+                  break-inside: auto !important;
+                }
+              }
+            `}
+          </style>
           {/* LEFT PANEL: The Interactive Builder Forms */}
           <div
-            className={`app-sidebar bg-dark text-light border-end border-secondary border-opacity-25 flex-column h-100 overflow-y-auto ${mobileTab === "editor" ? "d-flex" : "d-none d-lg-flex"}`}
+            className={`app-sidebar print-hide bg-dark text-light border-end border-secondary border-opacity-25 flex-column h-100 overflow-y-auto ${mobileTab === "editor" ? "d-flex" : "d-none d-lg-flex"}`}
           >
             {/* Sticky Top Sidebar Panel: Brand, Stepper, and Actions */}
             <div
@@ -2117,7 +2194,7 @@ export default function App() {
                     background:
                       "linear-gradient(135deg, #2563eb 0%, #1e40af 100%)",
                   }}
-                  onClick={() => generateDocx(formData)}
+                  onClick={() => generateDocx(formData, { templateStyle, accentColor, spacingTuning, fontPairing })}
                 >
                   <svg
                     fill="none"
@@ -2504,14 +2581,16 @@ export default function App() {
             </div>
 
             {/* Realtime compliance alerts block */}
-            <ComplianceScanner
-              formData={formData}
-              country="usa"
-              targetKeywords={targetKeywords}
-              matchedKeywords={matchedKeywords}
-              matchPercentage={matchPercentage}
-              jobDescription={jobDescription}
-            />
+            <div className="print-hide w-100">
+              <ComplianceScanner
+                formData={formData}
+                country="usa"
+                targetKeywords={targetKeywords}
+                matchedKeywords={matchedKeywords}
+                matchPercentage={matchPercentage}
+                jobDescription={jobDescription}
+              />
+            </div>
 
             {/* Floating Paper Preview */}
             <div className="mt-3 mb-4 w-100 d-flex justify-content-center print-no-margin">

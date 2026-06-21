@@ -985,7 +985,7 @@ label.form-label {
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
   position: relative;
   transition: all 0.3s ease;
-  overflow: hidden;
+  overflow: visible;
   font-size: var(--resume-font-size-body, 0.86rem);
   line-height: var(--resume-line-height, 1.5);
   zoom: 1.08;
@@ -3441,6 +3441,13 @@ html {
   .blueprint-desc,
   .blueprint-specs-grid,
   .print-hide,
+  div.print-hide,
+  .app-sidebar,
+  div.app-sidebar,
+  .app-sidebar.d-lg-flex,
+  .app-sidebar.d-flex,
+  .canvas-settings-bar,
+  .mobile-action-panel,
   .hero-section,
   #features,
   #templates,
@@ -3453,16 +3460,27 @@ html {
   body,
   html,
   main,
+  .app-root,
+  .app-container,
   .container-fluid,
   .row,
-  .col-lg-8 {
+  .col-lg-8,
+  .app-canvas,
+  .print-no-margin,
+  .print-no-padding,
+  .resume-preview-outer-container,
+  .resume-preview-scale-wrapper {
+    display: block !important;
     background: #ffffff !important;
     color: #000000 !important;
     margin: 0 !important;
     padding: 0 !important;
     width: 100% !important;
     height: auto !important;
+    min-height: 0 !important;
     overflow: visible !important;
+    position: static !important;
+    transform: none !important;
   }
 
   /* 3. Force background colors to render (important for colored resume sidebars) */
@@ -3475,8 +3493,7 @@ html {
   .resume-paper-wrapper,
   #resume-print-target,
   .blueprint-frame {
-    margin: 0 !important;
-    padding: 0 !important;
+    margin: 0 auto !important;
     box-shadow: none !important;
     border: none !important;
     width: 100% !important;
@@ -3485,16 +3502,21 @@ html {
     transform: none !important;
     overflow: visible !important;
     position: static !important;
+    zoom: 1 !important;
   }
 
-  /* 5. Prevent awkward page breaks inside text blocks */
+  /* 5. Prevent awkward page breaks inside text blocks, but allow page-breaks inside sections */
   .experience-block,
   .education-block,
   .project-block,
-  .resume-section,
-  .skill-category {
+  .reference-card {
     page-break-inside: avoid !important;
     break-inside: avoid !important;
+  }
+
+  .resume-section {
+    page-break-inside: auto !important;
+    break-inside: auto !important;
   }
 
   @page {
@@ -3523,4 +3545,41 @@ html {
 .forgot-link:hover {
   color: var(--ui-text-primary) !important;
   text-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
+}
+
+/* --- Premium Drag and Drop Grip Handle Styling --- */
+.drag-handle,
+.item-drag-handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px !important;
+  border-radius: 6px !important;
+  color: #64748b !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  cursor: grab !important;
+  user-select: none;
+}
+
+.drag-handle:hover,
+.item-drag-handle:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: var(--ui-accent) !important;
+  transform: scale(1.1);
+}
+
+.drag-handle:active,
+.item-drag-handle:active {
+  cursor: grabbing !important;
+  background: rgba(255, 255, 255, 0.15) !important;
+  color: var(--ui-accent-hover) !important;
+  transform: scale(0.95);
+}
+
+.form-group-card.dragging {
+  opacity: 0.45 !important;
+  border: 1.5px dashed var(--ui-accent) !important;
+  box-shadow: 0 10px 30px var(--ui-accent-glow) !important;
+  transform: scale(0.98) !important;
+  pointer-events: none;
 }

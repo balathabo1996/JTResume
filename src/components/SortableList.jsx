@@ -44,10 +44,17 @@ export function SortableItem({ id, children, className }) {
   );
 }
 
+
 export function DragHandle({ children }) {
   const context = React.useContext(SortableItemContext);
   if (!context) {
-    return <div className="item-drag-handle-disabled">{children}</div>;
+    return (
+      <div className="item-drag-handle-disabled">
+        {children || (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.6 }}><circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/></svg>
+        )}
+      </div>
+    );
   }
   const { attributes, listeners } = context;
   
@@ -56,9 +63,14 @@ export function DragHandle({ children }) {
       {...attributes}
       {...listeners}
       className="item-drag-handle"
-      style={{ cursor: 'grab', display: 'flex', alignItems: 'center', touchAction: 'none' }}
+      style={{ display: 'flex', alignItems: 'center', touchAction: 'none' }}
+      onClick={(e) => {
+        e.stopPropagation();
+      }}
     >
-      {children}
+      {children || (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.6 }}><circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/></svg>
+      )}
     </div>
   );
 }

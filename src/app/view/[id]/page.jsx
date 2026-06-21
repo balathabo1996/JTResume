@@ -61,7 +61,7 @@ export default function ViewResumePage({ params }) {
 
   // Resume is found.
   return (
-    <div className="min-vh-100 py-5 d-flex flex-column align-items-center" style={{ backgroundColor: 'var(--ui-bg)' }}>
+    <div className="min-vh-100 py-5 d-flex flex-column align-items-center print-no-margin" style={{ backgroundColor: 'var(--ui-bg)' }}>
       <div className="mb-5">
         <a href="/" style={{ textDecoration: 'none', color: '#818cf8', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
           <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ width: '20px', height: '20px' }}>
@@ -71,8 +71,8 @@ export default function ViewResumePage({ params }) {
         </a>
       </div>
       
-      <div className="w-100" style={{ maxWidth: '100%', overflowX: 'auto', display: 'flex', justifyContent: 'center', padding: '0 20px' }}>
-        <div style={{ transform: 'scale(1)', transformOrigin: 'top center', marginBottom: '40px' }}>
+      <div className="w-100 resume-preview-outer-container" style={{ maxWidth: '100%', overflowX: 'auto', display: 'flex', justifyContent: 'center', padding: '0 20px' }}>
+        <div className="resume-preview-scale-wrapper" style={{ transform: 'scale(1)', transformOrigin: 'top center', marginBottom: '40px' }}>
           <ResumePreview 
             formData={resumeData.data || {}} 
             templateStyle={resumeData.templateStyle || 'modern'}

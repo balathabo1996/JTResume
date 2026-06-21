@@ -1242,8 +1242,8 @@ export default function ResumePreview({ formData, country = 'usa', templateStyle
   }
 
   return (
-    <div ref={containerRef} style={{ width: '100%', display: 'flex', justifyContent: 'center', position: 'relative' }}>
-      <div style={{ 
+    <div ref={containerRef} className="resume-preview-outer-container" style={{ width: '100%', display: 'flex', justifyContent: 'center', position: 'relative' }}>
+      <div className="resume-preview-scale-wrapper" style={{ 
         transform: `scale(${scale})`, 
         transformOrigin: 'top center', 
         transition: 'transform 0.15s ease-out',
