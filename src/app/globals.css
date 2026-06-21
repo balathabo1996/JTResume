@@ -3558,6 +3558,7 @@ html {
   color: #64748b !important;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
   cursor: grab !important;
+  -webkit-user-select: none;
   user-select: none;
 }
 
